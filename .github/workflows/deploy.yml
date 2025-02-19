@@ -81,5 +81,6 @@ jobs:
             -e DB_URL=${{ secrets.DB_URL }} \
             --name spring-cicd-test ${{ secrets.DOCKERHUB_USERNAME }}/spring-cicd-test
 
-      - name: delete old docker image
-        run: sudo docker system prune -f
+      # 사용되지 않는 Docker 이미지 삭제 (dangling images만 정리)
+      - name: Cleanup old Docker images
+        run: sudo docker image prune -f
