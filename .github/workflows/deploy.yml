@@ -65,11 +65,15 @@ jobs:
       - name: docker pull
         run: sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/spring-cicd-test
 
-      - name: docker stop container
+      - name: Stop and remove existing container
         run: |
-          if [ $(sudo docker ps -aq -f name=spring-cicd-test) ]; then
-            sudo docker stop spring-cicd-test
-            sudo docker rm spring-cicd-test
+          CONTAINER_ID=$(sudo docker ps -aq -f name=spring-cicd-test)
+          if [ -n "$CONTAINER_ID" ]; then
+            echo "Stopping and removing existing container: $CONTAINER_ID"
+            sudo docker stop $CONTAINER_ID
+            sudo docker rm $CONTAINER_ID
+          else
+            echo "No existing container found, skipping stop/remove step."
           fi
 
       # 환경 변수를 적용하여 컨테이너 실행
