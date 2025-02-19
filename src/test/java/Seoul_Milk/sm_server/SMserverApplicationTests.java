@@ -1,4 +1,4 @@
-package Seoul_Milk.server;
+package Seoul_Milk.sm_server;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,4 +1,4 @@
-package Seoul_Milk.server;
+package Seoul_Milk.sm_server;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
