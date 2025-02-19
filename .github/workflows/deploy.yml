@@ -45,6 +45,7 @@ jobs:
     - name: Docker Hub push
       run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/spring-cicd-test
 
+
   # 위 과정에서 푸시한 이미지를 ec2에서 풀받아서 실행
   run-docker-image-on-ec2:
     needs: build-docker-image
