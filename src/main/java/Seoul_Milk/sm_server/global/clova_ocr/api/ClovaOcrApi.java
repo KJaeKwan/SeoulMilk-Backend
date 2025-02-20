@@ -7,6 +7,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -18,19 +19,19 @@ import java.util.*;
 public class ClovaOcrApi {
 
     private final String clovaOcrUrl;
+
     public ClovaOcrApi(@Value("${clova.ocr.url}") String clovaOcrUrl) {
         this.clovaOcrUrl = clovaOcrUrl;
     }
 
     /**
-     * CLOVA OCR API 호출
-     * @param type 호출 메서드 타입
-     * @param filePath 파일 경로
-     * @param naverSecretKey 네이버 시크릿키 값
-     * @param ext 확장자
-     * @return 추출된 텍스트 리스트
+     * MultipartFile을 받아 OCR API 요청
+     * @param type HTTP 메서드 (POST)
+     * @param file 업로드된 Multipart 이미지 파일
+     * @param naverSecretKey 네이버 클로바 OCR Secret Key
+     * @param contentType 파일 확장자 (예: image/png)
      */
-    public List<String> callApi(String type, String filePath, String naverSecretKey, String ext) {
+    public List<String> callApi(String type, MultipartFile file, String naverSecretKey, String contentType) {
         String apiURL = clovaOcrUrl;
         List<String> parseData = null;
 
@@ -54,16 +55,15 @@ public class ClovaOcrApi {
             json.put("timestamp", System.currentTimeMillis());
 
             JSONObject image = new JSONObject();
-            image.put("format", ext);
-            image.put("name", "demo");
+            image.put("format", contentType.replace("image/", ""));
+            image.put("name", file.getOriginalFilename());
 
             JSONArray images = new JSONArray();
             images.add(image);
             json.put("images", images);
             String postParams = json.toJSONString();
 
-            // 요청 전송
-            File file = new File(filePath);
+            // MultipartFile API로 전송
             try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
                 writeMultiPart(wr, postParams, file, boundary);
             }
@@ -82,19 +82,15 @@ public class ClovaOcrApi {
             }
 
         } catch (Exception e) {
-            e.printStackTrace(); // Logger 활용 가능
+            e.printStackTrace();
         }
         return parseData;
     }
 
     /**
      * Multipart 데이터 전송
-     * @param out 데이터 출력 스트림
-     * @param jsonMessage JSON 데이터
-     * @param file 전송할 파일
-     * @param boundary Multipart Boundary
      */
-    private static void writeMultiPart(OutputStream out, String jsonMessage, File file, String boundary) throws IOException {
+    private static void writeMultiPart(OutputStream out, String jsonMessage, MultipartFile file, String boundary) throws IOException {
         StringBuilder sb = new StringBuilder();
         sb.append("--").append(boundary).append("\r\n");
         sb.append("Content-Disposition: form-data; name=\"message\"\r\n\r\n");
@@ -103,12 +99,12 @@ public class ClovaOcrApi {
         out.write(sb.toString().getBytes(StandardCharsets.UTF_8));
         out.flush();
 
-        if (file != null && file.isFile()) {
-            try (FileInputStream fis = new FileInputStream(file)) {
+        if (!file.isEmpty()) {
+            try (InputStream fis = file.getInputStream()) {
                 StringBuilder fileString = new StringBuilder();
                 fileString.append("--").append(boundary).append("\r\n")
                         .append("Content-Disposition: form-data; name=\"file\"; filename=\"")
-                        .append(file.getName()).append("\"\r\n")
+                        .append(file.getOriginalFilename()).append("\"\r\n")
                         .append("Content-Type: application/octet-stream\r\n\r\n");
 
                 out.write(fileString.toString().getBytes(StandardCharsets.UTF_8));
@@ -125,10 +121,7 @@ public class ClovaOcrApi {
     }
 
     /**
-     * JSON 응답 데이터 가공
-     * @param response 응답 문자열
-     * @return 추출된 텍스트 리스트
-     * @throws ParseException JSON 파싱 오류
+     * CLOVA OCR API에서 받은 JSON 응답을 파싱
      */
     private static List<String> jsonparse(String response) throws ParseException {
         JSONParser parser = new JSONParser();
@@ -156,4 +149,5 @@ public class ClovaOcrApi {
         }
         return result;
     }
+
 }

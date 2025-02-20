@@ -4,6 +4,7 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: oracle.jdbc.OracleDriver
+
   jpa:
     properties:
       hibernate:
@@ -11,6 +12,14 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+  jackson:
+    time-zone: Asia/Seoul
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 clova:
   ocr:
