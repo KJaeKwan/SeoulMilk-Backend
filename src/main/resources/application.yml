@@ -4,3 +4,15 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: oracle.jdbc.OracleDriver
+  jpa:
+    properties:
+      hibernate:
+        default_schema: ${DB_USERNAME}
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+clova:
+  ocr:
+    url: ${CLOVA_OCR_URL}
+    secret-key: ${CLOVA_SECRET_KEY}
