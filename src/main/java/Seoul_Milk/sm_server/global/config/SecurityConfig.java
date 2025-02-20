@@ -18,14 +18,18 @@ public class SecurityConfig {
 
     // 인증이 필요하지 않은 URL 목록
     private final String[] allowedUrls = {
-            "/",
+            // FIXME 로그인 구현 전 모든 경로 허용
+            "/**",
             "/swagger-ui/**",
-            "/v3/api-docs/**",
+            "/v3/api-docs/**"
     };
 
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        // CSRF 보호 비활성화
+        http.csrf(csrf -> csrf.disable());
 
         // CORS 설정
         http.cors(Customizer.withDefaults());
