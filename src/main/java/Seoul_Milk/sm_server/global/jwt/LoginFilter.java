@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,7 +19,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
@@ -29,12 +29,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     public Authentication attemptAuthentication(
             HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-
         //클라이언트 요청에서 사번, 비밀번호 추출
-        String employeeId = request.getParameter("employee_id");
+        String employeeId = request.getParameter("employeeId");
         String password = obtainPassword(request);
-
-        System.out.println(employeeId);
 
         //스프링 시큐리티에서 username과 password를 검증하기 위해서는 token에 담아야 함
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(employeeId, password, null);
@@ -62,7 +59,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         //응답 설정
         response.setHeader("access", access);
-
         response.addCookie(CookieClass.createCookie("refresh", refresh));
         response.setStatus(HttpStatus.OK.value());
     }
