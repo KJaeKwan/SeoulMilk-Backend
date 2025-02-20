@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
     MemberEntity findByEmployeeId(String employeeId);
+    Boolean existsByEmployeeId(String employeeId);
 }
