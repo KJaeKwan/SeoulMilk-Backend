@@ -8,7 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
+import java.util.Date;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,5 +29,5 @@ public class RefreshEntity {
     @Column(name = "REFRESH_TOKEN")
     private String refreshToken;
     @Column(name = "EXPIRATION")
-    private LocalDateTime expiration;
+    private Date expiration;
 }
