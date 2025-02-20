@@ -1,13 +1,13 @@
-package Seoul_Milk.server;
+package Seoul_Milk.sm_server;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ServerApplication {
+public class SM_serverApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ServerApplication.class, args);
+		SpringApplication.run(SM_serverApplication.class, args);
 	}
 
 }
