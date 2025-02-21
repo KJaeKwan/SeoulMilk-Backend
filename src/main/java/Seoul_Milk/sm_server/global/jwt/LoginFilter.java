@@ -1,9 +1,9 @@
 package Seoul_Milk.sm_server.global.jwt;
 
+import static Seoul_Milk.sm_server.global.cookie.CookieClass.createCookie;
 import static Seoul_Milk.sm_server.global.token.Token.ACCESS_TOKEN;
 import static Seoul_Milk.sm_server.global.token.Token.REFRESH_TOKEN;
 
-import Seoul_Milk.sm_server.global.cookie.CookieClass;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.global.refresh.RefreshToken;
@@ -71,7 +71,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         //응답 설정
         response.setHeader(ACCESS_TOKEN.category(), access);
-        response.addCookie(CookieClass.createCookie(REFRESH_TOKEN.category(), refresh));
+        response.addCookie(createCookie(REFRESH_TOKEN.category(), refresh));
         response.setStatus(HttpStatus.OK.value());
     }
 
