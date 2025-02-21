@@ -40,7 +40,7 @@ public class JWTUtil {
 
         return Jwts.builder()
                 .claim("category", category)
-                .claim("username", employeeId)
+                .claim("employeeId", employeeId)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))
