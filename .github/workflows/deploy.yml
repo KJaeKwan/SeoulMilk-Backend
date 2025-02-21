@@ -69,9 +69,11 @@ jobs:
         run: |
           CONTAINER_ID=$(sudo docker ps -aq -f name=spring-cicd-test)
           if [ -n "$CONTAINER_ID" ]; then
-            echo "Stopping and removing existing container: $CONTAINER_ID"
+            echo "Stopping existing container: $CONTAINER_ID"
             sudo docker stop $CONTAINER_ID
-            sudo docker rm $CONTAINER_ID
+            sleep 3  # 컨테이너 종료 대기
+            echo "Removing container: $CONTAINER_ID"
+            sudo docker rm -f $CONTAINER_ID
           else
             echo "No existing container found, skipping stop/remove step."
           fi
