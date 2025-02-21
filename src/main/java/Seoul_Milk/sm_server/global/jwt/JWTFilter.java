@@ -1,5 +1,7 @@
 package Seoul_Milk.sm_server.global.jwt;
 
+import static Seoul_Milk.sm_server.global.token.Token.ACCESS_TOKEN;
+
 import Seoul_Milk.sm_server.login.constant.Role;
 import Seoul_Milk.sm_server.login.dto.CustomUserDetails;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
@@ -24,7 +26,7 @@ public class JWTFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         // 헤더에서 access키에 담긴 토큰을 꺼냄
-        String accessToken = request.getHeader("access");
+        String accessToken = request.getHeader(ACCESS_TOKEN.category());
 
         // 토큰이 없다면 다음 필터로 넘김
         if (accessToken == null) {
@@ -49,7 +51,7 @@ public class JWTFilter extends OncePerRequestFilter {
         // 토큰이 access인지 확인 (발급시 페이로드에 명시)
         String category = jwtUtil.getCategory(accessToken);
 
-        if (!category.equals("access")) {
+        if (!category.equals(ACCESS_TOKEN.category())) {
 
             //response body
             PrintWriter writer = response.getWriter();

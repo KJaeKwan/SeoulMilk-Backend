@@ -1,6 +1,8 @@
 package Seoul_Milk.sm_server.login.service;
 
 import static Seoul_Milk.sm_server.global.cookie.CookieClass.createCookie;
+import static Seoul_Milk.sm_server.global.token.Token.ACCESS_TOKEN;
+import static Seoul_Milk.sm_server.global.token.Token.REFRESH_TOKEN;
 
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
@@ -25,7 +27,7 @@ public class ReissueService {
     public Object reissue(HttpServletRequest request, HttpServletResponse response){
         Cookie[] cookies = request.getCookies();
         String refresh = Arrays.stream(cookies)
-                .filter(cookie -> "refresh".equals(cookie.getName()))
+                .filter(cookie -> REFRESH_TOKEN.category().equals(cookie.getName()))
                 .map(Cookie::getValue)
                 .findFirst()
                 .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
@@ -41,7 +43,7 @@ public class ReissueService {
         // 토큰이 refresh인지 확인 (발급시 페이로드에 명시)
         String category = jwtUtil.getCategory(refresh);
 
-        if (!category.equals("refresh")) {
+        if (!category.equals(REFRESH_TOKEN.category())) {
             //response status code
             throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
@@ -57,17 +59,17 @@ public class ReissueService {
         String role = jwtUtil.getRole(refresh).toString();
 
         //make new JWT
-        String newAccess = jwtUtil.createJwt("access", employeeId, role, 600000L);
-        String newRefresh = jwtUtil.createJwt("refresh", employeeId, role, 86400000L);
+        String newAccess = jwtUtil.createJwt(ACCESS_TOKEN.category(), employeeId, role, ACCESS_TOKEN.expireMs());
+        String newRefresh = jwtUtil.createJwt(REFRESH_TOKEN.category(), employeeId, role, REFRESH_TOKEN.expireMs());
 
         //Refresh 토큰 저장 DB에 기존의 Refresh 토큰 삭제 후 새 Refresh 토큰 저장
         refreshRepository.deleteByRefreshToken(refresh);
         RefreshToken refreshToken = new RefreshToken(memberRepository, refreshRepository);
-        refreshToken.addRefreshEntity(employeeId, newRefresh, 86400000L);
+        refreshToken.addRefreshEntity(employeeId, newRefresh, REFRESH_TOKEN.expireMs());
 
         //response
-        response.setHeader("access", newAccess);
-        response.addCookie(createCookie("refresh", newRefresh));
+        response.setHeader(ACCESS_TOKEN.category(), newAccess);
+        response.addCookie(createCookie(REFRESH_TOKEN.category(), newRefresh));
         return null;
     }
 }

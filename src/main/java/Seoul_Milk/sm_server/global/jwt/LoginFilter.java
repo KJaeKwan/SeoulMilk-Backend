@@ -1,5 +1,8 @@
 package Seoul_Milk.sm_server.global.jwt;
 
+import static Seoul_Milk.sm_server.global.token.Token.ACCESS_TOKEN;
+import static Seoul_Milk.sm_server.global.token.Token.REFRESH_TOKEN;
+
 import Seoul_Milk.sm_server.global.cookie.CookieClass;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
@@ -61,14 +64,14 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String role = auth.getAuthority();
 
         //토큰 생성
-        String access = jwtUtil.createJwt("access", employeeId, role, 600000L);
-        String refresh = jwtUtil.createJwt("refresh", employeeId, role, 86400000L);
+        String access = jwtUtil.createJwt(ACCESS_TOKEN.category(), employeeId, role, ACCESS_TOKEN.expireMs());
+        String refresh = jwtUtil.createJwt(REFRESH_TOKEN.category(), employeeId, role, REFRESH_TOKEN.expireMs());
 
-        refreshToken.addRefreshEntity(employeeId, refresh, 86400000L);
+        refreshToken.addRefreshEntity(employeeId, refresh, REFRESH_TOKEN.expireMs());
 
         //응답 설정
-        response.setHeader("access", access);
-        response.addCookie(CookieClass.createCookie("refresh", refresh));
+        response.setHeader(ACCESS_TOKEN.category(), access);
+        response.addCookie(CookieClass.createCookie(REFRESH_TOKEN.category(), refresh));
         response.setStatus(HttpStatus.OK.value());
     }
 
