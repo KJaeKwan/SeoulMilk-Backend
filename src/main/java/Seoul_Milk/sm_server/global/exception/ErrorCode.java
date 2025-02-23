@@ -63,7 +63,11 @@ public enum ErrorCode {
     UPLOAD_FAILED("UPLOAD001", "업로드 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     DELETE_FAILED("DELETE001", "삭제 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_URL("URL400", "유효하지 않은 파일 URL입니다.", HttpStatus.BAD_REQUEST),
-    INVALID_URL_FORM("URL400", "URL 형식이 올바르지 않습니다.", HttpStatus.BAD_REQUEST);
+    INVALID_URL_FORM("URL400", "URL 형식이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
+
+
+    // JSON
+    JSON_PARSING_FAILED("JSON001", "JSON 파싱에 실패했습니다.", HttpStatus.BAD_REQUEST);
 
     private final String errorCode;
     private final String message;

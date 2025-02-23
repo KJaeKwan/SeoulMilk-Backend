@@ -1,10 +1,8 @@
-package Seoul_Milk.sm_server.global.clova_ocr.api;
+package Seoul_Milk.sm_server.global.clovaOcr.infrastructure;
 
-import Seoul_Milk.sm_server.global.clova_ocr.util.JsonUtil;
+import Seoul_Milk.sm_server.global.util.JsonUtil;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,7 +11,8 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 
 @Component
 public class ClovaOcrApi {
@@ -78,7 +77,7 @@ public class ClovaOcrApi {
                 while ((inputLine = br.readLine()) != null) {
                     response.append(inputLine);
                 }
-                parseData = jsonparse(response.toString());
+                parseData = JsonUtil.parseOcrResponse(response.toString());
             }
 
         } catch (Exception e) {
@@ -118,36 +117,6 @@ public class ClovaOcrApi {
             }
         }
         out.flush();
-    }
-
-    /**
-     * CLOVA OCR API에서 받은 JSON 응답을 파싱
-     */
-    private static List<String> jsonparse(String response) throws ParseException {
-        JSONParser parser = new JSONParser();
-        JSONObject jobj = (JSONObject) parser.parse(response);
-
-        // images 배열 확인
-        JSONArray imagesArray = (JSONArray) jobj.get("images");
-        if (imagesArray == null || imagesArray.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        JSONObject firstImage = (JSONObject) imagesArray.get(0);
-        JSONArray fieldsArray = (JSONArray) firstImage.get("fields");
-        if (fieldsArray == null || fieldsArray.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        // fields 배열에서 inferText 추출
-        List<Map<String, Object>> extractedFields = JsonUtil.getListMapFromJsonArray(fieldsArray);
-        List<String> result = new ArrayList<>();
-        for (Map<String, Object> field : extractedFields) {
-            if (field.containsKey("inferText")) {
-                result.add((String) field.get("inferText"));
-            }
-        }
-        return result;
     }
 
 }
