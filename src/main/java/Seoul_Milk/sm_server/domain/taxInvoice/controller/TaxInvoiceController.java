@@ -1,8 +1,8 @@
-package Seoul_Milk.sm_server.global.clovaOcr.controller;
+package Seoul_Milk.sm_server.domain.taxInvoice.controller;
 
+import Seoul_Milk.sm_server.domain.taxInvoice.service.TaxInvoiceService;
 import Seoul_Milk.sm_server.global.clovaOcr.infrastructure.ClovaOcrApi;
 import Seoul_Milk.sm_server.global.clovaOcr.service.OcrDataExtractor;
-import Seoul_Milk.sm_server.global.clovaOcr.service.OcrService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -26,14 +26,14 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/ocr")
 @RequiredArgsConstructor
 @Tag(name = "OCR API")
-public class OcrController {
+public class TaxInvoiceController {
 
     @Value("${clova.ocr.secret-key}")
     private String clovaSecretKey;
 
     private final ClovaOcrApi clovaOcrApi;
     private final OcrDataExtractor ocrDataExtractor;
-    private final OcrService ocrService;
+    private final TaxInvoiceService taxInvoiceService;
 
     /**
      * 클라이언트가 Multipart 이미지를 업로드하면 OCR 실행
@@ -74,7 +74,7 @@ public class OcrController {
             return ResponseEntity.status(500).body("OCR 결과가 없습니다.");
         }
 
-        String ocrJsonResponse = ocrService.convertListToJson(ocrResult);
+        String ocrJsonResponse = taxInvoiceService.convertListToJson(ocrResult);
         System.out.println("OCR JSON 변환 결과: " + ocrJsonResponse);
 
         try {
@@ -122,7 +122,7 @@ public class OcrController {
                     throw new RuntimeException("OCR API에서 반환된 결과가 없습니다.");
                 }
 
-                String jsonResponse = ocrService.convertListToJson(ocrResult);
+                String jsonResponse = taxInvoiceService.convertListToJson(ocrResult);
                 Map<String, Object> extractedData = ocrDataExtractor.extractHeaderFields(jsonResponse);
 
                 long endTime = System.nanoTime(); // 개별 이미지 종료 시간
@@ -165,7 +165,7 @@ public class OcrController {
 
         // 비동기 OCR 요청 실행
         List<CompletableFuture<Map<String, Object>>> futureResults = images.stream()
-                .map(ocrService::processOcrAsync)
+                .map(taxInvoiceService::processOcrAsync)
                 .collect(Collectors.toList());
 
         // allOf로 실행 후 한 번에 처리

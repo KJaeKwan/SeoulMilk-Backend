@@ -1,6 +1,7 @@
-package Seoul_Milk.sm_server.global.clovaOcr.service;
+package Seoul_Milk.sm_server.domain.taxInvoice.service;
 
 import Seoul_Milk.sm_server.global.clovaOcr.infrastructure.ClovaOcrApi;
+import Seoul_Milk.sm_server.global.clovaOcr.service.OcrDataExtractor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -15,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
-public class OcrService {
+public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
     @Value("${clova.ocr.secret-key}")
     private String clovaSecretKey;
@@ -23,6 +24,7 @@ public class OcrService {
     private final ClovaOcrApi clovaOcrApi;
     private final OcrDataExtractor ocrDataExtractor;
 
+    @Override
     @Async("ocrTaskExecutor")
     public CompletableFuture<Map<String, Object>> processOcrAsync(MultipartFile image) {
         long startTime = System.nanoTime();
@@ -58,6 +60,7 @@ public class OcrService {
     /**
      * OCR 결과(List<String>)를 간단한 JSON 형태로 변환
      */
+    @Override
     public String convertListToJson(List<String> ocrResult) {
         if (ocrResult == null || ocrResult.isEmpty()) {
             return "{}";
