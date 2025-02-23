@@ -38,7 +38,7 @@ public class OcrService {
             // OCR 결과를 JSON 형식으로 변환
             String jsonResponse = convertListToJson(ocrResult);
             // 파싱 및 필드 추출
-            Map<String, String> extractedData = ocrDataExtractor.extractHeaderFields(jsonResponse);
+            Map<String, Object> extractedData = ocrDataExtractor.extractHeaderFields(jsonResponse);
 
             long endTime = System.nanoTime();
             long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);

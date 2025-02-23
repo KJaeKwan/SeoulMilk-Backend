@@ -14,8 +14,8 @@ public class OcrDataExtractor {
     /**
      * 여러 개의 OCR JSON 응답을 반복 처리
      */
-    public List<Map<String, String>> extractMultipleHeaderFields(List<String> jsonResponses) throws Exception {
-        List<Map<String, String>> results = new ArrayList<>();
+    public List<Map<String, Object>> extractMultipleHeaderFields(List<String> jsonResponses) throws Exception {
+        List<Map<String, Object>> results = new ArrayList<>();
         for (String jsonResponse : jsonResponses) {
             results.add(extractHeaderFields(jsonResponse));
         }
@@ -25,7 +25,7 @@ public class OcrDataExtractor {
     /**
      * OCR JSON 응답에서 전자계산서 기본 정보를 추출
      */
-    public Map<String, String> extractHeaderFields(String jsonResponse) throws Exception {
+    public Map<String, Object> extractHeaderFields(String jsonResponse) throws Exception {
         if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
             throw new RuntimeException("OCR JSON 응답이 비어 있습니다.");
         }
@@ -49,6 +49,7 @@ public class OcrDataExtractor {
         if (images == null || images.isEmpty()) {
             throw new RuntimeException("OCR 응답 JSON에서 images 필드를 찾을 수 없습니다.");
         }
+
         List<Map<String, Object>> fields = castList(images.get(0).get("fields"));
         if (fields == null || fields.isEmpty()) {
             throw new RuntimeException("OCR 결과에 fields 데이터가 없습니다.");
@@ -72,18 +73,16 @@ public class OcrDataExtractor {
 
         // 키워드 매핑
         Map<String, String> keywordMap = new HashMap<>();
-        keywordMap.put("승인번호", "approval_number");
-        keywordMap.put("등록", "registration_number");
-        keywordMap.put("공급가액", "total_amount");
-        keywordMap.put("세액", "tax_amount");
         keywordMap.put("상호", "company");
         keywordMap.put("성명", "person_name");
         keywordMap.put("사업장", "business_address");
         keywordMap.put("업태", "business_type");
         keywordMap.put("종목", "product");
-        keywordMap.put("이메일", "email");
 
-        Map<String, String> extractedData = new LinkedHashMap<>();
+        Map<String, Object> extractedData = new LinkedHashMap<>();
+        List<String> registrationNumbers = new ArrayList<>();
+
+        // 중복 저장 방지 플래그
         boolean foundIssueDate = false;
         boolean foundTotalAmount = false;
         boolean foundTaxAmount = false;
@@ -91,58 +90,71 @@ public class OcrDataExtractor {
         for (int i = 0; i < textList.size(); i++) {
             String currentText = textList.get(i);
 
-            // 승인번호, 등록번호
+            // [1] 승인번호
             if (approvalNumberPattern.matcher(currentText).matches()) {
                 extractedData.put("approval_number", currentText);
+                continue;
             }
+
+            // [2] 등록번호
             if (registrationNumberPattern.matcher(currentText).matches()) {
-                extractedData.put("registration_number", currentText);
+                registrationNumbers.add(currentText);
+                continue;
             }
 
-            // 공급가액
-            if (currentText.equals("공급가액") && !foundTotalAmount) {
-                for (int j = i + 1; j < textList.size(); j++) {
-                    Matcher matcher = pricePattern.matcher(textList.get(j));
-                    if (matcher.matches()) {
-                        extractedData.put("공급가액", textList.get(j));
-                        foundTotalAmount = true;
-                        break;
-                    }
-                }
-            }
-
-            // 세액
-            if (currentText.equals("세액") && !foundTaxAmount) {
-                for (int j = i + 1; j < textList.size(); j++) {
-                    Matcher matcher = pricePattern.matcher(textList.get(j));
-                    if (matcher.matches()) {
-                        extractedData.put("세액", textList.get(j));
-                        foundTaxAmount = true;
-                        break;
-                    }
-                }
-            }
-
-            // 작성일자
+            // [3] 작성일자
             Matcher dateMatcher = datePattern.matcher(currentText);
             if (dateMatcher.matches() && !foundIssueDate) {
                 extractedData.put("issue_date", currentText);
                 foundIssueDate = true;
+                continue;
             }
 
-            // 이메일
+            // [4] 이메일
             Matcher emailMatcher = emailPattern.matcher(currentText);
             if (emailMatcher.matches()) {
                 extractedData.put("email", currentText);
+                continue;
             }
 
-            // 상호, 성명, 사업장 등
+            // [5] 공급가액
+            if (currentText.equals("공급가액") && !foundTotalAmount) {
+                for (int j = i + 1; j < textList.size(); j++) {
+                    Matcher matcher = pricePattern.matcher(textList.get(j));
+                    if (matcher.matches()) {
+                        extractedData.put("total_amount", textList.get(j));
+                        foundTotalAmount = true;
+                        break;
+                    }
+                }
+                continue;
+            }
+
+            // [6] 세액
+            if (currentText.equals("세액") && !foundTaxAmount) {
+                for (int j = i + 1; j < textList.size(); j++) {
+                    Matcher matcher = pricePattern.matcher(textList.get(j));
+                    if (matcher.matches()) {
+                        extractedData.put("tax_amount", textList.get(j));
+                        foundTaxAmount = true;
+                        break;
+                    }
+                }
+                continue;
+            }
+
+            // [7] 키워드 매핑 (상호, 성명, 사업장, 업태, 종목)
             if (keywordMap.containsKey(currentText) && i + 1 < textList.size()) {
                 String fieldName = keywordMap.get(currentText);
-                // "번호" 같은 불필요한 단어 체크
+                // "번호" 같은 불필요한 단어는 제외
                 if (!"번호".equals(textList.get(i + 1))) {
                     extractedData.put(fieldName, textList.get(i + 1));
                 }
+            }
+
+            // 등록 번호 2개 리스트로 저장
+            if (!registrationNumbers.isEmpty()) {
+                extractedData.put("registration_numbers", registrationNumbers);
             }
         }
 

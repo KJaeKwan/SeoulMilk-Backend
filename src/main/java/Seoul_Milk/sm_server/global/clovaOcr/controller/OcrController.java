@@ -78,7 +78,7 @@ public class OcrController {
         System.out.println("OCR JSON 변환 결과: " + ocrJsonResponse);
 
         try {
-            Map<String, String> headerData = ocrDataExtractor.extractHeaderFields(ocrJsonResponse);
+            Map<String, Object> headerData = ocrDataExtractor.extractHeaderFields(ocrJsonResponse);
 
             // 매핑된 데이터를 JSON 응답으로 반환
             HttpHeaders headers = new HttpHeaders();
@@ -123,7 +123,7 @@ public class OcrController {
                 }
 
                 String jsonResponse = ocrService.convertListToJson(ocrResult);
-                Map<String, String> extractedData = ocrDataExtractor.extractHeaderFields(jsonResponse);
+                Map<String, Object> extractedData = ocrDataExtractor.extractHeaderFields(jsonResponse);
 
                 long endTime = System.nanoTime(); // 개별 이미지 종료 시간
                 long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
