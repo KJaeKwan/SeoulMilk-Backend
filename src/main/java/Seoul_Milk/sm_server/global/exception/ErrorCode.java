@@ -59,6 +59,10 @@ public enum ErrorCode {
     USER_NOT_IN_STUDY("USER404", "스터디에 속해있지 않은 회원입니다.", HttpStatus.NOT_FOUND),
 
 
+    // 세금계산서 (TaxInvoice)
+    TAX_INVOICE_NOT_EXIST("TAX_INVOICE404", "존재하지 않는 세금계산서입니다.", HttpStatus.NOT_FOUND),
+
+
     // UPLOAD (업로드)
     UPLOAD_FAILED("UPLOAD001", "업로드 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     DELETE_FAILED("DELETE001", "삭제 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
