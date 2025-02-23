@@ -31,11 +31,10 @@ public class ClovaOcrApi {
      * @param contentType 파일 확장자 (예: image/png)
      */
     public List<String> callApi(String type, MultipartFile file, String naverSecretKey, String contentType) {
-        String apiURL = clovaOcrUrl;
         List<String> parseData = null;
 
         try {
-            URL url = new URL(apiURL);
+            URL url = new URL(clovaOcrUrl);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setUseCaches(false);
             con.setDoInput(true);
