@@ -120,9 +120,9 @@ public class OcrDataExtractor {
             // [5] 공급가액
             if (currentText.equals("공급가액") && !foundTotalAmount) {
                 for (int j = i + 1; j < textList.size(); j++) {
-                    Matcher matcher = pricePattern.matcher(textList.get(j));
-                    if (matcher.matches()) {
-                        extractedData.put("total_amount", textList.get(j));
+                    String candidate = textList.get(j);
+                    if (isValidPrice(candidate)) {
+                        extractedData.put("total_amount", candidate);
                         foundTotalAmount = true;
                         break;
                     }
@@ -133,9 +133,9 @@ public class OcrDataExtractor {
             // [6] 세액
             if (currentText.equals("세액") && !foundTaxAmount) {
                 for (int j = i + 1; j < textList.size(); j++) {
-                    Matcher matcher = pricePattern.matcher(textList.get(j));
-                    if (matcher.matches()) {
-                        extractedData.put("tax_amount", textList.get(j));
+                    String candidate = textList.get(j);
+                    if (isValidPrice(candidate)) {
+                        extractedData.put("tax_amount", candidate);
                         foundTaxAmount = true;
                         break;
                     }
@@ -221,5 +221,23 @@ public class OcrDataExtractor {
             return (List<Map<String, Object>>) obj;
         }
         return null;
+    }
+
+    /**
+     * 금액 검증 메서드 - 금액이 아닌 값이 들어오는 것을 방지
+     */
+    private boolean isValidPrice(String priceText) {
+        if (priceText.contains(",")) {
+            // 콤마가 있다면 천단위 형식인지 검사
+            return priceText.matches("^\\d{1,3}(,\\d{3})*$");
+        } else {
+            // 콤마가 없다면 10,000 이상인지 검사
+            try {
+                int value = Integer.parseInt(priceText);
+                return value >= 10000;
+            } catch (NumberFormatException e) {
+                return false;
+            }
+        }
     }
 }
