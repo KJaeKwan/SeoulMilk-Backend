@@ -1,19 +1,20 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.controller;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.service.TaxInvoiceService;
+import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
+import Seoul_Milk.sm_server.global.exception.CustomException;
+import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,9 +38,9 @@ public class TaxInvoiceController {
      */
     @Operation(summary = "여러 개의 이미지를 병렬로 OCR 처리")
     @PostMapping(value = "/parallel-process-multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Map<String, Object>> processParallelMultipleImages(@RequestParam("images") List<MultipartFile> images) {
+    public SuccessResponse<Map<String, Object>> processParallelMultipleImages(@RequestParam("images") List<MultipartFile> images) {
         if (images.isEmpty()) {
-            return ResponseEntity.badRequest().body(Collections.singletonMap("error", "이미지가 업로드되지 않았습니다."));
+            throw new CustomException(ErrorCode.UPLOAD_FAILED);
         }
 
         long totalStartTime = System.nanoTime();
@@ -47,7 +48,7 @@ public class TaxInvoiceController {
         // 비동기 OCR 요청 실행
         List<CompletableFuture<Map<String, Object>>> futureResults = images.stream()
                 .map(taxInvoiceService::processOcrAsync)
-                .collect(Collectors.toList());
+                .toList();
 
         // allOf로 실행 후 한 번에 처리
         CompletableFuture.allOf(futureResults.toArray(new CompletableFuture[0])).join();
@@ -66,7 +67,7 @@ public class TaxInvoiceController {
         response.put("총 소요 시간(ms)", totalElapsedTimeMillis);
         response.put("처리 결과", results);
 
-        return ResponseEntity.ok(response);
+        return SuccessResponse.ok(response);
     }
 
 }

@@ -32,4 +32,14 @@ public class TaxInvoice {
 
     @Column(name = "er_dat", nullable = false, length = 40)
     private String erDat;
+
+    public static TaxInvoice create(String issueId, String ipId, String suId, int taxTotal, String erDat) {
+        return TaxInvoice.builder()
+                .issueId(issueId)
+                .ipId(ipId)
+                .suId(suId)
+                .taxTotal(taxTotal)
+                .erDat(erDat)
+                .build();
+    }
 }

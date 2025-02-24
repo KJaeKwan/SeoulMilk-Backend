@@ -36,7 +36,6 @@ public enum ErrorCode {
     PARAMETER_VALIDATION_ERROR("COMMON422", "파라미터 검증 에러입니다.", HttpStatus.UNPROCESSABLE_ENTITY),
     PARAMETER_GRAMMAR_ERROR("COMMON422", "파라미터 문법 에러입니다.", HttpStatus.UNPROCESSABLE_ENTITY),
 
-
     // Token
     TOKEN_INVALID("TOKEN401", "유효하지 않은 Token 입니다.", HttpStatus.UNAUTHORIZED),
     TOKEN_INVALID_ROLE("TOKEN401", "JWT 토큰에 Role 정보가 없습니다.", HttpStatus.UNAUTHORIZED),
@@ -46,7 +45,6 @@ public enum ErrorCode {
     REFRESH_TOKEN_MISMATCH("TOKEN401", "Refresh Token 이 일치하지 않습니다.", HttpStatus.UNAUTHORIZED),
     REFRESH_TOKEN_EXPIRED("TOKEN401", "Refresh Token 이 만료되었습니다.", HttpStatus.UNAUTHORIZED),
     REFRESH_TOKEN_INVALID("TOKEN401", "유효하지 않은 Refresh Token 입니다.", HttpStatus.UNAUTHORIZED),
-
 
     // User (회원)
     USER_ALREADY_EXIST("USER400", "이미 회원가입된 유저입니다.", HttpStatus.BAD_REQUEST),
@@ -58,16 +56,22 @@ public enum ErrorCode {
     USER_FORBIDDEN("USER403", "유저의 권한이 부족합니다.", HttpStatus.FORBIDDEN),
     USER_NOT_IN_STUDY("USER404", "스터디에 속해있지 않은 회원입니다.", HttpStatus.NOT_FOUND),
 
-
     // 세금계산서 (TaxInvoice)
     TAX_INVOICE_NOT_EXIST("TAX_INVOICE404", "존재하지 않는 세금계산서입니다.", HttpStatus.NOT_FOUND),
-
 
     // UPLOAD (업로드)
     UPLOAD_FAILED("UPLOAD001", "업로드 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     DELETE_FAILED("DELETE001", "삭제 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_URL("URL400", "유효하지 않은 파일 URL입니다.", HttpStatus.BAD_REQUEST),
     INVALID_URL_FORM("URL400", "URL 형식이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
+
+    // OCR
+    OCR_EMPTY_JSON("OCR400", "OCR JSON 응답이 비어 있습니다.", HttpStatus.BAD_REQUEST),
+    OCR_INVALID_JSON("OCR422", "OCR JSON 응답이 잘못된 JSON 형식입니다.", HttpStatus.BAD_REQUEST),
+    OCR_NO_IMAGES("OCR404", "OCR 응답 JSON에서 images 필드를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    OCR_NO_FIELDS("OCR404", "OCR 결과에 fields 데이터가 없습니다.", HttpStatus.NOT_FOUND),
+    OCR_NO_RESULT("OCR404", "OCR API에서 반환된 결과가 없습니다.", HttpStatus.NOT_FOUND),
+    INSUFFICIENT_REGISTRATION_NUMBERS("OCR422", "등록번호가 2개 미만입니다.", HttpStatus.UNPROCESSABLE_ENTITY),
 
 
     // JSON

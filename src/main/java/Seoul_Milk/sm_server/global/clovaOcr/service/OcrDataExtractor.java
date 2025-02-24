@@ -1,5 +1,7 @@
 package Seoul_Milk.sm_server.global.clovaOcr.service;
 
+import Seoul_Milk.sm_server.global.exception.CustomException;
+import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -16,7 +18,7 @@ public class OcrDataExtractor {
      */
     public Map<String, Object> extractHeaderFields(String jsonResponse) throws Exception {
         if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
-            throw new RuntimeException("OCR JSON 응답이 비어 있습니다.");
+            throw new CustomException(ErrorCode.OCR_EMPTY_JSON);
         }
 
         // 깨진 따옴표 보정
@@ -24,7 +26,7 @@ public class OcrDataExtractor {
 
         // JSON 유효성 검사
         if (!isValidJson(jsonResponse)) {
-            throw new RuntimeException("OCR JSON 응답이 잘못된 JSON 형식입니다.");
+            throw new CustomException(ErrorCode.OCR_INVALID_JSON);
         }
 
         // 마지막 30개 필드를 제거
@@ -36,12 +38,12 @@ public class OcrDataExtractor {
         List<Map<String, Object>> images = castList(root.get("images"));
 
         if (images == null || images.isEmpty()) {
-            throw new RuntimeException("OCR 응답 JSON에서 images 필드를 찾을 수 없습니다.");
+            throw new CustomException(ErrorCode.OCR_NO_IMAGES);
         }
 
         List<Map<String, Object>> fields = castList(images.get(0).get("fields"));
         if (fields == null || fields.isEmpty()) {
-            throw new RuntimeException("OCR 결과에 fields 데이터가 없습니다.");
+            throw new CustomException(ErrorCode.OCR_NO_FIELDS);
         }
 
         // fields 배열에서 inferText만 추출하여 공백 제거
@@ -183,12 +185,13 @@ public class OcrDataExtractor {
         List<Map<String, Object>> images = castList(root.get("images"));
 
         if (images == null || images.isEmpty()) {
-            throw new RuntimeException("OCR 응답 JSON에서 images 필드를 찾을 수 없습니다.");
+            throw new CustomException(ErrorCode.OCR_NO_IMAGES);
         }
+
         Map<String, Object> firstImage = images.get(0);
         List<Map<String, Object>> fields = castList(firstImage.get("fields"));
         if (fields == null || fields.isEmpty()) {
-            throw new RuntimeException("OCR 결과에 fields 데이터가 없습니다.");
+            throw new CustomException(ErrorCode.OCR_NO_FIELDS);
         }
 
         int removeLastN = 30;
