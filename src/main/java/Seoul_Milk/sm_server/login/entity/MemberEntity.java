@@ -25,6 +25,7 @@ public class MemberEntity {
 
     @Column(name = "EMPLOYEE_ID")
     private String employeeId;
+
     @Column(name = "PASSWORD")
     private String password;
 
