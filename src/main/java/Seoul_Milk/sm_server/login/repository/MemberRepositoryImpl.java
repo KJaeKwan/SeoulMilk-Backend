@@ -18,4 +18,9 @@ public class MemberRepositoryImpl implements MemberRepository{
     public Boolean existsByEmployeeId(String employeeId) {
         return memberJpaRepository.existsByEmployeeId(employeeId);
     }
+
+    @Override
+    public void save(MemberEntity memberEntity) {
+        memberJpaRepository.save(memberEntity);
+    }
 }
