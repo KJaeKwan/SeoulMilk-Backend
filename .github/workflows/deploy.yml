@@ -41,7 +41,7 @@ jobs:
       # Spring Boot 어플리케이션 Build
       - name: Build with Gradle Wrapper
         run: ./gradlew build
-          -
+
       # .env 파일 생성 (Docker build 시 build-arg 전달을 위해)
       - name: Generate .env file for build
         run: |
