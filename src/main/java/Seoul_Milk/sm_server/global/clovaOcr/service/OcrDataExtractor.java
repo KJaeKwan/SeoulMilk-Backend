@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class OcrDataExtractor {
@@ -47,13 +48,12 @@ public class OcrDataExtractor {
         }
 
         // fields 배열에서 inferText만 추출하여 공백 제거
-        List<String> textList = new ArrayList<>();
-        for (Map<String, Object> field : fields) {
-            String text = (String) field.get("inferText");
-            if (text == null) text = "";
-            text = text.replace(" ", "").trim();
-            textList.add(text);
-        }
+        List<String> textList = fields.stream()
+                .map(field -> {
+                    String text = (String) field.get("inferText");
+                    return (text == null) ? "" : text.replace(" ", "").trim();
+                })
+                .collect(Collectors.toList());
 
         // 정규식 패턴
         Pattern pricePattern = Pattern.compile("^\\d{1,3}(,\\d{3})*$");
