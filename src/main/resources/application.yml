@@ -6,3 +6,11 @@ spring:
     driver-class-name: oracle.jdbc.OracleDriver
   profiles:
     active: local
+  jpa:
+    hibernate:
+      ddl-auto: update
+  jwt:
+    secret: ${JWT_SECRET}
+
+springdoc:
+  show-login-endpoint: true
