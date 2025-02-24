@@ -1,5 +1,6 @@
 package Seoul_Milk.sm_server.global.refresh;
 
+import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import Seoul_Milk.sm_server.login.entity.RefreshEntity;
 import Seoul_Milk.sm_server.login.repository.MemberRepository;
 import Seoul_Milk.sm_server.login.repository.RefreshRepository;
@@ -15,11 +16,8 @@ public class RefreshToken {
 
         Date date = new Date(System.currentTimeMillis() + expiredMs);
 
-        RefreshEntity refreshEntity = new RefreshEntity();
-        refreshEntity.setMemberEntity(memberRepository.findByEmployeeId(employeeId));
-        refreshEntity.setRefreshToken(refreshToken);
-        refreshEntity.setExpiration(date);
-
+        MemberEntity memberEntity = memberRepository.findByEmployeeId(employeeId);
+        RefreshEntity refreshEntity = RefreshEntity.createRefreshEntity(memberEntity, refreshToken, date);
         refreshRepository.save(refreshEntity);
     }
 }

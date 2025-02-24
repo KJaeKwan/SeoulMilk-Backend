@@ -25,10 +25,7 @@ public class JoinService {
             return;
         }
 
-        MemberEntity data = new MemberEntity();
-        data.setEmployeeId(employeeId);
-        data.setPassword(bCryptPasswordEncoder.encode(password));
-        data.setRole(Role.ROLE_NORMAL);
+        MemberEntity data = MemberEntity.createVerifiedMember(employeeId, password, Role.ROLE_NORMAL);
 
         memberRepository.save(data);
     }

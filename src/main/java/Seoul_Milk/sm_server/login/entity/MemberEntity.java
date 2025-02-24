@@ -9,13 +9,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "MEMBER")
 @Getter
-@Setter
 public class MemberEntity {
 
     @Id
@@ -31,4 +32,20 @@ public class MemberEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "ROLE")
     private Role role;
+
+    public static MemberEntity createUnverifiedMember(String employeeId, Role role){
+        MemberEntity memberEntity = new MemberEntity();
+        memberEntity.employeeId = employeeId;
+        memberEntity.role = role;
+        return memberEntity;
+    }
+
+    public static MemberEntity createVerifiedMember(String employeeId, String password, Role role){
+        MemberEntity memberEntity = new MemberEntity();
+        memberEntity.employeeId = employeeId;
+        memberEntity.password = password;
+        memberEntity.role = role;
+        return memberEntity;
+    }
+
 }
