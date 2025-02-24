@@ -15,7 +15,8 @@ public class RedisUtils {
     }
 
     public void setData(String key, String value,Long expiredTime){
-        redisTemplate.opsForValue().set(REFRESH_TOKEN.category() + key, value, expiredTime, TimeUnit.MILLISECONDS);
+        key = makeRefreshKey(key);
+        redisTemplate.opsForValue().set(key, value, expiredTime, TimeUnit.MILLISECONDS);
     }
 
     public String getData(String key){
@@ -33,6 +34,6 @@ public class RedisUtils {
     }
 
     public String makeRefreshKey(String key){
-        return REFRESH_TOKEN.category() + key;
+        return REFRESH_TOKEN.category() + ":" + key;
     }
 }
