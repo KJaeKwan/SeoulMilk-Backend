@@ -3,6 +3,7 @@ package Seoul_Milk.sm_server.login.entity;
 import Seoul_Milk.sm_server.global.refresh.RefreshToken;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -25,7 +26,7 @@ public class RefreshEntity {
     @Column(name = "REPOSITORY_ID")
     private Long id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEMBER_ID")
     private MemberEntity memberEntity;
 
