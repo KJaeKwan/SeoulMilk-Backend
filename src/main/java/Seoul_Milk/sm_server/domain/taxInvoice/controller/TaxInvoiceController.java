@@ -1,5 +1,6 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.controller;
 
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.service.TaxInvoiceService;
 import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
 import Seoul_Milk.sm_server.global.exception.CustomException;
@@ -9,10 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.LinkedHashMap;
@@ -37,7 +35,7 @@ public class TaxInvoiceController {
      * 여러 이미지를 병렬로 처리
      */
     @Operation(summary = "여러 개의 이미지를 병렬로 OCR 처리")
-    @PostMapping(value = "/parallel-process-multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public SuccessResponse<Map<String, Object>> processParallelMultipleImages(@RequestParam("images") List<MultipartFile> images) {
         if (images.isEmpty()) {
             throw new CustomException(ErrorCode.UPLOAD_FAILED);
@@ -68,6 +66,22 @@ public class TaxInvoiceController {
         response.put("처리 결과", results);
 
         return SuccessResponse.ok(response);
+    }
+
+
+    @Operation(summary = "OCR 처리된 모든 이미지 조회")
+    @GetMapping
+    public SuccessResponse<TaxInvoiceResponseDTO.GetALL> getAllProcessedImages() {
+        TaxInvoiceResponseDTO.GetALL result = taxInvoiceService.findAll();
+        return SuccessResponse.ok(result);
+    }
+
+
+    @Operation(summary = "OCR 처리된 값 삭제")
+    @DeleteMapping("/{taxInvoiceId}")
+    public SuccessResponse<String> delete(@PathVariable("taxInvoiceId") Long id) {
+        taxInvoiceService.delete(id);
+        return SuccessResponse.ok("세금계산서 정보 삭제에 성공했습니다.");
     }
 
 }

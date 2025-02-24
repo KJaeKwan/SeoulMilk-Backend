@@ -1,12 +1,10 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
+@Getter
 @Table(name = "tax_invoice")
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

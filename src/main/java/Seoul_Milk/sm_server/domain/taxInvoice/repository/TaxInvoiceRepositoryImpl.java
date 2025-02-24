@@ -6,6 +6,7 @@ import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -23,6 +24,11 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     @Override
     public Optional<TaxInvoice> findById(Long id) {
         return taxInvoiceJpaRepository.findById(id);
+    }
+
+    @Override
+    public List<TaxInvoice> findAll() {
+        return taxInvoiceJpaRepository.findAll();
     }
 
     @Override

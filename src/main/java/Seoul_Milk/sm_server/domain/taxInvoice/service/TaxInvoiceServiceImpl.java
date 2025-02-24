@@ -1,5 +1,6 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.service;
 
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.global.clovaOcr.infrastructure.ClovaOcrApi;
@@ -107,5 +108,25 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
         }
         jsonBuilder.append("]}]}");
         return jsonBuilder.toString();
+    }
+
+    /**
+     * 세금 계산서 정보 리스트로 조회
+     * @return
+     */
+    @Override
+    public TaxInvoiceResponseDTO.GetALL findAll() {
+        List<TaxInvoice> taxInvoices = taxInvoiceRepository.findAll();
+        return TaxInvoiceResponseDTO.GetALL.from(taxInvoices);
+    }
+
+    /**
+     * 세금 계산서 정보 삭제
+     * @param taxInvoiceId 삭제할 세금 계산서 ID(PK) 값
+     */
+    @Override
+    public void delete(Long taxInvoiceId) {
+        taxInvoiceRepository.getById(taxInvoiceId);
+        taxInvoiceRepository.delete(taxInvoiceId);
     }
 }
