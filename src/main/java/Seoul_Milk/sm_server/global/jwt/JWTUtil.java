@@ -19,7 +19,7 @@ public class JWTUtil {
 
     public String getEmployeeId(String token) {
 
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("employee_id", String.class);
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("employeeId", String.class);
     }
 
     public Role getRole(String token) {

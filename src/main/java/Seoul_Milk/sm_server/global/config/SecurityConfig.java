@@ -5,8 +5,8 @@ import Seoul_Milk.sm_server.global.jwt.JWTFilter;
 import Seoul_Milk.sm_server.global.jwt.JWTUtil;
 import Seoul_Milk.sm_server.global.jwt.LoginFilter;
 import Seoul_Milk.sm_server.global.refresh.RefreshToken;
-import Seoul_Milk.sm_server.login.repository.MemberRepository;
-import Seoul_Milk.sm_server.login.repository.RefreshRepository;
+import Seoul_Milk.sm_server.login.repository.MemberJpaRepository;
+import Seoul_Milk.sm_server.login.repository.RefreshJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,8 +29,8 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
-    private final RefreshRepository refreshRepository;
-    private final MemberRepository memberRepository;
+    private final RefreshJpaRepository refreshJpaRepository;
+    private final MemberJpaRepository memberJpaRepository;
 
     // 인증이 필요하지 않은 URL 목록
     private final String[] allowedUrls = {
@@ -39,6 +39,8 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/join",
             "/login",
+            "/reissue",
+            "/mailsend"
     };
 
     @Bean
@@ -73,7 +75,8 @@ public class SecurityConfig {
 
         //필터 추가 LoginFilter()는 인자를 받음 (AuthenticationManager() 메소드에 authenticationConfiguration 객체를 넣어야 함) 따라서 등록 필요
         http
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, new RefreshToken(memberRepository, refreshRepository)), UsernamePasswordAuthenticationFilter.class);
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, new RefreshToken(
+                        memberJpaRepository, refreshJpaRepository)), UsernamePasswordAuthenticationFilter.class);
 
         // 예외 처리 설정
         http.exceptionHandling(e -> e
