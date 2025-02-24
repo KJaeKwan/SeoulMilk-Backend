@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class TaxInvoice {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name = "tax_invoice_id")
     private Long taxInvoiceId;
 

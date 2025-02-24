@@ -12,17 +12,6 @@ import java.util.regex.Pattern;
 public class OcrDataExtractor {
 
     /**
-     * 여러 개의 OCR JSON 응답을 반복 처리
-     */
-    public List<Map<String, Object>> extractMultipleHeaderFields(List<String> jsonResponses) throws Exception {
-        List<Map<String, Object>> results = new ArrayList<>();
-        for (String jsonResponse : jsonResponses) {
-            results.add(extractHeaderFields(jsonResponse));
-        }
-        return results;
-    }
-
-    /**
      * OCR JSON 응답에서 전자계산서 기본 정보를 추출
      */
     public Map<String, Object> extractHeaderFields(String jsonResponse) throws Exception {

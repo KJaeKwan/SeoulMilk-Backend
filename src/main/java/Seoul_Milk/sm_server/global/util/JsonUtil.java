@@ -15,27 +15,6 @@ import java.util.Map;
 public class JsonUtil {
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * JSON 문자열을 Map<String, Object>로 파싱
-     */
-    public static Map<String, Object> toMap(String jsonString) {
-        try {
-            return new ObjectMapper().readValue(jsonString, new TypeReference<Map<String, Object>>() {});
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.JSON_PARSING_FAILED);
-        }
-    }
-
-    /**
-     * JSON 문자열을 List<Map<String, Object>>로 파싱
-     */
-    public static List<Map<String, Object>> toListOfMaps(String jsonString) {
-        try {
-            return new ObjectMapper().readValue(jsonString, new TypeReference<List<Map<String, Object>>>() {});
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.JSON_PARSING_FAILED);
-        }
-    }
 
     /**
      * OCR API 응답 JSON 문자열에서 inferText 값 목록을 추출
