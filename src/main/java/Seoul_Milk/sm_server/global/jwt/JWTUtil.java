@@ -23,8 +23,8 @@ public class JWTUtil {
     }
 
     public Role getRole(String token) {
-
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("role", Role.class);
+        String roleStr = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("role", String.class);
+        return Role.valueOf(roleStr);
     }
 
     public String getCategory(String token) {
