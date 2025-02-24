@@ -21,6 +21,17 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      # 환경 변수 적용
+      - name: Substitute environment variables in application.yml
+        run: |
+          envsubst < ./src/main/resources/application.yml > ./src/main/resources/application_temp.yml
+          mv ./src/main/resources/application_temp.yml ./src/main/resources/application.yml
+        env:
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_URL: ${{ secrets.DB_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5
 
