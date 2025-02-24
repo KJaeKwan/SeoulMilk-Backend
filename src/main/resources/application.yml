@@ -4,5 +4,13 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: oracle.jdbc.OracleDriver
+  jpa:
+    hibernate:
+      ddl-auto: update
   profiles:
     active: local
+  jwt:
+    secret: ${JWT_SECRET}
+
+springdoc:
+  show-login-endpoint: true
