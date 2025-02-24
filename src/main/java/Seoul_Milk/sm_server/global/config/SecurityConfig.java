@@ -4,9 +4,9 @@ import Seoul_Milk.sm_server.global.exception.CustomAuthenticationEntryPoint;
 import Seoul_Milk.sm_server.global.jwt.JWTFilter;
 import Seoul_Milk.sm_server.global.jwt.JWTUtil;
 import Seoul_Milk.sm_server.global.jwt.LoginFilter;
+import Seoul_Milk.sm_server.global.redis.RedisUtils;
 import Seoul_Milk.sm_server.global.refresh.RefreshToken;
-import Seoul_Milk.sm_server.login.repository.MemberJpaRepository;
-import Seoul_Milk.sm_server.login.repository.RefreshJpaRepository;
+import Seoul_Milk.sm_server.login.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,8 +29,7 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
-    private final RefreshJpaRepository refreshJpaRepository;
-    private final MemberJpaRepository memberJpaRepository;
+    private final RedisUtils redisUtils;
 
     // 인증이 필요하지 않은 URL 목록
     private final String[] allowedUrls = {
@@ -75,8 +74,7 @@ public class SecurityConfig {
 
         //필터 추가 LoginFilter()는 인자를 받음 (AuthenticationManager() 메소드에 authenticationConfiguration 객체를 넣어야 함) 따라서 등록 필요
         http
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, new RefreshToken(
-                        memberJpaRepository, refreshJpaRepository)), UsernamePasswordAuthenticationFilter.class);
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, new RefreshToken(redisUtils)), UsernamePasswordAuthenticationFilter.class);
 
         // 예외 처리 설정
         http.exceptionHandling(e -> e
