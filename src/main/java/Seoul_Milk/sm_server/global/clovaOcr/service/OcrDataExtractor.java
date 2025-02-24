@@ -62,14 +62,6 @@ public class OcrDataExtractor {
         Pattern approvalNumberPattern = Pattern.compile("\\d{8}-\\d{8}-\\d{8}");
         Pattern registrationNumberPattern = Pattern.compile("\\d{3}-\\d{2}-\\d{5}");
 
-        // 키워드 매핑
-        Map<String, String> keywordMap = new HashMap<>();
-        keywordMap.put("상호", "company");
-        keywordMap.put("성명", "person_name");
-        keywordMap.put("사업장", "business_address");
-        keywordMap.put("업태", "business_type");
-        keywordMap.put("종목", "product");
-
         Map<String, Object> extractedData = new LinkedHashMap<>();
         List<String> registrationNumbers = new ArrayList<>();
 
@@ -132,15 +124,6 @@ public class OcrDataExtractor {
                     }
                 }
                 continue;
-            }
-
-            // [7] 키워드 매핑 (상호, 성명, 사업장, 업태, 종목)
-            if (keywordMap.containsKey(currentText) && i + 1 < textList.size()) {
-                String fieldName = keywordMap.get(currentText);
-                // "번호" 같은 불필요한 단어는 제외
-                if (!"번호".equals(textList.get(i + 1))) {
-                    extractedData.put(fieldName, textList.get(i + 1));
-                }
             }
 
             // 등록 번호 2개 리스트로 저장
