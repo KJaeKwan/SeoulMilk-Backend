@@ -8,6 +8,7 @@ import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.global.refresh.RefreshToken;
 import Seoul_Milk.sm_server.login.dto.CustomUserDetails;
+import Seoul_Milk.sm_server.login.dto.LoginResponseDTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -55,10 +56,11 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     //로그인 성공시 실행하는 메소드 (여기서 JWT를 발급하면 됨)
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication){
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication)
+            throws IOException {
         //유저 정보
         String employeeId = ((CustomUserDetails)authentication.getPrincipal()).getEmployeeId();
-
+        String name = ((CustomUserDetails)authentication.getPrincipal()).getUsername();
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
         GrantedAuthority auth = iterator.next();
@@ -71,6 +73,11 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         refreshToken.addRefreshEntity(employeeId, refresh, REFRESH_TOKEN.expireMs());
 
         //응답 설정
+        LoginResponseDTO loginResponseDTO = LoginResponseDTO.of(name, role);
+        ObjectMapper objectMapper = new ObjectMapper();
+        response.setCharacterEncoding("UTF-8");  // ✅ 응답 인코딩을 UTF-8로 설정
+        response.setContentType("application/json; charset=UTF-8");  // ✅ Content-Type 설정
+        response.getWriter().write(objectMapper.writeValueAsString(loginResponseDTO));
         response.setHeader(ACCESS_TOKEN.category(), access);
         response.addCookie(createCookie(REFRESH_TOKEN.category(), refresh));
         response.setStatus(HttpStatus.OK.value());
