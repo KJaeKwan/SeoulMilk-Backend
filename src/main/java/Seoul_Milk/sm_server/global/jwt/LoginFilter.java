@@ -4,6 +4,7 @@ import static Seoul_Milk.sm_server.global.cookie.CookieClass.createCookie;
 import static Seoul_Milk.sm_server.global.token.Token.ACCESS_TOKEN;
 import static Seoul_Milk.sm_server.global.token.Token.REFRESH_TOKEN;
 
+import Seoul_Milk.sm_server.global.dto.response.ErrorResponse;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.global.refresh.RefreshToken;
@@ -21,10 +22,12 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @RequiredArgsConstructor
@@ -32,7 +35,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
     private final RefreshToken refreshToken;
-
     @Override
     public Authentication attemptAuthentication(
             HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
@@ -51,7 +53,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(employeeId, password);
 
         //token에 담은 검증을 위한 AuthenticationManager로 전달
+
         return authenticationManager.authenticate(authToken);
+
     }
 
     //로그인 성공시 실행하는 메소드 (여기서 JWT를 발급하면 됨)
@@ -86,6 +90,28 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     //로그인 실패시 실행하는 메소드
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
-        response.setStatus(401);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        ErrorCode errorCode;
+
+        if (failed instanceof UsernameNotFoundException) {
+            errorCode = ErrorCode.USER_EMPLOYEE_ID_NOT_EXIST;
+        } else if (failed instanceof BadCredentialsException) {
+            errorCode = ErrorCode.USER_WRONG_PASSWORD;
+        } else {
+            errorCode = ErrorCode.INVALID_REQUEST;
+        }
+
+        response.setStatus(errorCode.getStatus().value());
+        // ErrorResponse 객체 생성
+        ErrorResponse<Void> errorResponse = ErrorResponse.of(errorCode.getErrorCode(), errorCode.getMessage());
+
+        // JSON 응답 반환
+        try {
+            new ObjectMapper().writeValue(response.getWriter(), errorResponse);
+        } catch (IOException e) {
+            throw new RuntimeException("Response 출력 중 오류 발생", e);
+        }
     }
 }
