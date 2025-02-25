@@ -1,5 +1,6 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.entity;
 
+import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,6 +32,9 @@ public class TaxInvoice {
     @Column(name = "er_dat", nullable = false, length = 40)
     private String erDat;
 
+    @OneToOne(mappedBy = "taxInvoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private TaxInvoiceFile file;
+
     public static TaxInvoice create(String issueId, String ipId, String suId, int taxTotal, String erDat) {
         return TaxInvoice.builder()
                 .issueId(issueId)
@@ -39,5 +43,11 @@ public class TaxInvoice {
                 .taxTotal(taxTotal)
                 .erDat(erDat)
                 .build();
+    }
+
+    /** 연관관계 편의 메서드 */
+    public void attachFile(TaxInvoiceFile file) {
+        file.attachTaxInvoice(this);
+        this.file = file;
     }
 }
