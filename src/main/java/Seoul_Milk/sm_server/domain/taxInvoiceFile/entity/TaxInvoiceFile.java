@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Table(name = "tax_invoice_file")
+@Table(name = "TAX_INVOICE_FILE")
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -19,13 +19,22 @@ public class TaxInvoiceFile {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tax_invoice_id")
+    @JoinColumn(name = "TAX_INVOICE_ID")
     private TaxInvoice taxInvoice;
 
+    @Column(name = "FILE_URL", unique = true)
     private String fileUrl;
+
+    @Column(name = "FILE_TYPE")
     private String fileType;
+
+    @Column(name = "ORIGINAL_FILE_NAME")
     private String originalFileName;
+
+    @Column(name = "FILE_SIZE")
     private Long fileSize;
+
+    @Column(name = "UPLOAD_DATE")
     private LocalDateTime uploadDate;
 
     public static TaxInvoiceFile create(
