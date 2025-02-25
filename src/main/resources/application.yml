@@ -36,3 +36,16 @@ clova:
 
 springdoc:
   show-login-endpoint: true
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${S3_ACCESS_KEY}
+      secret-key: ${S3_SECRET_KEY}
+    region:
+      static: ap-northeast-2
+      auto: false
+    s3:
+      bucket: ${S3_BUCKET_NAME}
+    stack:
+      auto: false

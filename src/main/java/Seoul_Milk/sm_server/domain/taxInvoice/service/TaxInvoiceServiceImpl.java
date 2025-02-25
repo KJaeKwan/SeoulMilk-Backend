@@ -3,16 +3,19 @@ package Seoul_Milk.sm_server.domain.taxInvoice.service;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
+import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.global.clovaOcr.infrastructure.ClovaOcrApi;
 import Seoul_Milk.sm_server.global.clovaOcr.service.OcrDataExtractor;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
+import Seoul_Milk.sm_server.global.upload.service.AwsS3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +32,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
     private final ClovaOcrApi clovaOcrApi;
     private final OcrDataExtractor ocrDataExtractor;
     private final TaxInvoiceRepository taxInvoiceRepository;
+    private final AwsS3Service awsS3Service;
 
     @Override
     @Async("ocrTaskExecutor")
@@ -43,9 +47,8 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 throw new CustomException(ErrorCode.OCR_NO_RESULT);
             }
 
-            // OCR 결과를 JSON 형식으로 변환
+            // OCR 결과를 JSON 형식으로 변환 후 필드 추출
             String jsonResponse = convertListToJson(ocrResult);
-            // 파싱 및 필드 추출
             Map<String, Object> extractedData = ocrDataExtractor.extractHeaderFields(jsonResponse);
 
             // DB에 저장
@@ -53,14 +56,11 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
             @SuppressWarnings("unchecked") // 캐스팅에 대한 경고 무시
             List<String> registrationNumbers = (List<String>) extractedData.get("registration_numbers");
-            String ipId = null;
-            String suId = null;
-            if (registrationNumbers != null && registrationNumbers.size() >= 2) {
-                ipId = registrationNumbers.get(0);
-                suId = registrationNumbers.get(1);
-            } else {
+            if (registrationNumbers == null || registrationNumbers.size() < 2) {
                 throw new CustomException(ErrorCode.INSUFFICIENT_REGISTRATION_NUMBERS);
             }
+            String ipId = registrationNumbers.get(0);
+            String suId = registrationNumbers.get(1);
 
             // 총 공급가액 -> 문자열을 정수로 변환
             String totalAmountStr = (String) extractedData.get("total_amount");
@@ -73,6 +73,13 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
             // TaxInvoice 엔티티 생성 및 DB 저장
             TaxInvoice taxInvoice = TaxInvoice.create(issueId, ipId, suId, taxTotal, erDat);
+            TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
+
+            // OCR 추출에 성공한 이미지에 대해 S3 업로드
+            String fileUrl = awsS3Service.uploadFile("tax_invoices", image, true);
+
+            TaxInvoiceFile file = TaxInvoiceFile.create(savedTaxInvoice, fileUrl, image.getContentType(), image.getOriginalFilename(), image.getSize(), LocalDateTime.now());
+            taxInvoice.attachFile(file);
             taxInvoiceRepository.save(taxInvoice);
 
             long endTime = System.nanoTime();
