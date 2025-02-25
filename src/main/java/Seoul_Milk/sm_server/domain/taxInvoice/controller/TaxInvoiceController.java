@@ -36,7 +36,7 @@ public class TaxInvoiceController {
      */
     @Operation(summary = "여러 개의 이미지를 병렬로 OCR 처리")
     @PostMapping(value = "/multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public SuccessResponse<Map<String, Object>> processParallelMultipleImages(@RequestParam("images") List<MultipartFile> images) {
+    public SuccessResponse<String> processParallelMultipleImages(@RequestParam("images") List<MultipartFile> images) {
         if (images.isEmpty()) {
             throw new CustomException(ErrorCode.UPLOAD_FAILED);
         }
@@ -51,21 +51,12 @@ public class TaxInvoiceController {
         // allOf로 실행 후 한 번에 처리
         CompletableFuture.allOf(futureResults.toArray(new CompletableFuture[0])).join();
 
-        // 병렬 실행 후 결과 수집
-        List<Map<String, Object>> results = futureResults.stream()
-                .map(CompletableFuture::join)
-                .collect(Collectors.toList());
-
         long totalEndTime = System.nanoTime();
         long totalElapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(totalEndTime - totalStartTime);
 
-        // 최종 응답 데이터 구성
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("총 이미지 개수", images.size());
-        response.put("총 소요 시간(ms)", totalElapsedTimeMillis);
-        response.put("처리 결과", results);
+        System.out.println("totalElapsedTimeMillis = " + totalElapsedTimeMillis);
 
-        return SuccessResponse.ok(response);
+        return SuccessResponse.ok("이미지 OCR 처리 후 저장에 성공했습니다.");
     }
 
 
