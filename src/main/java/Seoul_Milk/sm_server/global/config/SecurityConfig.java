@@ -35,6 +35,8 @@ public class SecurityConfig {
 
     // 인증이 필요하지 않은 URL 목록
     private final String[] allowedUrls = {
+            // FIXME 권한 구현 전 모든 경로 허용
+            "/**",
             "/",
             "/swagger-ui/**",
             "/v3/api-docs/**",

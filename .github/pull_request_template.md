@@ -5,7 +5,7 @@
 - [ ] 기타 사소한 수정
 
 ### ✨ Related Issue
-- Closes #<issue_number> 
+- #<issue_number> 
 ---
 
 ### 📌 Task Details

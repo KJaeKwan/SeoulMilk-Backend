@@ -14,6 +14,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -29,9 +30,10 @@ jobs:
           DB_USERNAME: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_URL: ${{ secrets.DB_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
+        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -40,9 +42,20 @@ jobs:
       - name: Build with Gradle Wrapper
         run: ./gradlew build
 
-      # Docker 이미지 Build
-      - name: docker image build
-        run: docker build --build-arg DB_USERNAME=${{ secrets.DB_USERNAME }} --build-arg DB_PASSWORD=${{ secrets.DB_PASSWORD }} --build-arg DB_URL=${{ secrets.DB_URL }} -t ${{ secrets.DOCKERHUB_USERNAME }}/spring-cicd-test .
+      # .env 파일 생성 (Docker build 시 build-arg 전달을 위해)
+      - name: Generate .env file for build
+        run: |
+           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" > .env
+           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+           echo "DB_URL=${{ secrets.DB_URL }}" >> .env
+           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+
+      # .env 파일의 내용을 동적으로 읽어 build-arg 옵션 생성 후 Docker 이미지 빌드
+      - name: Build Docker image with dynamic build args
+        run: |
+           build_args=$(awk '{print "--build-arg " $0}' .env | xargs)
+           echo "Using build arguments: $build_args"
+           docker build $build_args -t ${{ secrets.DOCKERHUB_USERNAME }}/spring-cicd-test .
 
       # DockerHub Login (push 하기 위해)
       - name: docker login
@@ -69,21 +82,27 @@ jobs:
         run: |
           CONTAINER_ID=$(sudo docker ps -aq -f name=spring-cicd-test)
           if [ -n "$CONTAINER_ID" ]; then
-            echo "Stopping and removing existing container: $CONTAINER_ID"
+            echo "Stopping existing container: $CONTAINER_ID"
             sudo docker stop $CONTAINER_ID
-            sudo docker rm $CONTAINER_ID
+            sleep 3  # 컨테이너 종료 대기
+            echo "Removing container: $CONTAINER_ID"
+            sudo docker rm -f $CONTAINER_ID
           else
             echo "No existing container found, skipping stop/remove step."
           fi
 
+      # 컨테이너 실행용 .env 파일 생성 (실행 시 환경 변수 주입)
+      - name: Generate .env file for container run
+        run: |
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" > .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "DB_URL=${{ secrets.DB_URL }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+
       # 환경 변수를 적용하여 컨테이너 실행
       - name: docker run new container
         run: |
-          sudo docker run --rm -it -d -p 8080:8080 \
-            -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
-            -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-            -e DB_URL=${{ secrets.DB_URL }} \
-            --name spring-cicd-test ${{ secrets.DOCKERHUB_USERNAME }}/spring-cicd-test
+          sudo docker run --rm -it -d -p 8080:8080 --name spring-cicd-test ${{ secrets.DOCKERHUB_USERNAME }}/spring-cicd-test
 
       # 사용되지 않는 Docker 이미지 삭제 (dangling images만 정리)
       - name: Cleanup old Docker images
