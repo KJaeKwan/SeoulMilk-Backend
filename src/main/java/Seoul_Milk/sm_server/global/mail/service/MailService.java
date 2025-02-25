@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 public class MailService {
 
     private static final String AUTH_CODE_PREFIX = "AuthCode:";
+    private static final String AUTH_REQUEST_PREFIX = "AuthRequest:";
 
     private final JavaMailSender mailSender;
     private final RedisUtils redisUtils;
@@ -51,6 +52,12 @@ public class MailService {
         String title = "서울 우유 이메일 인증 번호";
         String authCode = generateAuthCode();
 
+        // 5분 내에 인증 코드 요청이 있었는지 확인
+        String lastRequestTime = redisUtils.getValues(AUTH_REQUEST_PREFIX + email);
+        if (lastRequestTime != null) {
+            throw new CustomException(ErrorCode.EMAIL_REQUEST_LIMIT_EXCEEDED);
+        }
+
         try {
             sendMail(email, title, authCode);
 
@@ -60,6 +67,12 @@ public class MailService {
                     authCode,
                     Duration.ofMillis(authCodeExpirationMillis)
             );
+
+            redisUtils.setValues(AUTH_REQUEST_PREFIX + email,
+                    "REQUESTED",
+                    Duration.ofMinutes(5)
+            );
+
 
             log.info("이메일 인증 코드 전송 성공: {}", email);
         } catch (Exception e) {
