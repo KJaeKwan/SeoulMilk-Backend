@@ -31,6 +31,12 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_URL: ${{ secrets.DB_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          CLOVA_OCR_URL: ${{ secrets.CLOVA_OCR_URL }}
+          CLOVA_SECRET_KEY: ${{ secrets.CLOVA_SECRET_KEY }}
+          S3_ACCESS_KEY: ${{ secrets.S3_ACCESS_KEY }}
+          S3_SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5
@@ -45,10 +51,15 @@ jobs:
       # .env 파일 생성 (Docker build 시 build-arg 전달을 위해)
       - name: Generate .env file for build
         run: |
-           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" > .env
-           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-           echo "DB_URL=${{ secrets.DB_URL }}" >> .env
-           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" > .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "DB_URL=${{ secrets.DB_URL }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "CLOVA_OCR_URL=${{ secrets.CLOVA_OCR_URL }}" >> .env
+          echo "CLOVA_SECRET_KEY=${{ secrets.CLOVA_SECRET_KEY }}" >> .env
+          echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> .env
+          echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> .env
+          echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}" >> .env
 
       # .env 파일의 내용을 동적으로 읽어 build-arg 옵션 생성 후 Docker 이미지 빌드
       - name: Build Docker image with dynamic build args
@@ -98,6 +109,11 @@ jobs:
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
           echo "DB_URL=${{ secrets.DB_URL }}" >> .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "CLOVA_OCR_URL=${{ secrets.CLOVA_OCR_URL }}" >> .env
+          echo "CLOVA_SECRET_KEY=${{ secrets.CLOVA_SECRET_KEY }}" >> .env
+          echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> .env
+          echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> .env
+          echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}" >> .env
 
       # 환경 변수를 적용하여 컨테이너 실행
       - name: docker run new container
