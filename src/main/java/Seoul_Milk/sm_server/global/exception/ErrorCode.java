@@ -73,6 +73,11 @@ public enum ErrorCode {
     OCR_NO_RESULT("OCR404", "OCR API에서 반환된 결과가 없습니다.", HttpStatus.NOT_FOUND),
     INSUFFICIENT_REGISTRATION_NUMBERS("OCR422", "등록번호가 2개 미만입니다.", HttpStatus.UNPROCESSABLE_ENTITY),
 
+    // EMAIL
+    EMAIL_VERIFICATION_EXPIRED("EMAIL_VERIFICATION404", "인증 코드가 만료되었습니다.", HttpStatus.NOT_FOUND),
+    EMAIL_VERIFICATION_INVALID("EMAIL_VERIFICATION401", "유효하지 않은 인증 코드입니다.", HttpStatus.UNAUTHORIZED),
+    EMAIL_SEND_FAIL("EMAIL500", "메일 전송에 실패하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    EMAIL_AUTH_FAIL("EMAIL401", "이메일 인증에 실패했습니다.", HttpStatus.UNAUTHORIZED),
 
     // JSON
     JSON_PARSING_FAILED("JSON001", "JSON 파싱에 실패했습니다.", HttpStatus.BAD_REQUEST);
