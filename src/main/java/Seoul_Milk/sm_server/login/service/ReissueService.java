@@ -7,9 +7,7 @@ import static Seoul_Milk.sm_server.global.token.Token.REFRESH_TOKEN;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.global.jwt.JWTUtil;
-import Seoul_Milk.sm_server.global.refresh.RefreshToken;
-import Seoul_Milk.sm_server.login.repository.MemberRepository;
-import Seoul_Milk.sm_server.login.repository.RefreshRepository;
+import Seoul_Milk.sm_server.global.redis.RedisUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,8 +20,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ReissueService {
     private final JWTUtil jwtUtil;
-    private final RefreshRepository refreshRepository;
-    private final MemberRepository memberRepository;
+    private final RedisUtils redisUtils;
     public Object reissue(HttpServletRequest request, HttpServletResponse response){
         Cookie[] cookies = request.getCookies();
         String refresh = Arrays.stream(cookies)
@@ -49,23 +46,21 @@ public class ReissueService {
         }
 
         //DB에 저장되어 있는지 확인
-        Boolean isExist = refreshRepository.existsByRefreshToken(refresh);
+        boolean isExist = redisUtils.existsValue(jwtUtil.getEmployeeId(refresh), refresh);
         if (!isExist) {
             //response body
             throw new CustomException(ErrorCode.REFRESH_TOKEN_INVALID);
         }
-
         String employeeId = jwtUtil.getEmployeeId(refresh);
-        String role = jwtUtil.getRole(refresh).toString();
+        String role = jwtUtil.getRole(refresh).name();
 
         //make new JWT
         String newAccess = jwtUtil.createJwt(ACCESS_TOKEN.category(), employeeId, role, ACCESS_TOKEN.expireMs());
         String newRefresh = jwtUtil.createJwt(REFRESH_TOKEN.category(), employeeId, role, REFRESH_TOKEN.expireMs());
 
         //Refresh 토큰 저장 DB에 기존의 Refresh 토큰 삭제 후 새 Refresh 토큰 저장
-        refreshRepository.deleteByRefreshToken(refresh);
-        RefreshToken refreshToken = new RefreshToken(memberRepository, refreshRepository);
-        refreshToken.addRefreshEntity(employeeId, newRefresh, REFRESH_TOKEN.expireMs());
+        redisUtils.deleteData(employeeId);
+        redisUtils.setData(employeeId, newRefresh, REFRESH_TOKEN.expireMs());
 
         //response
         response.setHeader(ACCESS_TOKEN.category(), newAccess);

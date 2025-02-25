@@ -10,18 +10,22 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
-import lombok.Setter;
 
 @Entity
 @Table(name = "MEMBER")
 @Getter
-@Setter
 public class MemberEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "MEMBER_ID")
     private Long id;
+
+    @Column(name = "NAME")
+    private String name;
+
+    @Column(name = "EMAIL")
+    private String email;
 
     @Column(name = "EMPLOYEE_ID")
     private String employeeId;
@@ -32,4 +36,20 @@ public class MemberEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "ROLE")
     private Role role;
+
+    public static MemberEntity createUnverifiedMember(String employeeId, Role role){
+        MemberEntity memberEntity = new MemberEntity();
+        memberEntity.employeeId = employeeId;
+        memberEntity.role = role;
+        return memberEntity;
+    }
+
+    public static MemberEntity createVerifiedMember(String employeeId, String password, Role role){
+        MemberEntity memberEntity = new MemberEntity();
+        memberEntity.employeeId = employeeId;
+        memberEntity.password = password;
+        memberEntity.role = role;
+        return memberEntity;
+    }
+
 }

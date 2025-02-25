@@ -66,9 +66,7 @@ public class JWTFilter extends OncePerRequestFilter {
         String employeeId = jwtUtil.getEmployeeId(accessToken);
         Role role = jwtUtil.getRole(accessToken);
 
-        MemberEntity memberEntity = new MemberEntity();
-        memberEntity.setEmployeeId(employeeId);
-        memberEntity.setRole(role);
+        MemberEntity memberEntity = MemberEntity.createUnverifiedMember(employeeId, role);
         CustomUserDetails customUserDetails = new CustomUserDetails(memberEntity);
 
         Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
