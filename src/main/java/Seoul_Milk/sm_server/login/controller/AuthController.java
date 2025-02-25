@@ -19,33 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    @Operation(summary = "로그인", description = "사번과 비밀번호를 입력해 로그인합니다. 성공 시 cookie에 refreshToken(refresh=~~ 형태로 저장), header에 accessToken을 응답으로 줍니다.",
-    responses = {@ApiResponse(responseCode = "200", description = "로그인 성공",
-            content = @Content(schema = @Schema(implementation = LoginResponseDTO.class)),
-    headers = {@Header(name = "access", description = "Access Token", schema = @Schema(type = "string")),
-            @Header(name = "Set-Cookie", description = "Refresh Token", schema = @Schema(type = "string"))})})
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 사번", content = @Content(
-                    examples = @ExampleObject(
-                            name = "USER404",
-                            value = "{\n" +
-                                    "  \"code\": \"USER404\",\n" +
-                                    "  \"message\": 존재하지 않는 사번입니다.\n" +
-                                    "  \"result\": \"null\",\n" +
-                                    "  \"success\": \"false\n" +
-                                    "}"
-                    ))),
-            @ApiResponse(responseCode = "401", description = "비밀번호 불일치", content = @Content(
-                    examples = @ExampleObject(
-                            name = "USER401",
-                            value = "{\n" +
-                                    "  \"code\": \"USER401\",\n" +
-                                    "  \"message\": 비밀번호가 틀렸습니다.\n" +
-                                    "  \"result\": \"null\",\n" +
-                                    "  \"success\": \"false\n" +
-                                    "}"
-                    )))
-    })
+    @Operation(summary = "로그인", description = "사번과 비밀번호를 입력해 로그인합니다. 성공 시 cookie에 refreshToken(refresh=~~ 형태로 저장), header에 accessToken을 응답으로 줍니다.")
     @PostMapping("/login")
     public SuccessResponse<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO) {
         return SuccessResponse.ok(LoginResponseDTO.of("이름", "권한"));
