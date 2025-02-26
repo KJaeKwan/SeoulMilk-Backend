@@ -2,7 +2,10 @@ package Seoul_Milk.sm_server.login.service;
 
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
+import Seoul_Milk.sm_server.login.constant.Role;
+import Seoul_Milk.sm_server.login.dto.request.TestUpdateRoleDTO;
 import Seoul_Milk.sm_server.login.dto.request.UpdatePwDTO;
+import Seoul_Milk.sm_server.login.dto.response.MemberResponse;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import Seoul_Milk.sm_server.login.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -46,5 +49,23 @@ public class MemberServiceImpl implements MemberService {
 
         String newPassword = passwordEncoder.encode(request.password1());
         member.updatePassword(newPassword);
+    }
+
+    /**
+     * [임시] 권한 변경
+     */
+    @Override
+    @Transactional
+    public MemberResponse testUpdateRole(TestUpdateRoleDTO request) {
+        MemberEntity member = memberRepository.getById(request.memberId());
+
+        try {
+            Role role = Role.valueOf(request.role());
+            member.updateRole(role);
+        } catch (IllegalArgumentException e) {
+            throw new CustomException(ErrorCode.INVALID_ROLE);
+        }
+
+        return MemberResponse.from(member);
     }
 }
