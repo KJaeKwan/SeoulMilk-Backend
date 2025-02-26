@@ -1,6 +1,6 @@
 package Seoul_Milk.sm_server.login.service;
 
-import Seoul_Milk.sm_server.login.dto.UpdatePwDTO;
+import Seoul_Milk.sm_server.login.dto.request.UpdatePwDTO;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 
 public interface MemberService {

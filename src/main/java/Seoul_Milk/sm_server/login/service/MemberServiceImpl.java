@@ -2,8 +2,7 @@ package Seoul_Milk.sm_server.login.service;
 
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
-import Seoul_Milk.sm_server.login.dto.MemberResponse;
-import Seoul_Milk.sm_server.login.dto.UpdatePwDTO;
+import Seoul_Milk.sm_server.login.dto.request.UpdatePwDTO;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import Seoul_Milk.sm_server.login.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;

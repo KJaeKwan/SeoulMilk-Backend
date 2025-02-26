@@ -1,7 +1,7 @@
 package Seoul_Milk.sm_server.login.controller;
 
 import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
-import Seoul_Milk.sm_server.login.dto.JoinDTO;
+import Seoul_Milk.sm_server.login.dto.request.JoinDTO;
 import Seoul_Milk.sm_server.login.service.JoinService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;

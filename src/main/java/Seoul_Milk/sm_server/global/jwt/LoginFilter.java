@@ -9,7 +9,7 @@ import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.global.refresh.RefreshToken;
 import Seoul_Milk.sm_server.login.dto.CustomUserDetails;
-import Seoul_Milk.sm_server.login.dto.LoginResponseDTO;
+import Seoul_Milk.sm_server.login.dto.response.LoginResponseDTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;

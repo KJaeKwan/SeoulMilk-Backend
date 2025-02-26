@@ -1,7 +1,7 @@
 package Seoul_Milk.sm_server.login.service;
 
 import Seoul_Milk.sm_server.login.constant.Role;
-import Seoul_Milk.sm_server.login.dto.JoinDTO;
+import Seoul_Milk.sm_server.login.dto.request.JoinDTO;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import Seoul_Milk.sm_server.login.repository.MemberRepository;
 import lombok.AllArgsConstructor;
