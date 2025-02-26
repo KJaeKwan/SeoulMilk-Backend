@@ -6,6 +6,7 @@ import Seoul_Milk.sm_server.login.constant.Role;
 import Seoul_Milk.sm_server.login.dto.request.UpdateRoleDTO;
 import Seoul_Milk.sm_server.login.dto.request.UpdatePwDTO;
 import Seoul_Milk.sm_server.login.dto.response.MemberResponse;
+import Seoul_Milk.sm_server.login.dto.VerifyPwDTO;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import Seoul_Milk.sm_server.login.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,18 @@ public class MemberServiceImpl implements MemberService {
 
         String newPassword = passwordEncoder.encode(request.password1());
         member.updatePassword(newPassword);
+    }
+
+    /**
+     * 비밀번호 확인
+     */
+    @Override
+    public boolean verifyPassword(Long memberId, VerifyPwDTO request) {
+        MemberEntity member = memberRepository.getById(memberId);
+        if (!passwordEncoder.matches(request.password(), member.getPassword())) {
+            throw new CustomException(ErrorCode.USER_WRONG_PASSWORD);
+        }
+        return true;
     }
 
     /**
