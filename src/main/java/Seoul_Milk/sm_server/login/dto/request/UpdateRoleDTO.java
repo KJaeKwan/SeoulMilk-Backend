@@ -5,11 +5,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
 @Schema(description = "관리자 권한이 필요없는 임시 권한 변경 요청 DTO")
-public record TestUpdateRoleDTO(@Schema(description = "변경할 유저 ID", example = "1") Long memberId,
-                                @Schema(description = "변경할 Role", example = "ROLE_ADMIN") String role) {
+public record UpdateRoleDTO(@Schema(description = "변경할 유저 ID", example = "1") Long memberId,
+                            @Schema(description = "변경할 Role", example = "ROLE_ADMIN") String role) {
 
     @Builder
-    public TestUpdateRoleDTO(
+    public UpdateRoleDTO(
             @JsonProperty("memberId") Long memberId,
             @JsonProperty("role") String role
     ) {
