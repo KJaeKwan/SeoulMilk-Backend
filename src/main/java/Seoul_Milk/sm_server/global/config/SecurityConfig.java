@@ -35,15 +35,13 @@ public class SecurityConfig {
 
     // 인증이 필요하지 않은 URL 목록
     private final String[] allowedUrls = {
-            // FIXME 권한 구현 전 모든 경로 허용
-            "/**",
             "/",
             "/swagger-ui/**",
             "/v3/api-docs/**",
             "/join",
             "/login",
             "/reissue",
-            "/mailsend"
+            "/api/emails"
     };
 
     @Bean
@@ -73,28 +71,24 @@ public class SecurityConfig {
         // CORS 설정
         http.cors(Customizer.withDefaults());
 
-        http
-                .csrf(AbstractHttpConfigurer::disable);
+        http.csrf(AbstractHttpConfigurer::disable);
 
         // 경로별 인가 설정
         http.authorizeHttpRequests((auth) -> auth
                 .requestMatchers(allowedUrls).permitAll()
                 .anyRequest().authenticated());
 
-        http
-                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
+        http.addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
 
         //필터 추가 LoginFilter()는 인자를 받음 (AuthenticationManager() 메소드에 authenticationConfiguration 객체를 넣어야 함) 따라서 등록 필요
-        http
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, new RefreshToken(redisUtils)), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, new RefreshToken(redisUtils)), UsernamePasswordAuthenticationFilter.class);
 
         // 예외 처리 설정
         http.exceptionHandling(e -> e
                 .authenticationEntryPoint(customAuthenticationEntryPoint));
 
         // 세션 처리(stateless로 관리)
-        http
-                .sessionManagement((session) -> session
+        http.sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
