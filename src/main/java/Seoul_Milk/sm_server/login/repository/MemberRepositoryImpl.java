@@ -29,6 +29,11 @@ public class MemberRepositoryImpl implements MemberRepository{
     }
 
     @Override
+    public MemberEntity getByEmployeeId(String employeeId) {
+        return findByEmployeeId(employeeId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXIST));
+    }
+
+    @Override
     public Optional<MemberEntity> findByEmail(String email) {
         return memberJpaRepository.findByEmail(email);
     }
