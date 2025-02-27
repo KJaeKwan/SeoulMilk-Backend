@@ -7,8 +7,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,6 +54,86 @@ public class OcrDataExtractor {
                 .map(field -> mapper.convertValue(field, OcrField.class))  // JSON을 OcrField DTO로 변환
                 .collect(Collectors.toList());
     }
+
+    /**
+     * OCR에서 필요한 데이터를 추출하는 메서드
+     */
+     public Map<String, Object> extractDataFromOcrFields(List<OcrField> ocrFields) {
+        Map<String, Object> extractedData = new LinkedHashMap<>();
+        List<String> registrationNumbers = new ArrayList<>();
+
+        Pattern datePattern = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
+        Pattern emailPattern = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+        Pattern approvalNumberPattern = Pattern.compile("\\d{8}-\\d{8}-\\d{8}");
+        Pattern registrationNumberPattern = Pattern.compile("\\d{3}-\\d{2}-\\d{5}");
+
+        boolean foundIssueDate = false;
+        boolean foundTotalAmount = false;
+        boolean foundTaxAmount = false;
+
+        for (int i = 0; i < ocrFields.size(); i++) {
+            OcrField currentField = ocrFields.get(i);
+            String currentText = currentField.getInferText().replace(" ", "").trim();
+
+            // 승인번호
+            if (approvalNumberPattern.matcher(currentText).matches()) {
+                extractedData.put("approval_number", currentText);
+                continue;
+            }
+
+            // 등록번호
+            if (registrationNumberPattern.matcher(currentText).matches()) {
+                registrationNumbers.add(currentText);
+                continue;
+            }
+
+            // 작성일자
+            Matcher dateMatcher = datePattern.matcher(currentText);
+            if (dateMatcher.matches() && !foundIssueDate) {
+                extractedData.put("issue_date", currentText);
+                foundIssueDate = true;
+                continue;
+            }
+
+            // 이메일
+            Matcher emailMatcher = emailPattern.matcher(currentText);
+            if (emailMatcher.matches()) {
+                extractedData.put("email", currentText);
+                continue;
+            }
+
+            // 공급가액
+            if (currentText.equals("공급가액") && !foundTotalAmount) {
+                for (int j = i + 1; j < ocrFields.size(); j++) {
+                    if (isValidPrice(ocrFields.get(j))) {
+                        extractedData.put("total_amount", ocrFields.get(j).getInferText());
+                        foundTotalAmount = true;
+                        break;
+                    }
+                }
+                continue;
+            }
+
+            // 세액
+            if (currentText.equals("세액") && !foundTaxAmount) {
+                for (int j = i + 1; j < ocrFields.size(); j++) {
+                    if (isValidPrice(ocrFields.get(j))) {
+                        extractedData.put("tax_amount", ocrFields.get(j).getInferText());
+                        foundTaxAmount = true;
+                        break;
+                    }
+                }
+                continue;
+            }
+        }
+
+        if (!registrationNumbers.isEmpty()) {
+            extractedData.put("registration_numbers", registrationNumbers);
+        }
+
+        return extractedData;
+    }
+
 
     /**
      * JSON 깨진 따옴표를 수정
@@ -117,18 +201,24 @@ public class OcrDataExtractor {
     /**
      * 금액 검증 메서드 - 금액이 아닌 값이 들어오는 것을 방지
      */
-    private boolean isValidPrice(String priceText) {
-        if (priceText.contains(",")) {
-            // 콤마가 있다면 천단위 형식인지 검사
-            return priceText.matches("^\\d{1,3}(,\\d{3})*$");
-        } else {
-            // 콤마가 없다면 10,000 이상인지 검사
-            try {
-                int value = Integer.parseInt(priceText);
-                return value >= 10000;
-            } catch (NumberFormatException e) {
-                return false;
-            }
+    private boolean isValidPrice(OcrField field) {
+        if (field == null || field.getInferText() == null) {
+            return false;
+        }
+
+        String priceText = field.getInferText().replaceAll(",", "").trim();
+
+        // 숫자로만 이루어졌는지 검사
+        if (!priceText.matches("^\\d+$")) {
+            return false;
+        }
+
+        // 숫자로 변환 후 최소 10,000 이상인지 확인
+        try {
+            int value = Integer.parseInt(priceText);
+            return value >= 10000;
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
 }
