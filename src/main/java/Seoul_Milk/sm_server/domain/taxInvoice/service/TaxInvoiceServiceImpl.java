@@ -4,6 +4,7 @@ import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
+import Seoul_Milk.sm_server.global.clovaOcr.dto.OcrField;
 import Seoul_Milk.sm_server.global.clovaOcr.infrastructure.ClovaOcrApi;
 import Seoul_Milk.sm_server.global.clovaOcr.service.OcrDataExtractor;
 import Seoul_Milk.sm_server.global.exception.CustomException;
@@ -16,11 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,9 +49,11 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 throw new CustomException(ErrorCode.OCR_NO_RESULT);
             }
 
-            // OCR 결과를 JSON 형식으로 변환 후 필드 추출
-            String jsonResponse = convertListToJson(ocrResult);
-            Map<String, Object> extractedData = ocrDataExtractor.extractHeaderFields(jsonResponse);
+            // OCR 결과를 DTO 리스트로 변환
+            List<OcrField> ocrFields = convertToOcrFields(ocrResult);
+
+            // 데이터 추출
+            Map<String, Object> extractedData = extractDataFromOcrFields(ocrFields);
 
             // DB에 저장
             String issueId = (String) extractedData.get("approval_number");
@@ -98,26 +102,6 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
     }
 
     /**
-     * OCR 결과(List<String>)를 간단한 JSON 형태로 변환
-     */
-    @Override
-    public String convertListToJson(List<String> ocrResult) {
-        if (ocrResult == null || ocrResult.isEmpty()) {
-            return "{}";
-        }
-        StringBuilder jsonBuilder = new StringBuilder();
-        jsonBuilder.append("{\"images\":[{\"fields\":[");
-        for (int i = 0; i < ocrResult.size(); i++) {
-            jsonBuilder.append("{\"inferText\":\"").append(ocrResult.get(i)).append("\"}");
-            if (i < ocrResult.size() - 1) {
-                jsonBuilder.append(",");
-            }
-        }
-        jsonBuilder.append("]}]}");
-        return jsonBuilder.toString();
-    }
-
-    /**
      * 세금 계산서 정보 리스트로 조회
      * @return
      */
@@ -135,5 +119,119 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
     public void delete(Long taxInvoiceId) {
         taxInvoiceRepository.getById(taxInvoiceId);
         taxInvoiceRepository.delete(taxInvoiceId);
+    }
+
+
+    /**
+     * OCR에서 필요한 데이터를 추출하는 메서드
+     */
+    private Map<String, Object> extractDataFromOcrFields(List<OcrField> ocrFields) {
+        Map<String, Object> extractedData = new LinkedHashMap<>();
+        List<String> registrationNumbers = new ArrayList<>();
+
+        Pattern pricePattern = Pattern.compile("^\\d{1,3}(,\\d{3})*$");
+        Pattern datePattern = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
+        Pattern emailPattern = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+        Pattern approvalNumberPattern = Pattern.compile("\\d{8}-\\d{8}-\\d{8}");
+        Pattern registrationNumberPattern = Pattern.compile("\\d{3}-\\d{2}-\\d{5}");
+
+        boolean foundIssueDate = false;
+        boolean foundTotalAmount = false;
+        boolean foundTaxAmount = false;
+
+        for (int i = 0; i < ocrFields.size(); i++) {
+            OcrField currentField = ocrFields.get(i);
+            String currentText = currentField.getInferText().replace(" ", "").trim();
+
+            // 승인번호
+            if (approvalNumberPattern.matcher(currentText).matches()) {
+                extractedData.put("approval_number", currentText);
+                continue;
+            }
+
+            // 등록번호
+            if (registrationNumberPattern.matcher(currentText).matches()) {
+                registrationNumbers.add(currentText);
+                continue;
+            }
+
+            // 작성일자
+            Matcher dateMatcher = datePattern.matcher(currentText);
+            if (dateMatcher.matches() && !foundIssueDate) {
+                extractedData.put("issue_date", currentText);
+                foundIssueDate = true;
+                continue;
+            }
+
+            // 이메일
+            Matcher emailMatcher = emailPattern.matcher(currentText);
+            if (emailMatcher.matches()) {
+                extractedData.put("email", currentText);
+                continue;
+            }
+
+            // 공급가액
+            if (currentText.equals("공급가액") && !foundTotalAmount) {
+                for (int j = i + 1; j < ocrFields.size(); j++) {
+                    if (isValidPrice(ocrFields.get(j))) {
+                        extractedData.put("total_amount", ocrFields.get(j).getInferText());
+                        foundTotalAmount = true;
+                        break;
+                    }
+                }
+                continue;
+            }
+
+            // 세액
+            if (currentText.equals("세액") && !foundTaxAmount) {
+                for (int j = i + 1; j < ocrFields.size(); j++) {
+                    if (isValidPrice(ocrFields.get(j))) {
+                        extractedData.put("tax_amount", ocrFields.get(j).getInferText());
+                        foundTaxAmount = true;
+                        break;
+                    }
+                }
+                continue;
+            }
+        }
+
+        if (!registrationNumbers.isEmpty()) {
+            extractedData.put("registration_numbers", registrationNumbers);
+        }
+
+        return extractedData;
+    }
+
+    /** 문자열을 OcrField로 변환하는 메서드 */
+    private List<OcrField> convertToOcrFields(List<String> ocrResult) {
+        if (ocrResult == null || ocrResult.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return ocrResult.stream()
+                .map(text -> new OcrField(text, null)) // boundingPoly가 없으므로 null 처리
+                .collect(Collectors.toList());
+    }
+
+    /** 가격 형식인지 검증하는 메서드 */
+    private boolean isValidPrice(OcrField field) {
+        if (field == null || field.getInferText() == null) {
+            return false;
+        }
+
+        String priceText = field.getInferText().replaceAll(",", "").trim();
+
+        // 숫자로만 이루어졌는지 검사
+        if (!priceText.matches("^\\d+$")) {
+            return false;
+        }
+
+        // 숫자로 변환 후 최소 10,000 이상인지 확인
+        try {
+            int value = Integer.parseInt(priceText);
+            return value >= 10000;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 }
