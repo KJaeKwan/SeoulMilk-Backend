@@ -79,9 +79,12 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             }
 
             String erDat = (String) extractedData.get("issue_date");
+            String supplierBusinessName = (String) extractedData.get("supplier_business_name");
+            String recipientBusinessName = (String) extractedData.get("recipient_business_name");
+
 
             // TaxInvoice 엔티티 생성 및 DB 저장
-            TaxInvoice taxInvoice = TaxInvoice.create(issueId, ipId, suId, taxTotal, erDat);
+            TaxInvoice taxInvoice = TaxInvoice.create(issueId, ipId, suId, taxTotal, erDat, supplierBusinessName, recipientBusinessName);
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
             // OCR 추출에 성공한 이미지에 대해 S3 업로드
