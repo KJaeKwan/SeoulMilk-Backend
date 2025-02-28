@@ -10,6 +10,6 @@ import java.util.concurrent.CompletableFuture;
 
 public interface TaxInvoiceService {
     CompletableFuture<Map<String, Object>> processOcrAsync(MultipartFile image, MemberEntity member);
-    Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, int page, int size);
+    Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String employeeId, int page, int size);
     void delete(Long taxInvoiceId);
 }

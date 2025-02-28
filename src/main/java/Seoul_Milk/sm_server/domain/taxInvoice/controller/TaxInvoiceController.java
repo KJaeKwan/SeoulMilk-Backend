@@ -74,15 +74,22 @@ public class TaxInvoiceController {
      * @return 조건에 따른 페이지
      */
 
-    @Operation(summary = "내 업무 조회 - 검색")
+    @Operation(
+            summary = "내 업무 조회 - 검색",
+            description = """
+                    - 일반 사원은 본인이 등록한 자료만 조회 가능 (employeeId 사용X)
+                    - 관리자는 모든 자료 조회 가능하고, employeeId를 입력하면 특정 사원이 등록한 자료 조회 가능
+                    """
+    )
     @GetMapping("/search")
     public SuccessResponse<Page<TaxInvoiceResponseDTO.GetOne>> getAllBySearch(
             @CurrentMember MemberEntity member,
             @RequestParam(required = false) String provider,
             @RequestParam(required = false) String consumer,
+            @RequestParam(required = false) String employeeId,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
-        Page<TaxInvoiceResponseDTO.GetOne> result = taxInvoiceService.search(member, provider, consumer, page-1, size);
+        Page<TaxInvoiceResponseDTO.GetOne> result = taxInvoiceService.search(member, provider, consumer, employeeId, page-1, size);
         return SuccessResponse.ok(result);
     }
 

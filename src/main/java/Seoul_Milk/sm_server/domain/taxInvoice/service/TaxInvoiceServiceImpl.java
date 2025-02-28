@@ -122,18 +122,18 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
      * @return 검색 결과
      */
     @Override
-    public Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, int page, int size) {
+    public Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String employeeId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
         Page<TaxInvoice> taxInvoicePage;
         if (provider != null && !provider.isEmpty() && consumer != null && !consumer.isEmpty()) {
-            taxInvoicePage = taxInvoiceRepository.findByProviderAndConsumer(provider, consumer, pageable); // 공급자 + 공급받는자 로 검색
+            taxInvoicePage = taxInvoiceRepository.findByProviderAndConsumer(provider, consumer, employeeId, member, pageable); // 공급자 + 공급받는자 로 검색
         } else if (provider != null && !provider.isEmpty()) {
-            taxInvoicePage = taxInvoiceRepository.findByProvider(provider, pageable); // 공급자 로만 검색
+            taxInvoicePage = taxInvoiceRepository.findByProvider(provider, employeeId, member, pageable); // 공급자 로만 검색
         } else if (consumer != null && !consumer.isEmpty()) {
-            taxInvoicePage = taxInvoiceRepository.findByConsumer(consumer, pageable);// 공급받는자 로만 검색
+            taxInvoicePage = taxInvoiceRepository.findByConsumer(consumer, employeeId, member, pageable);// 공급받는자 로만 검색
         } else {
-            taxInvoicePage = taxInvoiceRepository.findAll(pageable); // 전체 조회
+            taxInvoicePage = taxInvoiceRepository.findAll(employeeId, member, pageable); // 전체 조회
         }
 
         return taxInvoicePage.map(TaxInvoiceResponseDTO.GetOne::from);
