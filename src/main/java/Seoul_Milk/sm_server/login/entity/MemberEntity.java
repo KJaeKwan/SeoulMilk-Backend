@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.util.UUID;
 import lombok.Getter;
 
 @Entity
@@ -57,5 +58,12 @@ public class MemberEntity {
      */
     public void updatePassword(String password) {
         this.password = password;
+    }
+
+    /**
+     * codef api 요청 시 id값 생성
+     */
+    public String makeUniqueId(){
+        return this.employeeId + UUID.randomUUID();
     }
 }
