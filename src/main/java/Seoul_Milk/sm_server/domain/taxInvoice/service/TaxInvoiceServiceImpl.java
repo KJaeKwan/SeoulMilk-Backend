@@ -50,10 +50,6 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             // CLOVA OCR API 호출 (JSON 응답 받음)
             String jsonResponse = clovaOcrApi.callApi("POST", image, clovaSecretKey, image.getContentType());
 
-            if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
-                throw new CustomException(ErrorCode.OCR_NO_RESULT);
-            }
-
             // OCR 결과를 DTO 리스트로 변환
             List<OcrField> ocrFields = convertToOcrFields(jsonResponse);
 

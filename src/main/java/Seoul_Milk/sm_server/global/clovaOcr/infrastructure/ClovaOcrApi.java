@@ -1,5 +1,7 @@
 package Seoul_Milk.sm_server.global.clovaOcr.infrastructure;
 
+import Seoul_Milk.sm_server.global.exception.CustomException;
+import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,6 +78,10 @@ public class ClovaOcrApi {
                 }
 
                 jsonResponse = response.toString();
+
+                if (jsonResponse.trim().isEmpty()) {
+                    throw new CustomException(ErrorCode.OCR_NO_RESULT);
+                }
             }
 
 
