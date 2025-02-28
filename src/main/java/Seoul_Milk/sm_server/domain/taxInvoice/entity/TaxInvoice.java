@@ -1,6 +1,7 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.entity;
 
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
+import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -61,6 +62,10 @@ public class TaxInvoice {
     @OneToOne(mappedBy = "taxInvoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private TaxInvoiceFile file;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "MEMBER_ID", nullable = false)
+    private MemberEntity member;
+
     public static TaxInvoice create(
             String issueId,
             String ipId,
@@ -70,7 +75,8 @@ public class TaxInvoice {
             String ipBusinessName,
             String suBusinessName,
             String ipName,
-            String suName
+            String suName,
+            MemberEntity memeber
     ) {
         return TaxInvoice.builder()
                 .issueId(issueId)
@@ -82,6 +88,7 @@ public class TaxInvoice {
                 .suBusinessName(suBusinessName)
                 .ipName(ipName)
                 .suName(suName)
+                .member(memeber)
                 .build();
     }
 
@@ -89,5 +96,9 @@ public class TaxInvoice {
     public void attachFile(TaxInvoiceFile file) {
         file.attachTaxInvoice(this);
         this.file = file;
+    }
+
+    public void attachMember(MemberEntity member) {
+        this.member = member;
     }
 }
