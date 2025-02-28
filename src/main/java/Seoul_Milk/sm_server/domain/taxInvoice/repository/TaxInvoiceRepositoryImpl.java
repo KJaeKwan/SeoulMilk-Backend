@@ -1,9 +1,16 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.repository;
 
+import Seoul_Milk.sm_server.domain.taxInvoice.entity.QTaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.Wildcard;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,6 +21,7 @@ import java.util.Optional;
 public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
 
     private final TaxInvoiceJpaRepository taxInvoiceJpaRepository;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public TaxInvoice getById(Long id) {
@@ -27,11 +35,6 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     }
 
     @Override
-    public List<TaxInvoice> findAll() {
-        return taxInvoiceJpaRepository.findAll();
-    }
-
-    @Override
     public TaxInvoice save(TaxInvoice taxInvoice) {
         return taxInvoiceJpaRepository.save(taxInvoice);
     }
@@ -39,5 +42,103 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     @Override
     public void delete(Long id) {
         taxInvoiceJpaRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<TaxInvoice> findByProvider(String provider, Pageable pageable) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+
+        long total = Optional.ofNullable(
+                queryFactory
+                        .select(Wildcard.count)
+                        .from(taxInvoice)
+                        .where(taxInvoice.ipBusinessName.eq(provider))
+                        .fetchOne()
+        ).orElse(0L);
+
+        List<TaxInvoice> results = queryFactory
+                .selectFrom(taxInvoice)
+                .where(taxInvoice.ipBusinessName.eq(provider))
+                .orderBy(taxInvoice.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, total);
+    }
+
+    @Override
+    public Page<TaxInvoice> findByConsumer(String consumer, Pageable pageable) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+
+        long total = Optional.ofNullable(
+                queryFactory
+                        .select(Wildcard.count)
+                        .from(taxInvoice)
+                        .where(taxInvoice.suBusinessName.eq(consumer))
+                        .fetchOne()
+        ).orElse(0L);
+
+        List<TaxInvoice> results = queryFactory
+                .selectFrom(taxInvoice)
+                .where(taxInvoice.suBusinessName.eq(consumer))
+                .orderBy(taxInvoice.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, total);
+    }
+
+    @Override
+    public Page<TaxInvoice> findByProviderAndConsumer(String provider, String consumer, Pageable pageable) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        if (provider != null && !provider.isEmpty()) {
+            whereClause.and(taxInvoice.ipBusinessName.eq(provider));
+        }
+        if (consumer != null && !consumer.isEmpty()) {
+            whereClause.and(taxInvoice.suBusinessName.eq(consumer));
+        }
+
+        long total = Optional.ofNullable(
+                queryFactory
+                        .select(Wildcard.count)
+                        .from(taxInvoice)
+                        .where(whereClause)
+                        .fetchOne()
+        ).orElse(0L);
+
+        List<TaxInvoice> results = queryFactory
+                .selectFrom(taxInvoice)
+                .where(whereClause)
+                .orderBy(taxInvoice.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, total);
+    }
+
+    @Override
+    public Page<TaxInvoice> findAll(Pageable pageable) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+
+        long total = Optional.ofNullable(
+                queryFactory
+                        .select(Wildcard.count)
+                        .from(taxInvoice)
+                        .fetchOne()
+        ).orElse(0L);
+
+        List<TaxInvoice> results = queryFactory
+                .selectFrom(taxInvoice)
+                .orderBy(taxInvoice.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, total);
     }
 }

@@ -9,16 +9,15 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/ocr")
@@ -32,7 +31,9 @@ public class TaxInvoiceController {
     private final TaxInvoiceService taxInvoiceService;
 
     /**
-     * 여러 이미지를 병렬로 처리
+     * 여러 이미지를 병렬로 OCR 처리
+     * @param images 입력 이미지 리스트
+     * @return 성공 메세지
      */
     @Operation(summary = "여러 개의 이미지를 병렬로 OCR 처리")
     @PostMapping(value = "/multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -59,15 +60,32 @@ public class TaxInvoiceController {
         return SuccessResponse.ok("이미지 OCR 처리 후 저장에 성공했습니다.");
     }
 
+    /**
+     * 내 업무 조회 - 세금계산서 리스트 반환 (검색 조건에 따라)
+     * @param provider 공급자 상호명
+     * @param consumer 공급받는자 상호명
+     * @param page 페이지 정보
+     * @param size 페이지 크기
+     * @return 조건에 따른 페이지
+     */
 
-    @Operation(summary = "OCR 처리된 모든 이미지 조회")
-    @GetMapping
-    public SuccessResponse<TaxInvoiceResponseDTO.GetALL> getAllProcessedImages() {
-        TaxInvoiceResponseDTO.GetALL result = taxInvoiceService.findAll();
+    @Operation(summary = "내 업무 조회 - 검색")
+    @GetMapping("/search")
+    public SuccessResponse<Page<TaxInvoiceResponseDTO.GetOne>> getAllBySearch(
+            @RequestParam(required = false) String provider,
+            @RequestParam(required = false) String consumer,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        Page<TaxInvoiceResponseDTO.GetOne> result = taxInvoiceService.search(provider, consumer, page-1, size);
         return SuccessResponse.ok(result);
     }
 
 
+    /**
+     * 세금계산서 ID로 조회하여 삭제
+     * @param id 삭제할 TaxInvoice ID
+     * @return 삭제 완료 문구
+     */
     @Operation(summary = "OCR 처리된 값 삭제")
     @DeleteMapping("/{taxInvoiceId}")
     public SuccessResponse<String> delete(@PathVariable("taxInvoiceId") Long id) {
