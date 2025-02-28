@@ -11,6 +11,7 @@ import Seoul_Milk.sm_server.global.clovaOcr.service.OcrDataExtractor;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.global.upload.service.AwsS3Service;
+import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,7 +46,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
     @Override
     @Async("ocrTaskExecutor")
-    public CompletableFuture<Map<String, Object>> processOcrAsync(MultipartFile image) {
+    public CompletableFuture<Map<String, Object>> processOcrAsync(MultipartFile image, MemberEntity member) {
         long startTime = System.nanoTime();
         Map<String, Object> imageResult = new LinkedHashMap<>();
 
@@ -86,7 +87,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             // TaxInvoice 엔티티 생성 및 DB 저장
             TaxInvoice taxInvoice = TaxInvoice.create(issueId, ipId, suId, taxTotal, erDat,
                     supplierBusinessName, recipientBusinessName,
-                    supplierName, recipientName);
+                    supplierName, recipientName, member);
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
             // OCR 추출에 성공한 이미지에 대해 S3 업로드
@@ -121,7 +122,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
      * @return 검색 결과
      */
     @Override
-    public Page<TaxInvoiceResponseDTO.GetOne> search(String provider, String consumer, int page, int size) {
+    public Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
         Page<TaxInvoice> taxInvoicePage;

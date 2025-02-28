@@ -2,9 +2,11 @@ package Seoul_Milk.sm_server.domain.taxInvoice.controller;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.service.TaxInvoiceService;
+import Seoul_Milk.sm_server.global.annotation.CurrentMember;
 import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
+import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +39,10 @@ public class TaxInvoiceController {
      */
     @Operation(summary = "여러 개의 이미지를 병렬로 OCR 처리")
     @PostMapping(value = "/multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public SuccessResponse<String> processParallelMultipleImages(@RequestParam("images") List<MultipartFile> images) {
+    public SuccessResponse<String> processParallelMultipleImages(
+            @RequestParam("images") List<MultipartFile> images,
+            @CurrentMember MemberEntity member
+    ) {
         if (images.isEmpty()) {
             throw new CustomException(ErrorCode.UPLOAD_FAILED);
         }
@@ -46,7 +51,7 @@ public class TaxInvoiceController {
 
         // 비동기 OCR 요청 실행
         List<CompletableFuture<Map<String, Object>>> futureResults = images.stream()
-                .map(taxInvoiceService::processOcrAsync)
+                .map(image -> taxInvoiceService.processOcrAsync(image, member))
                 .toList();
 
         // allOf로 실행 후 한 번에 처리
@@ -72,11 +77,12 @@ public class TaxInvoiceController {
     @Operation(summary = "내 업무 조회 - 검색")
     @GetMapping("/search")
     public SuccessResponse<Page<TaxInvoiceResponseDTO.GetOne>> getAllBySearch(
+            @CurrentMember MemberEntity member,
             @RequestParam(required = false) String provider,
             @RequestParam(required = false) String consumer,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
-        Page<TaxInvoiceResponseDTO.GetOne> result = taxInvoiceService.search(provider, consumer, page-1, size);
+        Page<TaxInvoiceResponseDTO.GetOne> result = taxInvoiceService.search(member, provider, consumer, page-1, size);
         return SuccessResponse.ok(result);
     }
 
