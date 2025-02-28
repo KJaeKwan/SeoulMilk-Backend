@@ -1,24 +1,32 @@
 package Seoul_Milk.sm_server.domain.taxValidation.thread;
 
 import Seoul_Milk.sm_server.domain.taxValidation.shared.SharedData;
+import Seoul_Milk.sm_server.global.redis.RedisUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.codef.api.EasyCodef;
 import io.codef.api.EasyCodefServiceType;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.Map;
 
 public class RequestThread extends Thread {
-    private EasyCodef codef;
-    private HashMap<String, Object> parameterMap;
-    private int threadNo;
-    private String productUrl;
+    private final EasyCodef codef;
+    private final HashMap<String, Object> parameterMap;
+    private final int threadNo;
+    private final String productUrl;
+    private final String id;
 
-    public RequestThread(EasyCodef codef, HashMap<String, Object> parameterMap, int threadNo, String productUrl) {
+    private final RedisUtils redisUtils;
+
+    public RequestThread(String id, EasyCodef codef, HashMap<String, Object> parameterMap, int threadNo, String productUrl,
+            RedisUtils redisUtils) {
         this.codef = codef;
         this.parameterMap = parameterMap;
         this.threadNo = threadNo;
         this.productUrl = productUrl;
+        this.id = id;
+        this.redisUtils = redisUtils;
     }
 
     @Override
@@ -60,10 +68,12 @@ public class RequestThread extends Thread {
 
         // 응답코드가 CF-03002 이고 continue2Way 필드가 true인 경우 추가 인증 정보를 변수에 저장
         if (code.equals("CF-03002") && continue2Way){
-            SharedData.JOB_INDEX =  (int)dataMap.get("jobIndex");
-            SharedData.THREAD_INDEX = (int)dataMap.get("threadIndex");
-            SharedData.JTI = (String) dataMap.get("jti");
-            SharedData.TWO_WAY_TIMESTAMP = (Long)dataMap.get("twoWayTimestamp");
+            redisUtils.saveCodefApiResponse(id, Map.of(
+                    "JOB_INDEX", dataMap.get("jobIndex"),
+                    "THREAD_INDEX", dataMap.get("threadIndex"),
+                    "JTI", dataMap.get("jti"),
+                    "TWO_WAY_TIMESTAMP", dataMap.get("twoWayTimestamp")
+            ));
         }
 
         /** #8.결과값 확인 */
