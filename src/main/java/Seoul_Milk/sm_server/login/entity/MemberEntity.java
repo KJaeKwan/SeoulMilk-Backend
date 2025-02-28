@@ -52,12 +52,16 @@ public class MemberEntity {
         return memberEntity;
     }
 
-    /**
-     * 비밀번호 수정
-     */
+    /** 비밀번호 수정 */
     public void updatePassword(String password) {
         this.password = password;
     }
+
+    /** 권한 수정 */
+    public void updateRole(Role role) {
+        this.role = role;
+    }
+
 
     /** 연관 관계 편의 메서드 */
     public void addTaxInvoice(TaxInvoice taxInvoice) {
