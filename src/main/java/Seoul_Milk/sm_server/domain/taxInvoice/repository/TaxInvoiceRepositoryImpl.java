@@ -63,23 +63,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
             whereClause.and(taxInvoice.member.employeeId.eq(employeeId));
         }
 
-        long total = Optional.ofNullable(
-                queryFactory
-                        .select(Wildcard.count)
-                        .from(taxInvoice)
-                        .where(whereClause)
-                        .fetchOne()
-        ).orElse(0L);
-
-        List<TaxInvoice> results = queryFactory
-                .selectFrom(taxInvoice)
-                .where(whereClause)
-                .orderBy(taxInvoice.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        return new PageImpl<>(results, pageable, total);
+        return executeQuery(whereClause, pageable);
     }
 
     @Override
@@ -97,23 +81,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
             whereClause.and(taxInvoice.member.employeeId.eq(employeeId));
         }
 
-        long total = Optional.ofNullable(
-                queryFactory
-                        .select(Wildcard.count)
-                        .from(taxInvoice)
-                        .where(whereClause)
-                        .fetchOne()
-        ).orElse(0L);
-
-        List<TaxInvoice> results = queryFactory
-                .selectFrom(taxInvoice)
-                .where(whereClause)
-                .orderBy(taxInvoice.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        return new PageImpl<>(results, pageable, total);
+        return executeQuery(whereClause, pageable);
     }
 
     @Override
@@ -136,23 +104,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
             whereClause.and(taxInvoice.member.employeeId.eq(employeeId));
         }
 
-        long total = Optional.ofNullable(
-                queryFactory
-                        .select(Wildcard.count)
-                        .from(taxInvoice)
-                        .where(whereClause)
-                        .fetchOne()
-        ).orElse(0L);
-
-        List<TaxInvoice> results = queryFactory
-                .selectFrom(taxInvoice)
-                .where(whereClause)
-                .orderBy(taxInvoice.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        return new PageImpl<>(results, pageable, total);
+        return executeQuery(whereClause, pageable);
     }
 
     @Override
@@ -167,6 +119,13 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         if (member.getRole() == Role.ROLE_ADMIN && employeeId != null && !employeeId.isEmpty()) {
             whereClause.and(taxInvoice.member.employeeId.eq(employeeId));
         }
+
+        return executeQuery(whereClause, pageable);
+    }
+
+    /** 공통 쿼리 실행 및 페이지 처리 */
+    private Page<TaxInvoice> executeQuery(BooleanBuilder whereClause, Pageable pageable) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
 
         long total = Optional.ofNullable(
                 queryFactory
