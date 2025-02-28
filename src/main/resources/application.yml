@@ -65,3 +65,12 @@ cloud:
       bucket: ${S3_BUCKET_NAME}
     stack:
       auto: false
+
+codef:
+  public:
+    key: ${PUBLIC_KEY}
+  client:
+    id: ${CLIENT_ID}
+    secret: ${CLIENT_SECRET}
+  valid:
+    url: ${VALID_URL}
