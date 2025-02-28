@@ -38,6 +38,12 @@ public class TaxInvoice {
     @Column(name = "SU_ADDRESS")
     private String suBusinessName;
 
+    @Column(name = "IP_NAME")
+    private String ipName;
+
+    @Column(name = "SU_NAME")
+    private String suName;
+
     @OneToOne(mappedBy = "taxInvoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private TaxInvoiceFile file;
 
@@ -48,7 +54,9 @@ public class TaxInvoice {
             int taxTotal,
             String erDat,
             String ipBusinessName,
-            String suBusinessName
+            String suBusinessName,
+            String ipName,
+            String suName
     ) {
         return TaxInvoice.builder()
                 .issueId(issueId)
@@ -58,6 +66,8 @@ public class TaxInvoice {
                 .erDat(erDat)
                 .ipBusinessName(ipBusinessName)
                 .suBusinessName(suBusinessName)
+                .ipName(ipName)
+                .suName(suName)
                 .build();
     }
 

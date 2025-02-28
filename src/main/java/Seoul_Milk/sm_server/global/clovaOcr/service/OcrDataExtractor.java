@@ -83,7 +83,6 @@ public class OcrDataExtractor {
                         break;
                     }
                 }
-                continue;
             }
         }
 
@@ -96,6 +95,11 @@ public class OcrDataExtractor {
         if (!businessNames.isEmpty()) {
          extractedData.putAll(businessNames);
         }
+
+        // 성명 정보 추출
+         List<String> names = extractNamesInOrder(ocrFields);
+         extractedData.put("supplier_name", !names.isEmpty() ? names.get(0) : null);
+         extractedData.put("recipient_name", names.size() > 1 ? names.get(1) : null);
 
         return extractedData;
     }
@@ -165,7 +169,23 @@ public class OcrDataExtractor {
         return businessNames;
     }
 
+    /** OCR 데이터에서 "성명" 값을 추출하는 메서드 */
+    private List<String> extractNamesInOrder(List<OcrField> ocrFields) {
+        List<String> nameKeywords = Arrays.asList("성명", "설명");
+        List<String> names = new ArrayList<>();
 
+        for (int i = 0; i < ocrFields.size(); i++) {
+            String currentText = ocrFields.get(i).getInferText().trim();
+
+            if (nameKeywords.contains(currentText) && i + 1 < ocrFields.size()) {
+                names.add(ocrFields.get(i + 1).getInferText().trim());
+            }
+
+            if (names.size() == 2) break;
+        }
+
+        return names;
+    }
 
     /**
      * 금액 검증 메서드 - 금액이 아닌 값이 들어오는 것을 방지
