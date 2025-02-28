@@ -15,7 +15,11 @@ public class TaxInvoiceResponseDTO {
         @Schema(description = "공급자 등록번호") String ipId,
         @Schema(description = "공급받는자 등록번호") String suId,
         @Schema(description = "공급가액") int taxTotal,
-        @Schema(description = "작성 일자") String erDat
+        @Schema(description = "작성 일자") String erDat,
+        @Schema(description = "공급자 상호명") String ipBusinessName,
+        @Schema(description = "공급받는자 상호명") String suBusinessName,
+        @Schema(description = "공급자 성명") String ipName,
+        @Schema(description = "공급받는자 성명") String suName
     ) {
         public static GetOne from(TaxInvoice taxInvoice) {
             return new GetOne(
@@ -24,7 +28,11 @@ public class TaxInvoiceResponseDTO {
                     taxInvoice.getIpId(),
                     taxInvoice.getSuId(),
                     taxInvoice.getTaxTotal(),
-                    taxInvoice.getErDat()
+                    taxInvoice.getErDat(),
+                    taxInvoice.getIpBusinessName(),
+                    taxInvoice.getSuBusinessName(),
+                    taxInvoice.getIpName(),
+                    taxInvoice.getSuName()
             );
         }
     }

@@ -52,4 +52,10 @@ public class MemberEntity {
         return memberEntity;
     }
 
+    /**
+     * 비밀번호 수정
+     */
+    public void updatePassword(String password) {
+        this.password = password;
+    }
 }

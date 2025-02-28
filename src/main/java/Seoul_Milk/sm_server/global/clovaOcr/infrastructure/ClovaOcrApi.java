@@ -1,6 +1,7 @@
 package Seoul_Milk.sm_server.global.clovaOcr.infrastructure;
 
-import Seoul_Milk.sm_server.global.util.JsonUtil;
+import Seoul_Milk.sm_server.global.exception.CustomException;
+import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +12,6 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -30,8 +30,8 @@ public class ClovaOcrApi {
      * @param naverSecretKey 네이버 클로바 OCR Secret Key
      * @param contentType 파일 확장자 (예: image/png)
      */
-    public List<String> callApi(String type, MultipartFile file, String naverSecretKey, String contentType) {
-        List<String> parseData = null;
+    public String callApi(String type, MultipartFile file, String naverSecretKey, String contentType) {
+        String jsonResponse = null;
 
         try {
             URL url = new URL(clovaOcrUrl);
@@ -76,13 +76,20 @@ public class ClovaOcrApi {
                 while ((inputLine = br.readLine()) != null) {
                     response.append(inputLine);
                 }
-                parseData = JsonUtil.parseOcrResponse(response.toString());
+
+                jsonResponse = response.toString();
+
+                if (jsonResponse.trim().isEmpty()) {
+                    throw new CustomException(ErrorCode.OCR_NO_RESULT);
+                }
             }
+
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return parseData;
+
+        return jsonResponse;
     }
 
     /**

@@ -1,7 +1,5 @@
 package Seoul_Milk.sm_server.global.jwt;
 
-import static Seoul_Milk.sm_server.global.token.Token.ACCESS_TOKEN;
-
 import Seoul_Milk.sm_server.login.constant.Role;
 import Seoul_Milk.sm_server.login.dto.CustomUserDetails;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
@@ -10,13 +8,16 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import static Seoul_Milk.sm_server.global.token.Token.ACCESS_TOKEN;
 
 @AllArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
@@ -25,8 +26,9 @@ public class JWTFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        // 헤더에서 access키에 담긴 토큰을 꺼냄
-        String accessToken = request.getHeader(ACCESS_TOKEN.category());
+
+        // Request 에서 access token 추출
+        String accessToken = jwtUtil.resolveAccessToken(request);
 
         // 토큰이 없다면 다음 필터로 넘김
         if (accessToken == null) {

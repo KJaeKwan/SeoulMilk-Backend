@@ -32,16 +32,42 @@ public class TaxInvoice {
     @Column(name = "ER_DAT", nullable = false, length = 40)
     private String erDat;
 
+    @Column(name = "IP_ADDRESS")
+    private String ipBusinessName;
+
+    @Column(name = "SU_ADDRESS")
+    private String suBusinessName;
+
+    @Column(name = "IP_NAME")
+    private String ipName;
+
+    @Column(name = "SU_NAME")
+    private String suName;
+
     @OneToOne(mappedBy = "taxInvoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private TaxInvoiceFile file;
 
-    public static TaxInvoice create(String issueId, String ipId, String suId, int taxTotal, String erDat) {
+    public static TaxInvoice create(
+            String issueId,
+            String ipId,
+            String suId,
+            int taxTotal,
+            String erDat,
+            String ipBusinessName,
+            String suBusinessName,
+            String ipName,
+            String suName
+    ) {
         return TaxInvoice.builder()
                 .issueId(issueId)
                 .ipId(ipId)
                 .suId(suId)
                 .taxTotal(taxTotal)
                 .erDat(erDat)
+                .ipBusinessName(ipBusinessName)
+                .suBusinessName(suBusinessName)
+                .ipName(ipName)
+                .suName(suName)
                 .build();
     }
 
