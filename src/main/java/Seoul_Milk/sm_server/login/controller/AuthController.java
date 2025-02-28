@@ -1,15 +1,9 @@
 package Seoul_Milk.sm_server.login.controller;
 
 import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
-import Seoul_Milk.sm_server.login.dto.LoginRequestDTO;
-import Seoul_Milk.sm_server.login.dto.LoginResponseDTO;
+import Seoul_Milk.sm_server.login.dto.request.LoginRequestDTO;
+import Seoul_Milk.sm_server.login.dto.response.LoginResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.headers.Header;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

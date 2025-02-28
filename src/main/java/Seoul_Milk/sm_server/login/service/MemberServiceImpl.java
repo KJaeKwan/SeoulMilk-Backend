@@ -2,7 +2,10 @@ package Seoul_Milk.sm_server.login.service;
 
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
-import Seoul_Milk.sm_server.login.dto.UpdatePwDTO;
+import Seoul_Milk.sm_server.login.constant.Role;
+import Seoul_Milk.sm_server.login.dto.request.UpdateRoleDTO;
+import Seoul_Milk.sm_server.login.dto.request.UpdatePwDTO;
+import Seoul_Milk.sm_server.login.dto.response.MemberResponse;
 import Seoul_Milk.sm_server.login.dto.VerifyPwDTO;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import Seoul_Milk.sm_server.login.repository.MemberRepository;
@@ -59,5 +62,41 @@ public class MemberServiceImpl implements MemberService {
             throw new CustomException(ErrorCode.USER_WRONG_PASSWORD);
         }
         return true;
+    }
+
+    /**
+     * [임시] 권한 변경
+     */
+    @Override
+    @Transactional
+    public MemberResponse testUpdateRole(UpdateRoleDTO request) {
+        MemberEntity member = memberRepository.getById(request.memberId());
+
+        try {
+            Role role = Role.valueOf(request.role());
+            member.updateRole(role);
+        } catch (IllegalArgumentException e) {
+            throw new CustomException(ErrorCode.INVALID_ROLE);
+        }
+
+        return MemberResponse.from(member);
+    }
+
+    /**
+     * 사용자 권한 변경
+     */
+    @Override
+    @Transactional
+    public MemberResponse updateRole(Long id, UpdateRoleDTO request) {
+        MemberEntity member = memberRepository.getById(request.memberId());
+
+        try {
+            Role role = Role.valueOf(request.role());
+            member.updateRole(role);
+        } catch (IllegalArgumentException e) {
+            throw new CustomException(ErrorCode.INVALID_ROLE);
+        }
+
+        return MemberResponse.from(member);
     }
 }
