@@ -1,5 +1,8 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.entity;
 
+import static Seoul_Milk.sm_server.domain.taxInvoice.constant.ProcessStatus.UNAPPROVED;
+
+import Seoul_Milk.sm_server.domain.taxInvoice.constant.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,6 +19,10 @@ public class TaxInvoice {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name = "TAX_INVOICE_ID")
     private Long taxInvoiceId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "PROGRESS_STATUS", nullable = false)
+    private ProcessStatus processStatus;
 
     @Column(name = "ISSUE_ID", nullable = false, unique = true, length = 40)
     private String issueId;
@@ -59,6 +66,7 @@ public class TaxInvoice {
             String suName
     ) {
         return TaxInvoice.builder()
+                .processStatus(UNAPPROVED) // default 값 unapproved(미승인)
                 .issueId(issueId)
                 .ipId(ipId)
                 .suId(suId)
