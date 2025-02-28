@@ -73,6 +73,12 @@ public enum ErrorCode {
     OCR_NO_FIELDS("OCR404", "OCR 결과에 fields 데이터가 없습니다.", HttpStatus.NOT_FOUND),
     OCR_NO_RESULT("OCR404", "OCR API에서 반환된 결과가 없습니다.", HttpStatus.NOT_FOUND),
     INSUFFICIENT_REGISTRATION_NUMBERS("OCR422", "등록번호가 2개 미만입니다.", HttpStatus.UNPROCESSABLE_ENTITY),
+    OCR_NO_BOUNDING_POLY("OCR422", "OCR 필드에서 boundingPoly를 찾을 수 없습니다.", HttpStatus.UNPROCESSABLE_ENTITY),
+    OCR_MISSING_BUSINESS_FIELDS("OCR422", "등록번호를 기준으로 '상호', '성명', '사업장' 필드를 찾지 못했습니다.", HttpStatus.UNPROCESSABLE_ENTITY),
+    OCR_NO_BUSINESS_NAME_CANDIDATES("OCR404", "필터링된 상호명 후보가 없습니다.", HttpStatus.NOT_FOUND),
+    OCR_FIELD_CONVERSION_ERROR("OCR500", "OCR 필드 변환 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    OCR_JSON_PARSING_ERROR("OCR500", "OCR JSON 파싱 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+
 
     // EMAIL
     EMAIL_VERIFICATION_EXPIRED("EMAIL_VERIFICATION404", "인증 코드가 만료되었습니다.", HttpStatus.NOT_FOUND),

@@ -9,7 +9,6 @@ import java.util.concurrent.CompletableFuture;
 
 public interface TaxInvoiceService {
     CompletableFuture<Map<String, Object>> processOcrAsync(MultipartFile image);
-    String convertListToJson(List<String> ocrResult);
     TaxInvoiceResponseDTO.GetALL findAll();
     void delete(Long taxInvoiceId);
 }
