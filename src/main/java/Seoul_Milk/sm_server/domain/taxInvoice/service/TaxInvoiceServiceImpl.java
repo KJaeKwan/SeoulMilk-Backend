@@ -4,12 +4,16 @@ import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
+import Seoul_Milk.sm_server.global.clovaOcr.dto.BoundingPoly;
 import Seoul_Milk.sm_server.global.clovaOcr.dto.OcrField;
 import Seoul_Milk.sm_server.global.clovaOcr.infrastructure.ClovaOcrApi;
 import Seoul_Milk.sm_server.global.clovaOcr.service.OcrDataExtractor;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.global.upload.service.AwsS3Service;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -17,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,14 +47,15 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
         Map<String, Object> imageResult = new LinkedHashMap<>();
 
         try {
-            // 실제 CLOVA OCR API 호출
-            List<String> ocrResult = clovaOcrApi.callApi("POST", image, clovaSecretKey, image.getContentType());
-            if (ocrResult == null || ocrResult.isEmpty()) {
+            // CLOVA OCR API 호출 (JSON 응답 받음)
+            String jsonResponse = clovaOcrApi.callApi("POST", image, clovaSecretKey, image.getContentType());
+
+            if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
                 throw new CustomException(ErrorCode.OCR_NO_RESULT);
             }
 
             // OCR 결과를 DTO 리스트로 변환
-            List<OcrField> ocrFields = convertToOcrFields(ocrResult);
+            List<OcrField> ocrFields = convertToOcrFields(jsonResponse);
 
             // 데이터 추출
             Map<String, Object> extractedData = ocrDataExtractor.extractDataFromOcrFields(ocrFields);
@@ -90,9 +94,12 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             long endTime = System.nanoTime();
             long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
 
+            imageResult.put("추출된 데이터", extractedData);
             imageResult.put("파일명", image.getOriginalFilename());
             imageResult.put("처리시간", elapsedTimeMillis);
             imageResult.put("저장된_데이터", taxInvoice);
+
+//            System.out.println("최종 결과 확인: " + imageResult);
 
         } catch (Exception e) {
             imageResult.put("파일명", image.getOriginalFilename());
@@ -124,14 +131,43 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
 
     /** 문자열을 OcrField로 변환하는 메서드 */
-    private List<OcrField> convertToOcrFields(List<String> ocrResult) {
-        if (ocrResult == null || ocrResult.isEmpty()) {
-            return Collections.emptyList();
+    private List<OcrField> convertToOcrFields(String jsonResponse) {
+        if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
+            throw new CustomException(ErrorCode.OCR_EMPTY_JSON);
         }
 
-        return ocrResult.stream()
-                .map(text -> new OcrField(text, null)) // boundingPoly가 없으므로 null 처리
-                .collect(Collectors.toList());
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Object> root = objectMapper.readValue(jsonResponse, new TypeReference<Map<String, Object>>() {});
+            List<Map<String, Object>> images = (List<Map<String, Object>>) root.get("images");
+
+            if (images == null || images.isEmpty()) {
+                throw new CustomException(ErrorCode.OCR_NO_IMAGES);
+            }
+
+            List<Map<String, Object>> fields = (List<Map<String, Object>>) images.get(0).get("fields");
+            if (fields == null || fields.isEmpty()) {
+                throw new CustomException(ErrorCode.OCR_NO_FIELDS);
+            }
+
+            return fields.stream()
+                    .map(field -> {
+                        try {
+                            String inferText = (String) field.get("inferText");
+                            Map<String, Object> boundingPolyMap = (Map<String, Object>) field.get("boundingPoly");
+                            BoundingPoly boundingPoly = objectMapper.convertValue(boundingPolyMap, BoundingPoly.class);
+                            return new OcrField(inferText, boundingPoly);
+                        } catch (Exception e) {
+                            throw new CustomException(ErrorCode.OCR_FIELD_CONVERSION_ERROR);
+                        }
+                    })
+                    .collect(Collectors.toList());
+
+        } catch (JsonProcessingException e) {
+            throw new CustomException(ErrorCode.OCR_JSON_PARSING_ERROR);
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.OCR_FIELD_CONVERSION_ERROR);
+        }
     }
 
 }
