@@ -81,24 +81,22 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 erDat = "UNKNOWN";
             }
 
-            String ipId;
-            String suId;
+            String ipId = "UNKNOWN";
+            String suId = "UNKNOWN";
             if (registrationNumbers != null && !registrationNumbers.isEmpty()) {
                 ipId = registrationNumbers.get(0);
             } else {
                 errorDetails.add("공급자 사업자 등록번호 인식 오류");
-                ipId = "UNKNOWN";
             }
 
             if (registrationNumbers != null && registrationNumbers.size() > 1) {
                 suId = registrationNumbers.get(1);
             } else {
                 errorDetails.add("공급받는자 사업자 등록번호 인식 오류");
-                suId = "UNKNOWN";
             }
 
             int taxTotal;
-            if (!totalAmountStr.isEmpty()) {
+            if (!totalAmountStr.isEmpty() && !"UNKNOWN".equals(totalAmountStr)) {
                 taxTotal = Integer.parseInt(totalAmountStr.replaceAll(",", ""));
             } else {
                 errorDetails.add("공급가액 인식 오류");
@@ -128,6 +126,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             return CompletableFuture.completedFuture(responseDTO);
 
         } catch (Exception e) {
+            System.out.println("[ERROR] 세금계산서 처리 중 예외 발생: " + e.getMessage());
             return CompletableFuture.completedFuture(TaxInvoiceResponseDTO.Create.error(image.getOriginalFilename(), e.getMessage()));
         }
     }
