@@ -3,10 +3,41 @@ package Seoul_Milk.sm_server.domain.taxInvoice.dto;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Schema(description = "세금 계산서 관련 응답 DTO")
 public class TaxInvoiceResponseDTO {
+
+    @Schema(description = "세금 계산서 등록했을 때 응답 DTO")
+    public record Create(
+            @Schema(description = "파일명") String fileName,
+            @Schema(description = "추출된 데이터") Map<String, Object> extractedData,
+            @Schema(description = "처리 상태") String processStatus,
+            @Schema(description = "승인 실패 이유") List<String> errorDetails,
+            @Schema(description = "응답 시간") long processingTime
+    ) {
+        public static Create from(TaxInvoice taxInvoice, String fileName, Map<String, Object> extractedData, List<String> errorDetails, long processingTime) {
+            return new Create(
+                    fileName,
+                    extractedData,
+                    taxInvoice.getProcessStatus().name(),
+                    errorDetails,
+                    processingTime
+            );
+        }
+
+        public static Create error(String fileName, String errorMessage) {
+            return new Create(
+                    fileName,
+                    Collections.emptyMap(),
+                    "UNAPPROVED",
+                    Collections.singletonList(errorMessage),
+                    0
+            );
+        }
+    }
 
     @Schema(description = "세금 계산서 단일 응답 DTO")
     public record GetOne(

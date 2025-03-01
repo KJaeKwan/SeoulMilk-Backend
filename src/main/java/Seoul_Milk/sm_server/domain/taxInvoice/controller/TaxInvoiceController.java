@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -50,7 +49,7 @@ public class TaxInvoiceController {
         long totalStartTime = System.nanoTime();
 
         // 비동기 OCR 요청 실행
-        List<CompletableFuture<Map<String, Object>>> futureResults = images.stream()
+        List<CompletableFuture<TaxInvoiceResponseDTO.Create>> futureResults = images.stream()
                 .map(image -> taxInvoiceService.processOcrAsync(image, member))
                 .toList();
 

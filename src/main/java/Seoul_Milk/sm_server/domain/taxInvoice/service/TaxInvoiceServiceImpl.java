@@ -47,22 +47,18 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
     @Override
     @Async("ocrTaskExecutor")
-    public CompletableFuture<Map<String, Object>> processOcrAsync(MultipartFile image, MemberEntity member) {
+    public CompletableFuture<TaxInvoiceResponseDTO.Create> processOcrAsync(MultipartFile image, MemberEntity member) {
         long startTime = System.nanoTime();
-        Map<String, Object> imageResult = new LinkedHashMap<>();
         List<String> errorDetails = new ArrayList<>();
+        Map<String, Object> extractedData;
 
         try {
-            // CLOVA OCR API 호출 (JSON 응답 받음)
+            // CLOVA OCR API 호출
             String jsonResponse = clovaOcrApi.callApi("POST", image, clovaSecretKey, image.getContentType());
-
-            // OCR 결과를 DTO 리스트로 변환
             List<OcrField> ocrFields = convertToOcrFields(jsonResponse);
+            extractedData = ocrDataExtractor.extractDataFromOcrFields(ocrFields);
 
             // 데이터 추출
-            Map<String, Object> extractedData = ocrDataExtractor.extractDataFromOcrFields(ocrFields);
-
-            // DB에 저장
             String issueId = (String) extractedData.get("approval_number");
             List<String> registrationNumbers = (List<String>) extractedData.get("registration_numbers");
             String totalAmountStr = (String) extractedData.get("total_amount");
@@ -72,8 +68,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             String ipName = (String) extractedData.get("supplier_name");
             String suName = (String) extractedData.get("recipient_name");
 
-
-            // 미승인 에러 케이스
+            // 미승인 에러 케이스 추가
             if (issueId == null) errorDetails.add("승인번호 인식 오류");
             if (totalAmountStr == null) errorDetails.add("공급가액 인식 오류");
             if (erDat == null) errorDetails.add("발행일 인식 오류");
@@ -101,15 +96,14 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
             if (erDat == null) errorDetails.add("작성일자 인식 오류");
 
-            // TaxInvoice 엔티티 생성 및 DB 저장
+            // TaxInvoice 생성 및 저장
             TaxInvoice taxInvoice = TaxInvoice.create(issueId, ipId, suId, taxTotal, erDat,
                     ipBusinessName, suBusinessName, ipName, suName, member);
 
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
-            // OCR 추출에 성공한 이미지에 대해 S3 업로드
+            // OCR 추출 성공한 경우 S3 업로드
             String fileUrl = awsS3Service.uploadFile("tax_invoices", image, true);
-
             TaxInvoiceFile file = TaxInvoiceFile.create(savedTaxInvoice, fileUrl, image.getContentType(), image.getOriginalFilename(), image.getSize(), LocalDateTime.now());
             taxInvoice.attachFile(file);
             taxInvoiceRepository.save(taxInvoice);
@@ -117,20 +111,18 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             long endTime = System.nanoTime();
             long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
 
-            imageResult.put("추출된 데이터", extractedData);
-            imageResult.put("파일명", image.getOriginalFilename());
-            imageResult.put("처리시간", elapsedTimeMillis);
-            imageResult.put("저장된_데이터", taxInvoice);
-            imageResult.put("승인 상태", taxInvoice.getProcessStatus());
-            imageResult.put("미승인 사유", errorDetails);
+            // DTO 반환
+            TaxInvoiceResponseDTO.Create responseDTO = TaxInvoiceResponseDTO.Create.from(
+                    savedTaxInvoice, image.getOriginalFilename(), extractedData, errorDetails, elapsedTimeMillis
+            );
+
+            return CompletableFuture.completedFuture(responseDTO);
 
         } catch (Exception e) {
-            imageResult.put("파일명", image.getOriginalFilename());
-            imageResult.put("오류", e.getMessage());
+            return CompletableFuture.completedFuture(TaxInvoiceResponseDTO.Create.error(image.getOriginalFilename(), e.getMessage()));
         }
-
-        return CompletableFuture.completedFuture(imageResult);
     }
+
 
     /**
      * 세금계산서 검색 - provider, consumer 입력 값이 없으면 전체 조회
