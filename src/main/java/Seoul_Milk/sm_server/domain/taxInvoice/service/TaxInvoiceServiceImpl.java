@@ -26,7 +26,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -69,36 +68,46 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             String suName = (String) extractedData.get("recipient_name");
 
             // 미승인 에러 케이스 추가
-            if (issueId == null) errorDetails.add("승인번호 인식 오류");
-            if (totalAmountStr == null) errorDetails.add("공급가액 인식 오류");
-            if (erDat == null) errorDetails.add("발행일 인식 오류");
+            if (issueId == null) {
+                errorDetails.add("승인번호 인식 오류");
+                issueId = "UNKNOWN";
+            }
+            if (totalAmountStr == null) {
+                errorDetails.add("공급가액 인식 오류");
+                totalAmountStr = "UNKNOWN";
+            }
+            if (erDat == null) {
+                errorDetails.add("발행일 인식 오류");
+                erDat = "UNKNOWN";
+            }
 
-            String ipId = null;
-            String suId = null;
+            String ipId;
+            String suId;
             if (registrationNumbers != null && !registrationNumbers.isEmpty()) {
                 ipId = registrationNumbers.get(0);
             } else {
                 errorDetails.add("공급자 사업자 등록번호 인식 오류");
+                ipId = "UNKNOWN";
             }
 
             if (registrationNumbers != null && registrationNumbers.size() > 1) {
                 suId = registrationNumbers.get(1);
             } else {
                 errorDetails.add("공급받는자 사업자 등록번호 인식 오류");
+                suId = "UNKNOWN";
             }
 
-            int taxTotal = 0;
-            if (totalAmountStr != null && !totalAmountStr.isEmpty()) {
+            int taxTotal;
+            if (!totalAmountStr.isEmpty()) {
                 taxTotal = Integer.parseInt(totalAmountStr.replaceAll(",", ""));
             } else {
                 errorDetails.add("공급가액 인식 오류");
+                taxTotal = -1;
             }
-
-            if (erDat == null) errorDetails.add("작성일자 인식 오류");
 
             // TaxInvoice 생성 및 저장
             TaxInvoice taxInvoice = TaxInvoice.create(issueId, ipId, suId, taxTotal, erDat,
-                    ipBusinessName, suBusinessName, ipName, suName, member);
+                    ipBusinessName, suBusinessName, ipName, suName, member, errorDetails);
 
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
