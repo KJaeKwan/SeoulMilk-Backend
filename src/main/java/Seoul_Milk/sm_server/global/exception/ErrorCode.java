@@ -57,6 +57,9 @@ public enum ErrorCode {
     USER_NO_PERMISSION("USER403", "권한이 없습니다.", HttpStatus.FORBIDDEN),
     USER_FORBIDDEN("USER403", "유저의 권한이 부족합니다.", HttpStatus.FORBIDDEN),
 
+    // Role
+    INVALID_ROLE("ROLE400", "잘못된 Role 값입니다.", HttpStatus.BAD_REQUEST),
+
     // 세금계산서 (TaxInvoice)
     TAX_INVOICE_NOT_EXIST("TAX_INVOICE404", "존재하지 않는 세금계산서입니다.", HttpStatus.NOT_FOUND),
 

@@ -1,4 +1,4 @@
-package Seoul_Milk.sm_server.login.dto;
+package Seoul_Milk.sm_server.login.dto.response;
 
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
