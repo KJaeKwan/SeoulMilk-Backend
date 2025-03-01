@@ -1,5 +1,6 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.entity;
 
+import Seoul_Milk.sm_server.domain.taxInvoice.enumClass.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import jakarta.persistence.*;
@@ -26,6 +27,10 @@ public class TaxInvoice {
 
     @Column(name = "ISSUE_ID", nullable = false, unique = true, length = 40)
     private String issueId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "PROGRESS_STATUS", nullable = false)
+    private ProcessStatus processStatus;
 
     @Column(name = "IP_ID", nullable = false, length = 40)
     private String ipId;
@@ -79,6 +84,7 @@ public class TaxInvoice {
             MemberEntity memeber
     ) {
         return TaxInvoice.builder()
+                .processStatus(ProcessStatus.UNAPPROVED) // default 값 unapproved(미승인)
                 .issueId(issueId)
                 .ipId(ipId)
                 .suId(suId)
@@ -100,5 +106,15 @@ public class TaxInvoice {
 
     public void attachMember(MemberEntity member) {
         this.member = member;
+    }
+
+    /** 승인 처리 */
+    public void approve() {
+        this.processStatus = ProcessStatus.APPROVED;
+    }
+
+    /** 반려 처리 */
+    public void reject() {
+        this.processStatus = ProcessStatus.REJECTED;
     }
 }

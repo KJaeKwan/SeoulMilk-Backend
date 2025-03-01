@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
     public CompletableFuture<Map<String, Object>> processOcrAsync(MultipartFile image, MemberEntity member) {
         long startTime = System.nanoTime();
         Map<String, Object> imageResult = new LinkedHashMap<>();
+        List<String> errorDetails = new ArrayList<>();
 
         try {
             // CLOVA OCR API 호출 (JSON 응답 받음)
@@ -62,32 +64,47 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
             // DB에 저장
             String issueId = (String) extractedData.get("approval_number");
-
-            @SuppressWarnings("unchecked") // 캐스팅에 대한 경고 무시
             List<String> registrationNumbers = (List<String>) extractedData.get("registration_numbers");
-            if (registrationNumbers == null || registrationNumbers.size() < 2) {
-                throw new CustomException(ErrorCode.INSUFFICIENT_REGISTRATION_NUMBERS);
-            }
-            String ipId = registrationNumbers.get(0);
-            String suId = registrationNumbers.get(1);
-
-            // 총 공급가액 -> 문자열을 정수로 변환
             String totalAmountStr = (String) extractedData.get("total_amount");
+            String erDat = (String) extractedData.get("issue_date");
+            String ipBusinessName = (String) extractedData.get("supplier_business_name");
+            String suBusinessName = (String) extractedData.get("recipient_business_name");
+            String ipName = (String) extractedData.get("supplier_name");
+            String suName = (String) extractedData.get("recipient_name");
+
+
+            // 미승인 에러 케이스
+            if (issueId == null) errorDetails.add("승인번호 인식 오류");
+            if (totalAmountStr == null) errorDetails.add("공급가액 인식 오류");
+            if (erDat == null) errorDetails.add("발행일 인식 오류");
+
+            String ipId = null;
+            String suId = null;
+            if (registrationNumbers != null && !registrationNumbers.isEmpty()) {
+                ipId = registrationNumbers.get(0);
+            } else {
+                errorDetails.add("공급자 사업자 등록번호 인식 오류");
+            }
+
+            if (registrationNumbers != null && registrationNumbers.size() > 1) {
+                suId = registrationNumbers.get(1);
+            } else {
+                errorDetails.add("공급받는자 사업자 등록번호 인식 오류");
+            }
+
             int taxTotal = 0;
             if (totalAmountStr != null && !totalAmountStr.isEmpty()) {
                 taxTotal = Integer.parseInt(totalAmountStr.replaceAll(",", ""));
+            } else {
+                errorDetails.add("공급가액 인식 오류");
             }
 
-            String erDat = (String) extractedData.get("issue_date");
-            String supplierBusinessName = (String) extractedData.get("supplier_business_name");
-            String recipientBusinessName = (String) extractedData.get("recipient_business_name");
-            String supplierName = (String) extractedData.get("supplier_name");
-            String recipientName = (String) extractedData.get("recipient_name");
+            if (erDat == null) errorDetails.add("작성일자 인식 오류");
 
             // TaxInvoice 엔티티 생성 및 DB 저장
             TaxInvoice taxInvoice = TaxInvoice.create(issueId, ipId, suId, taxTotal, erDat,
-                    supplierBusinessName, recipientBusinessName,
-                    supplierName, recipientName, member);
+                    ipBusinessName, suBusinessName, ipName, suName, member);
+
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
             // OCR 추출에 성공한 이미지에 대해 S3 업로드
@@ -104,8 +121,8 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             imageResult.put("파일명", image.getOriginalFilename());
             imageResult.put("처리시간", elapsedTimeMillis);
             imageResult.put("저장된_데이터", taxInvoice);
-
-//            System.out.println("최종 결과 확인: " + imageResult);
+            imageResult.put("승인 상태", taxInvoice.getProcessStatus());
+            imageResult.put("미승인 사유", errorDetails);
 
         } catch (Exception e) {
             imageResult.put("파일명", image.getOriginalFilename());
