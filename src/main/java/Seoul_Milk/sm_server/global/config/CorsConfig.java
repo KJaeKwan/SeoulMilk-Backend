@@ -5,10 +5,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-public class CorsConfig implements WebMvcConfigurer {
+public class CorsConfig {
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -16,7 +15,7 @@ public class CorsConfig implements WebMvcConfigurer {
 
         config.setAllowCredentials(true);
         config.addAllowedOriginPattern("http://localhost:5173");
-        config.addAllowedOriginPattern("https://sm-frontend-eosin.vercel.app/");
+        config.addAllowedOriginPattern("https://sm-frontend-eosin.vercel.app");
         config.addAllowedOriginPattern("http://localhost:8080");
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
