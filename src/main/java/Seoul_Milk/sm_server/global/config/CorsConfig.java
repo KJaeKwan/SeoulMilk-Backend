@@ -17,6 +17,7 @@ public class CorsConfig {
         config.addAllowedOriginPattern("http://localhost:5173");
         config.addAllowedOriginPattern("https://sm-frontend-eosin.vercel.app");
         config.addAllowedOriginPattern("http://localhost:8080");
+        config.addAllowedOriginPattern("https://jk-project.site");
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
         config.addExposedHeader("access");
