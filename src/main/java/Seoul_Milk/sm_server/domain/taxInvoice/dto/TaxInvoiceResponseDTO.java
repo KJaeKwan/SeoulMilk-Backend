@@ -61,7 +61,7 @@ public class TaxInvoiceResponseDTO {
                     taxInvoice.getTaxInvoiceId(),
                     taxInvoice.getMember().getEmployeeId(),
                     taxInvoice.getProcessStatus().name(),
-                    taxInvoice.getErDat(),
+                    taxInvoice.getIssueId(),
                     taxInvoice.getIpId(),
                     taxInvoice.getSuId(),
                     taxInvoice.getTaxTotal(),
