@@ -3,6 +3,7 @@ package Seoul_Milk.sm_server.domain.taxInvoice.dto;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,8 @@ public class TaxInvoiceResponseDTO {
         @Schema(description = "공급자 상호명") String ipBusinessName,
         @Schema(description = "공급받는자 상호명") String suBusinessName,
         @Schema(description = "공급자 성명") String ipName,
-        @Schema(description = "공급받는자 성명") String suName
+        @Schema(description = "공급받는자 성명") String suName,
+        @Schema(description = "에러 상세 내역") List<String> errorDetails
     ) {
         public static GetOne from(TaxInvoice taxInvoice) {
             return new GetOne(
@@ -67,7 +69,8 @@ public class TaxInvoiceResponseDTO {
                     taxInvoice.getIpBusinessName(),
                     taxInvoice.getSuBusinessName(),
                     taxInvoice.getIpName(),
-                    taxInvoice.getSuName()
+                    taxInvoice.getSuName(),
+                    taxInvoice.getErrorDetails() != null ? taxInvoice.getErrorDetails() : new ArrayList<>()
             );
         }
     }

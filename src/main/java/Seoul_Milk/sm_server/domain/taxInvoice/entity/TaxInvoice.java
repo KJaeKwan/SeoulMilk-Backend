@@ -10,6 +10,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -56,6 +58,12 @@ public class TaxInvoice {
     @Column(name = "SU_NAME")
     private String suName;
 
+    @Builder.Default
+    @ElementCollection
+    @CollectionTable(name = "tax_invoice_errors", joinColumns = @JoinColumn(name = "tax_invoice_id"))
+    @Column(name = "error_detail")
+    private List<String> errorDetails = new ArrayList<>();
+
     @CreatedDate
     @Column(name = "CREATED_AT", updatable = false)
     private LocalDateTime createdAt;
@@ -81,7 +89,8 @@ public class TaxInvoice {
             String suBusinessName,
             String ipName,
             String suName,
-            MemberEntity memeber
+            MemberEntity memeber,
+            List<String> errorDetails
     ) {
         return TaxInvoice.builder()
                 .processStatus(ProcessStatus.UNAPPROVED) // default 값 unapproved(미승인)
@@ -95,6 +104,7 @@ public class TaxInvoice {
                 .ipName(ipName)
                 .suName(suName)
                 .member(memeber)
+                .errorDetails(errorDetails)
                 .build();
     }
 
