@@ -11,7 +11,7 @@ public enum CodefResponseCode {
         this.code = code;
         this.message = message;
     }
-    public boolean is_success(String code){
-        return Objects.equals(SUCCESS_RESPONSE.code, code);
+    public boolean isEqual(String code){
+        return Objects.equals(this.code, code);
     }
 }

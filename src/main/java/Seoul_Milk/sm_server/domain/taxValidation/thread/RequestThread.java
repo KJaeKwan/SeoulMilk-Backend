@@ -10,7 +10,7 @@ import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.SU
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.SUPPLY_VALUE;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.TELECOM;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.USER_NAME;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.SUCCESS_RESPONSE;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.NEED_SIMPLE_AUTHENTICATION;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.JOB_INDEX;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.JTI;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.THREAD_INDEX;
@@ -85,7 +85,7 @@ public class RequestThread extends Thread {
         }
 
         // 응답코드가 CF-03002 이고 continue2Way 필드가 true인 경우 추가 인증 정보를 변수에 저장
-        if (SUCCESS_RESPONSE.is_success(code) && continue2Way){
+        if (NEED_SIMPLE_AUTHENTICATION.isEqual(code) && continue2Way){
             redisUtils.saveCodefApiResponse(id, Map.of(
                     JOB_INDEX.name(), dataMap.get(JOB_INDEX.setCarmelCase()),
                     THREAD_INDEX.name(), dataMap.get(THREAD_INDEX.setCarmelCase()),

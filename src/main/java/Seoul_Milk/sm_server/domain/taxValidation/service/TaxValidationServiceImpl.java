@@ -14,10 +14,14 @@ import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.SU
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.TELECOM;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.TWO_WAY_INFO;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.USER_NAME;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.NEED_SIMPLE_AUTHENTICATION;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.SUCCESS_RESPONSE;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.JOB_INDEX;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.JTI;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.THREAD_INDEX;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.TWO_WAY_TIMESTAMP;
+import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_INTERANL_SERVER_ERROR;
+import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_NEED_AUTHENTICATION;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.constant.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
@@ -26,6 +30,7 @@ import Seoul_Milk.sm_server.domain.taxValidation.dto.NonVerifiedTaxValidationReq
 import Seoul_Milk.sm_server.domain.taxValidation.dto.NonVerifiedTaxValidationResponseDTO;
 import Seoul_Milk.sm_server.domain.taxValidation.dto.TaxInvoiceInfo;
 import Seoul_Milk.sm_server.domain.taxValidation.thread.RequestThread;
+import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.redis.RedisUtils;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -142,16 +147,31 @@ public class TaxValidationServiceImpl implements TaxValidationService {
             throw new RuntimeException(e);
         }
         String resAuthenticity = rootNode.path("data").path("resAuthenticity").asText();
+        String code = rootNode.path("result").path("code").asText();
+        isSimpleAuthCompleted(code);
         if(Objects.equals(resAuthenticity, "1")){
             taxInvoice.changeStatus(ProcessStatus.APPROVED);
         }else{
             taxInvoice.changeStatus(ProcessStatus.REJECTED);
         }
         taxInvoiceRepository.save(taxInvoice);
-
         return "성공";
     }
 
+    /**
+     * 간편인증했는지 확인하는 로직
+     */
+    private void isSimpleAuthCompleted(String code){
+        System.out.println(code);
+        if(!SUCCESS_RESPONSE.isEqual(code)){
+            if(NEED_SIMPLE_AUTHENTICATION.isEqual(code)){
+                throw new CustomException(CODEF_NEED_AUTHENTICATION);
+            }
+            else{
+                throw new CustomException(CODEF_INTERANL_SERVER_ERROR);
+            }
+        }
+    }
     /**
      * verifiedTaxValidation과
      * nonVerifiedTaxValidation이 공통으로 필요한 파라미터 넣는 메서드
