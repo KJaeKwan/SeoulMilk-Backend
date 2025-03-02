@@ -125,7 +125,14 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
 
     @Override
     public List<TaxInvoice> findTempInvoicesByMember(MemberEntity member) {
-        return taxInvoiceJpaRepository.findByMemberAndIsTemporaryTrue(member);
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+
+        return queryFactory.selectFrom(taxInvoice)
+                .where(
+                        taxInvoice.member.eq(member),
+                        taxInvoice.isTemporary.isTrue()
+                )
+                .fetch();
     }
 
     @Override
@@ -166,5 +173,10 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
                 .fetch();
 
         return new PageImpl<>(results, pageable, total);
+    }
+
+    @Override
+    public TaxInvoice findByIssueId(String issueId) {
+        return taxInvoiceJpaRepository.findByIssueId(issueId);
     }
 }

@@ -91,7 +91,12 @@ public enum ErrorCode {
     EMAIL_REQUEST_LIMIT_EXCEEDED("EMAIL429", "5분 후 다시 시도해주세요.", HttpStatus.TOO_MANY_REQUESTS),
 
     // JSON
-    JSON_PARSING_FAILED("JSON001", "JSON 파싱에 실패했습니다.", HttpStatus.BAD_REQUEST);
+    JSON_PARSING_FAILED("JSON001", "JSON 파싱에 실패했습니다.", HttpStatus.BAD_REQUEST),
+
+    // CODEF
+    CODEF_INTERANL_SERVER_ERROR("CODEF001", "codef api 연동에 문제가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    CODEF_NEED_AUTHENTICATION("CODEF002", "간편인증이 진행되지 않았습니다 진행 후 다시 시도해주세요.", HttpStatus.UNAUTHORIZED);
+
 
     private final String errorCode;
     private final String message;

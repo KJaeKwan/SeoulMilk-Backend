@@ -17,6 +17,7 @@ public interface TaxInvoiceRepository {
     Page<TaxInvoice> findByConsumer(String consumer, String employeeId, MemberEntity member, Pageable pageable);
     Page<TaxInvoice> findByProviderAndConsumer(String provider, String consumer, String employeeId, MemberEntity member, Pageable pageable);
     Page<TaxInvoice> findAll(String employeeId, MemberEntity member, Pageable pageable);
+    TaxInvoice findByIssueId(String issueId);
 
     // 임시 저장 관련
     List<TaxInvoice> findTempInvoicesByMember(MemberEntity member);
