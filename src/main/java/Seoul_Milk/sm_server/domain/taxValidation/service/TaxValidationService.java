@@ -14,6 +14,4 @@ public interface TaxValidationService {
 
     String verifiedTaxValidation(String key)
             throws UnsupportedEncodingException, JsonProcessingException, InterruptedException;
-
-    TestDTO insertDB();
 }

@@ -25,8 +25,6 @@ import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.domain.taxValidation.dto.NonVerifiedTaxValidationRequestDTO;
 import Seoul_Milk.sm_server.domain.taxValidation.dto.NonVerifiedTaxValidationResponseDTO;
 import Seoul_Milk.sm_server.domain.taxValidation.dto.TaxInvoiceInfo;
-import Seoul_Milk.sm_server.domain.taxValidation.dto.TestDTO;
-import Seoul_Milk.sm_server.domain.taxValidation.dto.TestTaxInvoice;
 import Seoul_Milk.sm_server.domain.taxValidation.thread.RequestThread;
 import Seoul_Milk.sm_server.global.redis.RedisUtils;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
@@ -36,12 +34,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.codef.api.EasyCodef;
 import io.codef.api.EasyCodefServiceType;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -153,7 +149,6 @@ public class TaxValidationServiceImpl implements TaxValidationService {
         }
         taxInvoiceRepository.save(taxInvoice);
 
-        System.out.println("요청A(추가인증) result : " + result);
         return "성공";
     }
 
@@ -197,37 +192,4 @@ public class TaxValidationServiceImpl implements TaxValidationService {
         twoWayInfo.put(TWO_WAY_TIMESTAMP.setCarmelCase(), Long.parseLong((String) addAuthResponse.get(TWO_WAY_TIMESTAMP.name())));
         return twoWayInfo;
     }
-
-    @Override
-    public TestDTO insertDB() {
-        ArrayList<TestTaxInvoice> taxInvoiceArrayList = new ArrayList<>();
-        for(int i=0; i<47; i++){
-            Random random = new Random();
-            StringBuilder sb = new StringBuilder();
-            TestTaxInvoice testTaxInvoice = new TestTaxInvoice();
-            for (int j = 0; j < 16; j++) {
-                sb.append(random.nextInt(10)); // 0~9 사이의 숫자 추가
-            }
-            TaxInvoice taxInvoice = TaxInvoice.create(
-                    "20240630"+ sb.toString(),
-                    "3058148738",
-                    "3050777873",
-                    250909,
-                    "20240630",
-                    "k",
-                    null,
-                    null,
-                    null
-            );
-            testTaxInvoice.setApprovalNo("20240630" + sb.toString());
-            testTaxInvoice.setReportingDate("20240630");
-            testTaxInvoice.setSupplierRegNumber("3050777873");
-            testTaxInvoice.setContractorRegNumber("3058148738");
-            testTaxInvoice.setSupplyValue("250909");
-            taxInvoiceRepository.save(taxInvoice);
-            taxInvoiceArrayList.add(testTaxInvoice);
-        }
-        return new TestDTO(taxInvoiceArrayList);
-    }
-
 }
