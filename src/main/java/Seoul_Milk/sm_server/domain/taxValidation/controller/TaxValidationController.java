@@ -1,8 +1,8 @@
 package Seoul_Milk.sm_server.domain.taxValidation.controller;
 
-import Seoul_Milk.sm_server.domain.taxValidation.dto.NonVerifiedTaxValidationRequestDTO;
-import Seoul_Milk.sm_server.domain.taxValidation.dto.NonVerifiedTaxValidationResponseDTO;
-import Seoul_Milk.sm_server.domain.taxValidation.dto.VerifiedTaxValidationRequestDTO;
+import Seoul_Milk.sm_server.domain.taxValidation.dto.request.NonVerifiedTaxValidationRequestDTO;
+import Seoul_Milk.sm_server.domain.taxValidation.dto.response.NonVerifiedTaxValidationResponseDTO;
+import Seoul_Milk.sm_server.domain.taxValidation.dto.request.VerifiedTaxValidationRequestDTO;
 import Seoul_Milk.sm_server.domain.taxValidation.service.TaxValidationService;
 import Seoul_Milk.sm_server.global.annotation.CurrentMember;
 import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;

@@ -1,5 +1,6 @@
-package Seoul_Milk.sm_server.domain.taxValidation.dto;
+package Seoul_Milk.sm_server.domain.taxValidation.dto.request;
 
+import Seoul_Milk.sm_server.domain.taxValidation.dto.TaxInvoiceInfo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import lombok.Getter;

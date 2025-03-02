@@ -25,8 +25,8 @@ import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_NEED_AUTHENT
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
-import Seoul_Milk.sm_server.domain.taxValidation.dto.NonVerifiedTaxValidationRequestDTO;
-import Seoul_Milk.sm_server.domain.taxValidation.dto.NonVerifiedTaxValidationResponseDTO;
+import Seoul_Milk.sm_server.domain.taxValidation.dto.request.NonVerifiedTaxValidationRequestDTO;
+import Seoul_Milk.sm_server.domain.taxValidation.dto.response.NonVerifiedTaxValidationResponseDTO;
 import Seoul_Milk.sm_server.domain.taxValidation.dto.TaxInvoiceInfo;
 import Seoul_Milk.sm_server.domain.taxValidation.thread.RequestThread;
 import Seoul_Milk.sm_server.global.exception.CustomException;
