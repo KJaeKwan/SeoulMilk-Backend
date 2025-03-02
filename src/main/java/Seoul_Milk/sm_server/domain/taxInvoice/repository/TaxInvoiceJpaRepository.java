@@ -4,4 +4,5 @@ import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TaxInvoiceJpaRepository extends JpaRepository<TaxInvoice, Long> {
+    TaxInvoice findByIssueId(String issueId);
 }

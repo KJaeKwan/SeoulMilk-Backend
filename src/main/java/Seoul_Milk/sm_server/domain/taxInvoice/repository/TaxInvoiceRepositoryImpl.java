@@ -40,4 +40,9 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     public void delete(Long id) {
         taxInvoiceJpaRepository.deleteById(id);
     }
+
+    @Override
+    public TaxInvoice findByIssueId(String issueId) {
+        return taxInvoiceJpaRepository.findByIssueId(issueId);
+    }
 }

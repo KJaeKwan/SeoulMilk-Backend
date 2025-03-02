@@ -11,4 +11,5 @@ public interface TaxInvoiceRepository {
     List<TaxInvoice> findAll();
     TaxInvoice save(TaxInvoice taxInvoice);
     void delete(Long id);
+    TaxInvoice findByIssueId(String issueId);
 }
