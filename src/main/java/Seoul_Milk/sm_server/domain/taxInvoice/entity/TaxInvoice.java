@@ -1,6 +1,6 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.entity;
 
-import Seoul_Milk.sm_server.domain.taxInvoice.enumClass.ProcessStatus;
+import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import jakarta.persistence.*;
