@@ -145,4 +145,9 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
 
         return new PageImpl<>(results, pageable, total);
     }
+
+    @Override
+    public TaxInvoice findByIssueId(String issueId) {
+        return taxInvoiceJpaRepository.findByIssueId(issueId);
+    }
 }

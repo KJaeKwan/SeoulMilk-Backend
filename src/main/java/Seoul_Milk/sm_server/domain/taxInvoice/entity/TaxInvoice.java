@@ -1,5 +1,9 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.entity;
 
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.APPROVED;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.REJECTED;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.UNAPPROVED;
+
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
@@ -89,11 +93,11 @@ public class TaxInvoice {
             String suBusinessName,
             String ipName,
             String suName,
-            MemberEntity memeber,
+            MemberEntity member,
             List<String> errorDetails
     ) {
         return TaxInvoice.builder()
-                .processStatus(ProcessStatus.UNAPPROVED) // default 값 unapproved(미승인)
+                .processStatus(UNAPPROVED) // default 값 unapproved(미승인)
                 .issueId(issueId)
                 .ipId(ipId)
                 .suId(suId)
@@ -103,7 +107,7 @@ public class TaxInvoice {
                 .suBusinessName(suBusinessName)
                 .ipName(ipName)
                 .suName(suName)
-                .member(memeber)
+                .member(member)
                 .errorDetails(errorDetails)
                 .build();
     }
@@ -120,11 +124,11 @@ public class TaxInvoice {
 
     /** 승인 처리 */
     public void approve() {
-        this.processStatus = ProcessStatus.APPROVED;
+        this.processStatus = APPROVED;
     }
 
     /** 반려 처리 */
     public void reject() {
-        this.processStatus = ProcessStatus.REJECTED;
+        this.processStatus = REJECTED;
     }
 }

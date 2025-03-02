@@ -3,10 +3,11 @@ package Seoul_Milk.sm_server.login.entity;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.login.constant.Role;
 import jakarta.persistence.*;
+import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "MEMBER")
@@ -52,7 +53,9 @@ public class MemberEntity {
         return memberEntity;
     }
 
-    /** 비밀번호 수정 */
+    /**
+     * 비밀번호 수정
+     */
     public void updatePassword(String password) {
         this.password = password;
     }
@@ -67,5 +70,12 @@ public class MemberEntity {
     public void addTaxInvoice(TaxInvoice taxInvoice) {
         this.taxInvoices.add(taxInvoice);
         taxInvoice.attachMember(this);
+    }
+
+    /**
+     * codef api 요청 시 id값 생성
+     */
+    public String makeUniqueId(){
+        return this.employeeId + UUID.randomUUID();
     }
 }

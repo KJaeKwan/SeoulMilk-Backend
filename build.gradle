@@ -47,16 +47,20 @@ dependencies {
 	// env
 	implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 
-	// jwt
+	//jwt
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
 	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
-	// redis
+	//redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 
 	// s3
 	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
+	//codef api
+	implementation 'io.codef.api:easycodef-java:1.0.6'
 
 	// mail
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
