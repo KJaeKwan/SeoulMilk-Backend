@@ -16,6 +16,7 @@ import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.TW
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.USER_NAME;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.NEED_SIMPLE_AUTHENTICATION;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.SUCCESS_RESPONSE;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.ThreadTerm.THREAD_TERM;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.JOB_INDEX;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.JTI;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.THREAD_INDEX;
@@ -105,7 +106,7 @@ public class TaxValidationServiceImpl implements TaxValidationService {
 
             // API 요청A와 요청B 다건 요청을 위해서는 요청A 처리 후 요청B를 처리할 수 있도록
             // 요청A 송신 후 약 0.5초 ~ 1초 이내 요청B 송신 필요
-            Thread.sleep(1000);
+            Thread.sleep(THREAD_TERM.getMillis());
         }
         return new NonVerifiedTaxValidationResponseDTO(id);
     }
