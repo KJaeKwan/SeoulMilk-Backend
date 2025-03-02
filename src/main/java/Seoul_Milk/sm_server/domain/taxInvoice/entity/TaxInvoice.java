@@ -84,4 +84,7 @@ public class TaxInvoice {
         file.attachTaxInvoice(this);
         this.file = file;
     }
+    public void changeStatus(ProcessStatus processStatus){
+        this.processStatus = processStatus;
+    }
 }
