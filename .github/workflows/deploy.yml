@@ -41,6 +41,10 @@ jobs:
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           MAIL_SENDER: ${{ secrets.MAIL_SENDER }}
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          VALID_URL: ${{ secrets.VALID_URL }}
 
 
       - name: Setup Gradle
@@ -70,6 +74,10 @@ jobs:
           echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
           echo "MAIL_SENDER=${{ secrets.MAIL_SENDER }}" >> .env
           echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
+          echo "PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}" >> .env
+          echo "CLIENT_ID=${{ secrets.CLIENT_ID }}" >> .env
+          echo "CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}" >> .env
+          echo "VALID_URL=${{ secrets.VALID_URL }}" >> .env
 
       # .env 파일의 내용을 동적으로 읽어 build-arg 옵션 생성 후 Docker 이미지 빌드
       - name: Build Docker image with dynamic build args
@@ -129,6 +137,10 @@ jobs:
           echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
           echo "MAIL_SENDER=${{ secrets.MAIL_SENDER }}" >> .env
           echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
+          echo "PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}" >> .env
+          echo "CLIENT_ID=${{ secrets.CLIENT_ID }}" >> .env
+          echo "CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}" >> .env
+          echo "VALID_URL=${{ secrets.VALID_URL }}" >> .env
 
       # 환경 변수를 적용하여 컨테이너 실행
       - name: docker run new container
