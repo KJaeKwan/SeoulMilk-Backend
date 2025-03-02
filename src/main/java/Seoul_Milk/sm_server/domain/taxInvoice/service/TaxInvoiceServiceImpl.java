@@ -11,11 +11,15 @@ import Seoul_Milk.sm_server.global.clovaOcr.service.OcrDataExtractor;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.global.upload.service.AwsS3Service;
+import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -42,7 +46,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
     @Override
     @Async("ocrTaskExecutor")
-    public CompletableFuture<Map<String, Object>> processOcrAsync(MultipartFile image) {
+    public CompletableFuture<Map<String, Object>> processOcrAsync(MultipartFile image, MemberEntity member) {
         long startTime = System.nanoTime();
         Map<String, Object> imageResult = new LinkedHashMap<>();
 
@@ -83,7 +87,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             // TaxInvoice 엔티티 생성 및 DB 저장
             TaxInvoice taxInvoice = TaxInvoice.create(issueId, ipId, suId, taxTotal, erDat,
                     supplierBusinessName, recipientBusinessName,
-                    supplierName, recipientName);
+                    supplierName, recipientName, member);
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
             // OCR 추출에 성공한 이미지에 대해 S3 업로드
@@ -112,13 +116,27 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
     }
 
     /**
-     * 세금 계산서 정보 리스트로 조회
-     * @return 세금 계산서 리스트 반환
+     * 세금계산서 검색 - provider, consumer 입력 값이 없으면 전체 조회
+     * @param provider 공급자
+     * @param consumer 공급받는자
+     * @return 검색 결과
      */
     @Override
-    public TaxInvoiceResponseDTO.GetALL findAll() {
-        List<TaxInvoice> taxInvoices = taxInvoiceRepository.findAll();
-        return TaxInvoiceResponseDTO.GetALL.from(taxInvoices);
+    public Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String employeeId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<TaxInvoice> taxInvoicePage;
+        if (provider != null && !provider.isEmpty() && consumer != null && !consumer.isEmpty()) {
+            taxInvoicePage = taxInvoiceRepository.findByProviderAndConsumer(provider, consumer, employeeId, member, pageable); // 공급자 + 공급받는자 로 검색
+        } else if (provider != null && !provider.isEmpty()) {
+            taxInvoicePage = taxInvoiceRepository.findByProvider(provider, employeeId, member, pageable); // 공급자 로만 검색
+        } else if (consumer != null && !consumer.isEmpty()) {
+            taxInvoicePage = taxInvoiceRepository.findByConsumer(consumer, employeeId, member, pageable);// 공급받는자 로만 검색
+        } else {
+            taxInvoicePage = taxInvoiceRepository.findAll(employeeId, member, pageable); // 전체 조회
+        }
+
+        return taxInvoicePage.map(TaxInvoiceResponseDTO.GetOne::from);
     }
 
     /**

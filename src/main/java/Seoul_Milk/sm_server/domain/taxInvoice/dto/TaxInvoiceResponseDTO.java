@@ -11,6 +11,7 @@ public class TaxInvoiceResponseDTO {
     @Schema(description = "세금 계산서 단일 응답 DTO")
     public record GetOne(
         @Schema(description = "세금 계산서 정보 ID") Long id,
+        @Schema(description = "담당 직원 사번") String employeeId,
         @Schema(description = "승인번호") String issueId,
         @Schema(description = "공급자 등록번호") String ipId,
         @Schema(description = "공급받는자 등록번호") String suId,
@@ -24,6 +25,7 @@ public class TaxInvoiceResponseDTO {
         public static GetOne from(TaxInvoice taxInvoice) {
             return new GetOne(
                     taxInvoice.getTaxInvoiceId(),
+                    taxInvoice.getMember().getEmployeeId(),
                     taxInvoice.getErDat(),
                     taxInvoice.getIpId(),
                     taxInvoice.getSuId(),

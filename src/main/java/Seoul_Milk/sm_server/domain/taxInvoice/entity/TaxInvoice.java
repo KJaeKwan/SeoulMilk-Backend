@@ -1,8 +1,14 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.entity;
 
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
+import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -10,6 +16,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@EntityListeners(AuditingEntityListener.class)
 public class TaxInvoice {
 
     @Id
@@ -44,8 +51,20 @@ public class TaxInvoice {
     @Column(name = "SU_NAME")
     private String suName;
 
+    @CreatedDate
+    @Column(name = "CREATED_AT", updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "UPDATED_AT")
+    private LocalDateTime updatedAt;
+
     @OneToOne(mappedBy = "taxInvoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private TaxInvoiceFile file;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "MEMBER_ID", nullable = false)
+    private MemberEntity member;
 
     public static TaxInvoice create(
             String issueId,
@@ -56,7 +75,8 @@ public class TaxInvoice {
             String ipBusinessName,
             String suBusinessName,
             String ipName,
-            String suName
+            String suName,
+            MemberEntity memeber
     ) {
         return TaxInvoice.builder()
                 .issueId(issueId)
@@ -68,6 +88,7 @@ public class TaxInvoice {
                 .suBusinessName(suBusinessName)
                 .ipName(ipName)
                 .suName(suName)
+                .member(memeber)
                 .build();
     }
 
@@ -75,5 +96,9 @@ public class TaxInvoice {
     public void attachFile(TaxInvoiceFile file) {
         file.attachTaxInvoice(this);
         this.file = file;
+    }
+
+    public void attachMember(MemberEntity member) {
+        this.member = member;
     }
 }
