@@ -1,16 +1,13 @@
 package Seoul_Milk.sm_server.login.entity;
 
+import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.login.constant.Role;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import java.util.List;
 import java.util.UUID;
 import lombok.Getter;
+
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "MEMBER")
@@ -38,6 +35,9 @@ public class MemberEntity {
     @Column(name = "ROLE")
     private Role role;
 
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TaxInvoice> taxInvoices = new ArrayList<>();
+
     public static MemberEntity createUnverifiedMember(String employeeId, Role role){
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.employeeId = employeeId;
@@ -58,6 +58,18 @@ public class MemberEntity {
      */
     public void updatePassword(String password) {
         this.password = password;
+    }
+
+    /** 권한 수정 */
+    public void updateRole(Role role) {
+        this.role = role;
+    }
+
+
+    /** 연관 관계 편의 메서드 */
+    public void addTaxInvoice(TaxInvoice taxInvoice) {
+        this.taxInvoices.add(taxInvoice);
+        taxInvoice.attachMember(this);
     }
 
     /**

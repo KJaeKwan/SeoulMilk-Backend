@@ -1,11 +1,21 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.entity;
 
-import static Seoul_Milk.sm_server.domain.taxInvoice.constant.ProcessStatus.UNAPPROVED;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.APPROVED;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.REJECTED;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.UNAPPROVED;
 
-import Seoul_Milk.sm_server.domain.taxInvoice.constant.ProcessStatus;
+import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
+import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -13,6 +23,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@EntityListeners(AuditingEntityListener.class)
 public class TaxInvoice {
 
     @Id
@@ -20,12 +31,12 @@ public class TaxInvoice {
     @Column(name = "TAX_INVOICE_ID")
     private Long taxInvoiceId;
 
+    @Column(name = "ISSUE_ID", nullable = false, unique = true, length = 40)
+    private String issueId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "PROGRESS_STATUS", nullable = false)
     private ProcessStatus processStatus;
-
-    @Column(name = "ISSUE_ID", nullable = false, unique = true, length = 40)
-    private String issueId;
 
     @Column(name = "IP_ID", nullable = false, length = 40)
     private String ipId;
@@ -51,8 +62,26 @@ public class TaxInvoice {
     @Column(name = "SU_NAME")
     private String suName;
 
+    @Builder.Default
+    @ElementCollection
+    @CollectionTable(name = "tax_invoice_errors", joinColumns = @JoinColumn(name = "tax_invoice_id"))
+    @Column(name = "error_detail")
+    private List<String> errorDetails = new ArrayList<>();
+
+    @CreatedDate
+    @Column(name = "CREATED_AT", updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "UPDATED_AT")
+    private LocalDateTime updatedAt;
+
     @OneToOne(mappedBy = "taxInvoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private TaxInvoiceFile file;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "MEMBER_ID", nullable = false)
+    private MemberEntity member;
 
     public static TaxInvoice create(
             String issueId,
@@ -63,7 +92,9 @@ public class TaxInvoice {
             String ipBusinessName,
             String suBusinessName,
             String ipName,
-            String suName
+            String suName,
+            MemberEntity member,
+            List<String> errorDetails
     ) {
         return TaxInvoice.builder()
                 .processStatus(UNAPPROVED) // default 값 unapproved(미승인)
@@ -76,6 +107,8 @@ public class TaxInvoice {
                 .suBusinessName(suBusinessName)
                 .ipName(ipName)
                 .suName(suName)
+                .member(member)
+                .errorDetails(errorDetails)
                 .build();
     }
 
@@ -84,7 +117,18 @@ public class TaxInvoice {
         file.attachTaxInvoice(this);
         this.file = file;
     }
-    public void changeStatus(ProcessStatus processStatus){
-        this.processStatus = processStatus;
+
+    public void attachMember(MemberEntity member) {
+        this.member = member;
+    }
+
+    /** 승인 처리 */
+    public void approve() {
+        this.processStatus = APPROVED;
+    }
+
+    /** 반려 처리 */
+    public void reject() {
+        this.processStatus = REJECTED;
     }
 }

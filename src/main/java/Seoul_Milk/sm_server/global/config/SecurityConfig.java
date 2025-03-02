@@ -1,6 +1,7 @@
 package Seoul_Milk.sm_server.global.config;
 
-import Seoul_Milk.sm_server.global.exception.CustomAuthenticationEntryPoint;
+import Seoul_Milk.sm_server.global.exception.custom.CustomAccessDeniedHandler;
+import Seoul_Milk.sm_server.global.exception.custom.CustomAuthenticationEntryPoint;
 import Seoul_Milk.sm_server.global.jwt.JWTFilter;
 import Seoul_Milk.sm_server.global.jwt.JWTUtil;
 import Seoul_Milk.sm_server.global.jwt.LoginFilter;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,10 +26,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
     private final RedisUtils redisUtils;
@@ -41,7 +45,12 @@ public class SecurityConfig {
             "/join",
             "/login",
             "/reissue",
-            "/api/emails"
+            "/api/emails/**"
+    };
+
+    // 관리자 권한이 필요한 URL 목록
+    private final String[] adminUrls = {
+            "/api/members/{memberId}/role"
     };
 
     @Bean
@@ -76,6 +85,7 @@ public class SecurityConfig {
         // 경로별 인가 설정
         http.authorizeHttpRequests((auth) -> auth
                 .requestMatchers(allowedUrls).permitAll()
+                .requestMatchers(adminUrls).hasRole("ADMIN")
                 .anyRequest().authenticated());
 
         http.addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
@@ -85,7 +95,9 @@ public class SecurityConfig {
 
         // 예외 처리 설정
         http.exceptionHandling(e -> e
-                .authenticationEntryPoint(customAuthenticationEntryPoint));
+                .authenticationEntryPoint(customAuthenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler)
+        );
 
         // 세션 처리(stateless로 관리)
         http.sessionManagement((session) -> session

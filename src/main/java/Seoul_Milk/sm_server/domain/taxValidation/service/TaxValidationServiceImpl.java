@@ -23,7 +23,6 @@ import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.TWO_WAY
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_INTERANL_SERVER_ERROR;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_NEED_AUTHENTICATION;
 
-import Seoul_Milk.sm_server.domain.taxInvoice.constant.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.domain.taxValidation.dto.NonVerifiedTaxValidationRequestDTO;
@@ -150,9 +149,9 @@ public class TaxValidationServiceImpl implements TaxValidationService {
         String code = rootNode.path("result").path("code").asText();
         isSimpleAuthCompleted(code);
         if(Objects.equals(resAuthenticity, "1")){
-            taxInvoice.changeStatus(ProcessStatus.APPROVED);
+            taxInvoice.approve();
         }else{
-            taxInvoice.changeStatus(ProcessStatus.REJECTED);
+            taxInvoice.reject();
         }
         taxInvoiceRepository.save(taxInvoice);
         return "성공";

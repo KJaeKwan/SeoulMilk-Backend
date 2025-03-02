@@ -118,9 +118,9 @@ public class RequestThread extends Thread {
             }
             String resAuthenticity = rootNode.path("data").path("resAuthenticity").asText();
             if(Objects.equals(resAuthenticity, "1")){
-                taxInvoice.changeStatus(ProcessStatus.APPROVED);
+                taxInvoice.approve();
             }else{
-                taxInvoice.changeStatus(ProcessStatus.REJECTED);
+                taxInvoice.reject();
             }
             taxInvoiceRepository.save(taxInvoice);
         }

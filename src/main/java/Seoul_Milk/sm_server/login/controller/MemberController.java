@@ -2,14 +2,17 @@ package Seoul_Milk.sm_server.login.controller;
 
 import Seoul_Milk.sm_server.global.annotation.CurrentMember;
 import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
-import Seoul_Milk.sm_server.login.dto.UpdatePwDTO;
 import Seoul_Milk.sm_server.login.dto.VerifyPwDTO;
+import Seoul_Milk.sm_server.login.dto.request.UpdatePwDTO;
+import Seoul_Milk.sm_server.login.dto.request.UpdateRoleDTO;
+import Seoul_Milk.sm_server.login.dto.response.MemberResponse;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import Seoul_Milk.sm_server.login.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -60,5 +63,33 @@ public class MemberController {
             @Valid @RequestBody VerifyPwDTO request) {
             boolean isMatch = memberService.verifyPassword(member.getId(), request);
         return SuccessResponse.ok(isMatch);
+    }
+
+    /**
+     * [임시] 권한 변경 API
+     * @param request 사용자 ID, 변경할 권한 입력
+     * @return 사용자 정보 반환
+     */
+    @PatchMapping("/{memberId}/role/test")
+    @Operation(summary = "[통신에 사용X] 관리자 권한 없이 권한 변경 - 초기에 관리자 등록을 위해 만들어 놓았습니다.")
+    public SuccessResponse<MemberResponse> testUpdateRole(
+            @Valid @RequestBody UpdateRoleDTO request
+    ) {
+        MemberResponse result = memberService.testUpdateRole(request);
+        return SuccessResponse.ok(result);
+    }
+
+    /**
+     * 권한 변경 API
+     */
+    @PatchMapping("/{memberId}/role")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Operation(summary = "사용자 권한 변경")
+    public SuccessResponse<MemberResponse> updateRole(
+            @CurrentMember MemberEntity member,
+            @Valid @RequestBody UpdateRoleDTO request
+    ) {
+        MemberResponse result = memberService.updateRole(member.getId(), request);
+        return SuccessResponse.ok(result);
     }
 }
