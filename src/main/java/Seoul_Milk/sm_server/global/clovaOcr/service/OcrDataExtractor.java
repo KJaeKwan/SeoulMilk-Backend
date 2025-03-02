@@ -2,8 +2,6 @@ package Seoul_Milk.sm_server.global.clovaOcr.service;
 
 import Seoul_Milk.sm_server.global.clovaOcr.dto.OcrField;
 import Seoul_Milk.sm_server.global.clovaOcr.dto.Vertex;
-import Seoul_Milk.sm_server.global.exception.CustomException;
-import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -86,9 +84,8 @@ public class OcrDataExtractor {
             }
         }
 
-        if (!registrationNumbers.isEmpty()) {
-            extractedData.put("registration_numbers", registrationNumbers);
-        }
+        extractedData.put("registration_numbers", registrationNumbers);
+        System.out.println("registrationNumbers = " + registrationNumbers);
 
         // 상호명 추출
         Map<String, String> businessNames = extractBusinessNames(ocrFields, registrationNumbers);
@@ -109,30 +106,20 @@ public class OcrDataExtractor {
      * 상대 위치를 기반으로 상호명 추출하는 메서드
      */
     private Map<String, String> extractBusinessNames(List<OcrField> ocrFields, List<String> registrationNumbers) {
-        if (registrationNumbers.size() < 2) {
-            throw new CustomException(ErrorCode.INSUFFICIENT_REGISTRATION_NUMBERS);
-        }
-
         Map<String, String> businessNames = new LinkedHashMap<>();
 
-        for (int i = 0; i < 2; i++) {
+        int regCount = registrationNumbers.size();
+        for (int i = 0; i < regCount; i++) {
             String regNumber = registrationNumbers.get(i);
             String key = (i == 0) ? "supplier_business_name" : "recipient_business_name";
 
             // 개별 등록번호 찾기
             OcrField regField = findRegistrationField(ocrFields, regNumber);
-            if (regField == null || regField.getBoundingPoly() == null) {
-                throw new CustomException(ErrorCode.OCR_NO_BOUNDING_POLY);
-            }
 
             // 등록번호별 개별 "상호", "성명", "사업장" 찾기
             OcrField businessNameField = findNearestFieldByXAndY(ocrFields, regField, "상호");
             OcrField nameField = findNearestFieldByXAndY(ocrFields, regField, "성명");
             OcrField businessField = findNearestFieldByXAndY(ocrFields, regField, "사업장");
-
-            if (businessNameField == null || nameField == null || businessField == null) {
-                throw new CustomException(ErrorCode.OCR_MISSING_BUSINESS_FIELDS);
-            }
 
             // 각 등록번호별 기준 좌표
             int regBottomY = getBottomY(regField);
@@ -148,14 +135,10 @@ public class OcrDataExtractor {
                     .filter(field -> getCenterX(field) > sanghoX) // 해당 등록번호의 "상호"보다 오른쪽
                     .filter(field -> getCenterX(field) < seongmyeongX) // 해당 등록번호의 "성명"보다 왼쪽
                     .filter(field -> getCenterY(field) < businessY) // 해당 등록번호의 "사업장"보다 위쪽
-                    .filter(field -> Math.abs(getCenterX(field) - refCenterX) < 50) // 등록번호의 X와 크게 차이나지 않는 필드만 포함
+                    .filter(field -> Math.abs(getCenterX(field) - refCenterX) < 100) // 등록번호의 X와 크게 차이나지 않는 필드만 포함
                     .filter(field -> !field.getInferText().matches("번호|설명|상호|성명|법인형")) // 불필요한 데이터 필터링
                     .sorted(Comparator.comparingInt(this::getCenterX))
                     .toList();
-
-            if (businessNameFields.isEmpty()) {
-                throw new CustomException(ErrorCode.OCR_NO_BUSINESS_NAME_CANDIDATES);
-            }
 
             // 상호명 합치기
             String businessName = businessNameFields.stream()

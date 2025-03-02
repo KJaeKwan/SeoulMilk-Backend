@@ -1,5 +1,6 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.entity;
 
+import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import jakarta.persistence.*;
@@ -9,6 +10,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -26,6 +29,10 @@ public class TaxInvoice {
 
     @Column(name = "ISSUE_ID", nullable = false, unique = true, length = 40)
     private String issueId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "PROGRESS_STATUS", nullable = false)
+    private ProcessStatus processStatus;
 
     @Column(name = "IP_ID", nullable = false, length = 40)
     private String ipId;
@@ -50,6 +57,12 @@ public class TaxInvoice {
 
     @Column(name = "SU_NAME")
     private String suName;
+
+    @Builder.Default
+    @ElementCollection
+    @CollectionTable(name = "tax_invoice_errors", joinColumns = @JoinColumn(name = "tax_invoice_id"))
+    @Column(name = "error_detail")
+    private List<String> errorDetails = new ArrayList<>();
 
     @CreatedDate
     @Column(name = "CREATED_AT", updatable = false)
@@ -76,9 +89,11 @@ public class TaxInvoice {
             String suBusinessName,
             String ipName,
             String suName,
-            MemberEntity memeber
+            MemberEntity memeber,
+            List<String> errorDetails
     ) {
         return TaxInvoice.builder()
+                .processStatus(ProcessStatus.UNAPPROVED) // default 값 unapproved(미승인)
                 .issueId(issueId)
                 .ipId(ipId)
                 .suId(suId)
@@ -89,6 +104,7 @@ public class TaxInvoice {
                 .ipName(ipName)
                 .suName(suName)
                 .member(memeber)
+                .errorDetails(errorDetails)
                 .build();
     }
 
@@ -100,5 +116,15 @@ public class TaxInvoice {
 
     public void attachMember(MemberEntity member) {
         this.member = member;
+    }
+
+    /** 승인 처리 */
+    public void approve() {
+        this.processStatus = ProcessStatus.APPROVED;
+    }
+
+    /** 반려 처리 */
+    public void reject() {
+        this.processStatus = ProcessStatus.REJECTED;
     }
 }

@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -46,53 +46,71 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
     @Override
     @Async("ocrTaskExecutor")
-    public CompletableFuture<Map<String, Object>> processOcrAsync(MultipartFile image, MemberEntity member) {
+    public CompletableFuture<TaxInvoiceResponseDTO.Create> processOcrAsync(MultipartFile image, MemberEntity member) {
         long startTime = System.nanoTime();
-        Map<String, Object> imageResult = new LinkedHashMap<>();
+        List<String> errorDetails = new ArrayList<>();
+        Map<String, Object> extractedData;
 
         try {
-            // CLOVA OCR API 호출 (JSON 응답 받음)
+            // CLOVA OCR API 호출
             String jsonResponse = clovaOcrApi.callApi("POST", image, clovaSecretKey, image.getContentType());
-
-            // OCR 결과를 DTO 리스트로 변환
             List<OcrField> ocrFields = convertToOcrFields(jsonResponse);
+            extractedData = ocrDataExtractor.extractDataFromOcrFields(ocrFields);
 
             // 데이터 추출
-            Map<String, Object> extractedData = ocrDataExtractor.extractDataFromOcrFields(ocrFields);
-
-            // DB에 저장
             String issueId = (String) extractedData.get("approval_number");
-
-            @SuppressWarnings("unchecked") // 캐스팅에 대한 경고 무시
             List<String> registrationNumbers = (List<String>) extractedData.get("registration_numbers");
-            if (registrationNumbers == null || registrationNumbers.size() < 2) {
-                throw new CustomException(ErrorCode.INSUFFICIENT_REGISTRATION_NUMBERS);
-            }
-            String ipId = registrationNumbers.get(0);
-            String suId = registrationNumbers.get(1);
-
-            // 총 공급가액 -> 문자열을 정수로 변환
             String totalAmountStr = (String) extractedData.get("total_amount");
-            int taxTotal = 0;
-            if (totalAmountStr != null && !totalAmountStr.isEmpty()) {
-                taxTotal = Integer.parseInt(totalAmountStr.replaceAll(",", ""));
+            String erDat = (String) extractedData.get("issue_date");
+            String ipBusinessName = (String) extractedData.get("supplier_business_name");
+            String suBusinessName = (String) extractedData.get("recipient_business_name");
+            String ipName = (String) extractedData.get("supplier_name");
+            String suName = (String) extractedData.get("recipient_name");
+
+            // 미승인 에러 케이스 추가
+            if (issueId == null) {
+                errorDetails.add("승인번호 인식 오류");
+                issueId = "UNKNOWN";
+            }
+            if (totalAmountStr == null) {
+                errorDetails.add("공급가액 인식 오류");
+                totalAmountStr = "UNKNOWN";
+            }
+            if (erDat == null) {
+                errorDetails.add("발행일 인식 오류");
+                erDat = "UNKNOWN";
             }
 
-            String erDat = (String) extractedData.get("issue_date");
-            String supplierBusinessName = (String) extractedData.get("supplier_business_name");
-            String recipientBusinessName = (String) extractedData.get("recipient_business_name");
-            String supplierName = (String) extractedData.get("supplier_name");
-            String recipientName = (String) extractedData.get("recipient_name");
+            String ipId = "UNKNOWN";
+            String suId = "UNKNOWN";
+            if (registrationNumbers != null && !registrationNumbers.isEmpty()) {
+                ipId = registrationNumbers.get(0);
+            } else {
+                errorDetails.add("공급자 사업자 등록번호 인식 오류");
+            }
 
-            // TaxInvoice 엔티티 생성 및 DB 저장
+            if (registrationNumbers != null && registrationNumbers.size() > 1) {
+                suId = registrationNumbers.get(1);
+            } else {
+                errorDetails.add("공급받는자 사업자 등록번호 인식 오류");
+            }
+
+            int taxTotal;
+            if (!totalAmountStr.isEmpty() && !"UNKNOWN".equals(totalAmountStr)) {
+                taxTotal = Integer.parseInt(totalAmountStr.replaceAll(",", ""));
+            } else {
+                errorDetails.add("공급가액 인식 오류");
+                taxTotal = -1;
+            }
+
+            // TaxInvoice 생성 및 저장
             TaxInvoice taxInvoice = TaxInvoice.create(issueId, ipId, suId, taxTotal, erDat,
-                    supplierBusinessName, recipientBusinessName,
-                    supplierName, recipientName, member);
+                    ipBusinessName, suBusinessName, ipName, suName, member, errorDetails);
+
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
-            // OCR 추출에 성공한 이미지에 대해 S3 업로드
+            // OCR 추출 성공한 경우 S3 업로드
             String fileUrl = awsS3Service.uploadFile("tax_invoices", image, true);
-
             TaxInvoiceFile file = TaxInvoiceFile.create(savedTaxInvoice, fileUrl, image.getContentType(), image.getOriginalFilename(), image.getSize(), LocalDateTime.now());
             taxInvoice.attachFile(file);
             taxInvoiceRepository.save(taxInvoice);
@@ -100,20 +118,19 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             long endTime = System.nanoTime();
             long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
 
-            imageResult.put("추출된 데이터", extractedData);
-            imageResult.put("파일명", image.getOriginalFilename());
-            imageResult.put("처리시간", elapsedTimeMillis);
-            imageResult.put("저장된_데이터", taxInvoice);
+            // DTO 반환
+            TaxInvoiceResponseDTO.Create responseDTO = TaxInvoiceResponseDTO.Create.from(
+                    savedTaxInvoice, image.getOriginalFilename(), extractedData, errorDetails, elapsedTimeMillis
+            );
 
-//            System.out.println("최종 결과 확인: " + imageResult);
+            return CompletableFuture.completedFuture(responseDTO);
 
         } catch (Exception e) {
-            imageResult.put("파일명", image.getOriginalFilename());
-            imageResult.put("오류", e.getMessage());
+            System.out.println("[ERROR] 세금계산서 처리 중 예외 발생: " + e.getMessage());
+            return CompletableFuture.completedFuture(TaxInvoiceResponseDTO.Create.error(image.getOriginalFilename(), e.getMessage()));
         }
-
-        return CompletableFuture.completedFuture(imageResult);
     }
+
 
     /**
      * 세금계산서 검색 - provider, consumer 입력 값이 없으면 전체 조회
