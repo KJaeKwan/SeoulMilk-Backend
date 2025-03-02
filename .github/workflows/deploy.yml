@@ -39,8 +39,8 @@ jobs:
           REDIS_HOST: ${{ secrets.REDIS_HOST }}
           REDIS_PORT: ${{ secrets.REDIS_PORT }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          MAIL_SENDER: ${{ secrets.REDIS_PASSWORD }}
-          MAIL_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          MAIL_SENDER: ${{ secrets.MAIL_SENDER }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
 
 
       - name: Setup Gradle
