@@ -49,6 +49,7 @@ public class TmpTaxInvoiceServiceImpl implements TmpTaxInvoiceService {
             throw new CustomException(ErrorCode.TAX_INVOICE_NOT_EXIST);
         }
 
+        taxInvoices.forEach(invoice -> invoice.updateIsTemp(true));
         taxInvoiceRepository.saveAll(taxInvoices);
     }
 
@@ -70,6 +71,7 @@ public class TmpTaxInvoiceServiceImpl implements TmpTaxInvoiceService {
             throw new CustomException(ErrorCode.TAX_INVOICE_NOT_EXIST);
         }
 
+        taxInvoices.forEach(invoice -> invoice.updateIsTemp(false));
         taxInvoiceRepository.saveAll(taxInvoices);
     }
 }
