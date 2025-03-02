@@ -1,5 +1,21 @@
 package Seoul_Milk.sm_server.domain.taxValidation.thread;
 
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.APPROVAL_NO;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.CONTRACTOR_REG_NUMBER;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.IDENTITY;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.LOGIN_TYPE_LEVEL;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.PHONE_NO;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.REPORTING_DATE;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.SUPPLIER_REG_NUMBER;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.SUPPLY_VALUE;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.TELECOM;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.USER_NAME;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.SUCCESS_RESPONSE;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.JOB_INDEX;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.JTI;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.THREAD_INDEX;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.TWO_WAY_TIMESTAMP;
+
 import Seoul_Milk.sm_server.domain.taxInvoice.constant.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
@@ -69,30 +85,30 @@ public class RequestThread extends Thread {
         }
 
         // 응답코드가 CF-03002 이고 continue2Way 필드가 true인 경우 추가 인증 정보를 변수에 저장
-        if (code.equals("CF-03002") && continue2Way){
+        if (SUCCESS_RESPONSE.is_success(code) && continue2Way){
             redisUtils.saveCodefApiResponse(id, Map.of(
-                    "JOB_INDEX", dataMap.get("jobIndex"),
-                    "THREAD_INDEX", dataMap.get("threadIndex"),
-                    "JTI", dataMap.get("jti"),
-                    "TWO_WAY_TIMESTAMP", dataMap.get("twoWayTimestamp")
+                    JOB_INDEX.name(), dataMap.get(JOB_INDEX.setCarmelCase()),
+                    THREAD_INDEX.name(), dataMap.get(THREAD_INDEX.setCarmelCase()),
+                    JTI.name(), dataMap.get(JTI.setCarmelCase()),
+                    TWO_WAY_TIMESTAMP.name(), dataMap.get(TWO_WAY_TIMESTAMP.setCarmelCase())
             ));
             redisUtils.saveCodefApiResponse(id+"common", Map.of(
-                    "loginTypeLevel",parameterMap.get("loginTypeLevel"),
-                    "userName",parameterMap.get("userName"),
-                    "phoneNo",parameterMap.get("phoneNo"),
-                    "identity",parameterMap.get("identity"),
-                    "telecom",parameterMap.get("telecom")
+                    LOGIN_TYPE_LEVEL.getKey(),parameterMap.get(LOGIN_TYPE_LEVEL.getKey()),
+                    USER_NAME.getKey(), parameterMap.get(USER_NAME.getKey()),
+                    PHONE_NO.getKey(), parameterMap.get(PHONE_NO.getKey()),
+                    IDENTITY.getKey(), parameterMap.get(IDENTITY.getKey()),
+                    TELECOM.getKey(), parameterMap.get(TELECOM.getKey())
             ));
             redisUtils.saveCodefApiResponse(id+"first", Map.of(
-                "supplierRegNumber", parameterMap.get("supplierRegNumber"),
-                "contractorRegNumber", parameterMap.get("contractorRegNumber"),
-                "approvalNo",parameterMap.get("approvalNo"),
-                "reportingDate",parameterMap.get("reportingDate"),
-                "supplyValue",parameterMap.get("supplyValue")
+                    SUPPLIER_REG_NUMBER.getKey(), parameterMap.get(SUPPLIER_REG_NUMBER.getKey()),
+                    CONTRACTOR_REG_NUMBER.getKey(), parameterMap.get(CONTRACTOR_REG_NUMBER.getKey()),
+                    APPROVAL_NO.getKey(), parameterMap.get(APPROVAL_NO.getKey()),
+                    REPORTING_DATE.getKey(), parameterMap.get(REPORTING_DATE.getKey()),
+                    SUPPLY_VALUE.getKey(), parameterMap.get(SUPPLY_VALUE.getKey())
             ));
         }
         if(threadNo > 0){
-            TaxInvoice taxInvoice = taxInvoiceRepository.findByIssueId(parameterMap.get("approvalNo").toString());
+            TaxInvoice taxInvoice = taxInvoiceRepository.findByIssueId(parameterMap.get(APPROVAL_NO.getKey()).toString());
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = null;
             try {
