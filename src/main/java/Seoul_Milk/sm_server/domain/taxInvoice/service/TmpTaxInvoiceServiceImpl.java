@@ -3,6 +3,8 @@ package Seoul_Milk.sm_server.domain.taxInvoice.service;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
+import Seoul_Milk.sm_server.global.exception.CustomException;
+import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,10 +38,16 @@ public class TmpTaxInvoiceServiceImpl implements TmpTaxInvoiceService {
     @Transactional
     public void markAsTemporary(List<Long> taxInvoiceIds, MemberEntity member) {
         List<TaxInvoice> taxInvoices = taxInvoiceRepository.findTempInvoicesByIds(taxInvoiceIds, member);
-        for (TaxInvoice taxInvoice : taxInvoices) {
-            System.out.println("taxInvoice.getTaxInvoiceId() = " + taxInvoice.getTaxInvoiceId());
+
+        List<Long> foundIds = taxInvoices.stream().map(TaxInvoice::getTaxInvoiceId).toList();
+        List<Long> missingIds = taxInvoiceIds.stream()
+                .filter(id -> !foundIds.contains(id))
+                .toList();
+
+        // 하나라도 존재하지 않는다면 예외 발생
+        if (!missingIds.isEmpty()) {
+            throw new CustomException(ErrorCode.TAX_INVOICE_NOT_EXIST);
         }
-        taxInvoices.forEach(taxInvoice -> taxInvoice.updateIsTemp(true));
 
         taxInvoiceRepository.saveAll(taxInvoices);
     }
@@ -51,7 +59,16 @@ public class TmpTaxInvoiceServiceImpl implements TmpTaxInvoiceService {
     @Transactional
     public void removeFromTemporary(List<Long> taxInvoiceIds, MemberEntity member) {
         List<TaxInvoice> taxInvoices = taxInvoiceRepository.findTempInvoicesByIds(taxInvoiceIds, member);
-        taxInvoices.forEach(taxInvoice -> taxInvoice.updateIsTemp(false));
+
+        List<Long> foundIds = taxInvoices.stream().map(TaxInvoice::getTaxInvoiceId).toList();
+        List<Long> missingIds = taxInvoiceIds.stream()
+                .filter(id -> !foundIds.contains(id))
+                .toList();
+
+        // 하나라도 존재하지 않는다면 예외 발생
+        if (!missingIds.isEmpty()) {
+            throw new CustomException(ErrorCode.TAX_INVOICE_NOT_EXIST);
+        }
 
         taxInvoiceRepository.saveAll(taxInvoices);
     }
