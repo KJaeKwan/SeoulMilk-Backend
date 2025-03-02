@@ -1,22 +1,5 @@
 package Seoul_Milk.sm_server.domain.taxValidation.thread;
 
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.APPROVAL_NO;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.CONTRACTOR_REG_NUMBER;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.IDENTITY;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.LOGIN_TYPE_LEVEL;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.PHONE_NO;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.REPORTING_DATE;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.SUPPLIER_REG_NUMBER;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.SUPPLY_VALUE;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.TELECOM;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.USER_NAME;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.NEED_SIMPLE_AUTHENTICATION;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.JOB_INDEX;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.JTI;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.THREAD_INDEX;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.TWO_WAY_TIMESTAMP;
-
-import Seoul_Milk.sm_server.domain.taxInvoice.constant.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.global.redis.RedisUtils;
@@ -25,10 +8,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.codef.api.EasyCodef;
 import io.codef.api.EasyCodefServiceType;
+
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.*;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.NEED_SIMPLE_AUTHENTICATION;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.*;
 
 public class RequestThread extends Thread {
     private final EasyCodef codef;

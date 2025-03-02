@@ -123,6 +123,35 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         return executeQuery(whereClause, pageable);
     }
 
+    @Override
+    public List<TaxInvoice> findTempInvoicesByMember(MemberEntity member) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+
+        return queryFactory.selectFrom(taxInvoice)
+                .where(
+                        taxInvoice.member.eq(member),
+                        taxInvoice.isTemporary.isTrue()
+                )
+                .fetch();
+    }
+
+    @Override
+    public List<TaxInvoice> findTempInvoicesByIds(List<Long> taxInvoiceIds, MemberEntity member) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+
+        return queryFactory.selectFrom(taxInvoice)
+                .where(
+                        taxInvoice.taxInvoiceId.in(taxInvoiceIds),
+                        taxInvoice.member.eq(member)
+                )
+                .fetch();
+    }
+
+    @Override
+    public List<TaxInvoice> saveAll(List<TaxInvoice> taxInvoices) {
+        return taxInvoiceJpaRepository.saveAll(taxInvoices);
+    }
+
     /** 공통 쿼리 실행 및 페이지 처리 */
     private Page<TaxInvoice> executeQuery(BooleanBuilder whereClause, Pageable pageable) {
         QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
