@@ -64,6 +64,10 @@ public class TaxInvoice {
     @Column(name = "error_detail")
     private List<String> errorDetails = new ArrayList<>();
 
+    @Builder.Default
+    @Column(name = "IS_TEMPORARY")
+    private boolean isTemporary = true;
+
     @CreatedDate
     @Column(name = "CREATED_AT", updatable = false)
     private LocalDateTime createdAt;
@@ -105,6 +109,7 @@ public class TaxInvoice {
                 .suName(suName)
                 .member(memeber)
                 .errorDetails(errorDetails)
+                .isTemporary(true)
                 .build();
     }
 
@@ -126,5 +131,10 @@ public class TaxInvoice {
     /** 반려 처리 */
     public void reject() {
         this.processStatus = ProcessStatus.REJECTED;
+    }
+
+    /** 임시 저장 여부 변경 **/
+    public void updateIsTemp(boolean isTemporary) {
+        this.isTemporary = isTemporary;
     }
 }

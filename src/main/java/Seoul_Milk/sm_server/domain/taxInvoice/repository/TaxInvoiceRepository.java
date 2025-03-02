@@ -5,6 +5,7 @@ import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface TaxInvoiceRepository {
@@ -16,4 +17,9 @@ public interface TaxInvoiceRepository {
     Page<TaxInvoice> findByConsumer(String consumer, String employeeId, MemberEntity member, Pageable pageable);
     Page<TaxInvoice> findByProviderAndConsumer(String provider, String consumer, String employeeId, MemberEntity member, Pageable pageable);
     Page<TaxInvoice> findAll(String employeeId, MemberEntity member, Pageable pageable);
+
+    // 임시 저장 관련
+    List<TaxInvoice> findTempInvoicesByMember(MemberEntity member);
+    List<TaxInvoice> findTempInvoicesByIds(List<Long> taxInvoiceIds, MemberEntity member);
+    List<TaxInvoice> saveAll(List<TaxInvoice> taxInvoices);
 }
