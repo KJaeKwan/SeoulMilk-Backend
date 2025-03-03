@@ -33,6 +33,13 @@ public class MemberServiceImpl implements MemberService {
     }
 
     /**
+     * CurrentMember 어노테이션을 위한 메서드
+     */
+    public MemberEntity getMemberEntity(String employeeId) {
+        return memberRepository.getByEmployeeId(employeeId);
+    }
+
+    /**
      * 비밀번호 변경
      */
     @Override

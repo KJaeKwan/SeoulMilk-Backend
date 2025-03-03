@@ -9,6 +9,7 @@ import Seoul_Milk.sm_server.login.entity.MemberEntity;
 
 public interface MemberService {
     MemberResponse getMember(String employeeId);
+    MemberEntity getMemberEntity(String employeeId);
     void updatePw(Long memberId, UpdatePwDTO request);
     MemberResponse testUpdateRole(UpdateRoleDTO request);
     MemberResponse updateRole(UpdateRoleDTO request);
