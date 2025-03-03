@@ -45,7 +45,8 @@ public class SecurityConfig {
             "/join",
             "/login",
             "/reissue",
-            "/api/emails/**"
+            "/api/emails/**",
+            "/valid/create"
     };
 
     // 관리자 권한이 필요한 URL 목록
