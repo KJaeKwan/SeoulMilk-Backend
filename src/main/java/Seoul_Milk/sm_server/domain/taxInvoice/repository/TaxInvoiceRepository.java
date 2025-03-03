@@ -22,4 +22,6 @@ public interface TaxInvoiceRepository {
     List<TaxInvoice> findTempInvoicesByMember(MemberEntity member);
     List<TaxInvoice> findTempInvoicesByIds(List<Long> taxInvoiceIds, MemberEntity member);
     List<TaxInvoice> saveAll(List<TaxInvoice> taxInvoices);
+    List<TaxInvoice> findAll();
 }
+

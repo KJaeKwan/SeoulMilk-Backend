@@ -139,6 +139,11 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     }
 
     @Override
+    public List<TaxInvoice> findAll() {
+        return taxInvoiceJpaRepository.findAll();
+    }
+
+    @Override
     public TaxInvoice findByIssueId(String issueId) {
         return taxInvoiceJpaRepository.findByIssueId(issueId);
     }

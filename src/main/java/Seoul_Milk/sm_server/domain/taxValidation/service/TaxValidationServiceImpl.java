@@ -26,10 +26,12 @@ import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_NEED_AUTHENT
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
+import Seoul_Milk.sm_server.domain.taxValidation.dto.TestDTO;
 import Seoul_Milk.sm_server.domain.taxValidation.dto.request.NonVerifiedTaxValidationRequestDTO;
 import Seoul_Milk.sm_server.domain.taxValidation.dto.response.NonVerifiedTaxValidationResponseDTO;
 import Seoul_Milk.sm_server.domain.taxValidation.dto.TaxInvoiceInfo;
 import Seoul_Milk.sm_server.domain.taxValidation.thread.RequestThread;
+import Seoul_Milk.sm_server.domain.taxValidation.thread.RequestThreadManager;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.redis.RedisUtils;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
@@ -39,6 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.codef.api.EasyCodef;
 import io.codef.api.EasyCodefServiceType;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -155,7 +158,25 @@ public class TaxValidationServiceImpl implements TaxValidationService {
             taxInvoice.reject();
         }
         taxInvoiceRepository.save(taxInvoice);
+        RequestThreadManager.waitForThreads(key);
         return "성공";
+    }
+
+    @Override
+    public List<TestDTO> create() {
+        List<TaxInvoice> taxInvoiceList = taxInvoiceRepository.findAll();
+        List<TestDTO> testDTOList = new ArrayList<>();
+        for(TaxInvoice taxInvoice : taxInvoiceList){
+            TestDTO testDTO = new TestDTO(
+                    taxInvoice.getSuId(),
+                    taxInvoice.getIpId(),
+                    taxInvoice.getIssueId(),
+                    taxInvoice.getErDat(),
+                    String.valueOf(taxInvoice.getTaxTotal())
+            );
+            testDTOList.add(testDTO);
+        }
+        return testDTOList;
     }
 
     /**

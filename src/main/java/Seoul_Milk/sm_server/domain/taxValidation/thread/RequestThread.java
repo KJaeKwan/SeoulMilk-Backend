@@ -41,6 +41,7 @@ public class RequestThread extends Thread {
 
     @Override
     public void run() {
+        RequestThreadManager.addThread(id, this);
 
         String result;
         String code;
