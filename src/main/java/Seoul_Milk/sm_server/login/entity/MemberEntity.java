@@ -15,7 +15,7 @@ import java.util.ArrayList;
 public class MemberEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name = "MEMBER_ID")
     private Long id;
 
@@ -45,9 +45,10 @@ public class MemberEntity {
         return memberEntity;
     }
 
-    public static MemberEntity createVerifiedMember(String employeeId, String password, Role role){
+    public static MemberEntity createVerifiedMember(String employeeId, String name, String password, Role role){
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.employeeId = employeeId;
+        memberEntity.name = name;
         memberEntity.password = password;
         memberEntity.role = role;
         return memberEntity;

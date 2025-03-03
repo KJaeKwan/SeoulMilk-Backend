@@ -1,9 +1,5 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.entity;
 
-import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.APPROVED;
-import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.REJECTED;
-import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.UNAPPROVED;
-
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
@@ -17,6 +13,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.*;
 
 @Entity
 @Getter
@@ -72,7 +70,7 @@ public class TaxInvoice {
 
     @Builder.Default
     @Column(name = "IS_TEMPORARY")
-    private boolean isTemporary = true;
+    private Boolean isTemporary = true;
 
     @CreatedDate
     @Column(name = "CREATED_AT", updatable = false)

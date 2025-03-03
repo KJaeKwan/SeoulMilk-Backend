@@ -3,10 +3,11 @@ package Seoul_Milk.sm_server.login.service;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.login.constant.Role;
-import Seoul_Milk.sm_server.login.dto.request.UpdateRoleDTO;
-import Seoul_Milk.sm_server.login.dto.request.UpdatePwDTO;
-import Seoul_Milk.sm_server.login.dto.response.MemberResponse;
 import Seoul_Milk.sm_server.login.dto.VerifyPwDTO;
+import Seoul_Milk.sm_server.login.dto.request.RegisterDTO;
+import Seoul_Milk.sm_server.login.dto.request.UpdatePwDTO;
+import Seoul_Milk.sm_server.login.dto.request.UpdateRoleDTO;
+import Seoul_Milk.sm_server.login.dto.response.MemberResponse;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import Seoul_Milk.sm_server.login.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,15 @@ public class MemberServiceImpl implements MemberService {
      * 회원 정보
      */
     @Override
-    public MemberEntity getMember(String employeeId) {
+    public MemberResponse getMember(String employeeId) {
+        MemberEntity member = memberRepository.getByEmployeeId(employeeId);
+        return MemberResponse.from(member);
+    }
+
+    /**
+     * CurrentMember 어노테이션을 위한 메서드
+     */
+    public MemberEntity getMemberEntity(String employeeId) {
         return memberRepository.getByEmployeeId(employeeId);
     }
 
@@ -87,7 +96,7 @@ public class MemberServiceImpl implements MemberService {
      */
     @Override
     @Transactional
-    public MemberResponse updateRole(Long id, UpdateRoleDTO request) {
+    public MemberResponse updateRole(UpdateRoleDTO request) {
         MemberEntity member = memberRepository.getById(request.memberId());
 
         try {
@@ -98,5 +107,24 @@ public class MemberServiceImpl implements MemberService {
         }
 
         return MemberResponse.from(member);
+    }
+
+    /**
+     * 사원 등록
+     */
+    @Override
+    @Transactional
+    public MemberResponse register(RegisterDTO request) {
+        if (memberRepository.existsByEmployeeId(request.employeeId())) {
+            throw new CustomException(ErrorCode.USER_ALREADY_EXIST);
+        }
+
+        // 비밀번호 초기 설정
+        String encodedPassword = passwordEncoder.encode("0000");
+
+        MemberEntity member = MemberEntity.createVerifiedMember(request.employeeId(), request.name(), encodedPassword, Role.valueOf(request.role()));
+        MemberEntity savedMember = memberRepository.save(member);
+
+        return MemberResponse.from(savedMember);
     }
 }

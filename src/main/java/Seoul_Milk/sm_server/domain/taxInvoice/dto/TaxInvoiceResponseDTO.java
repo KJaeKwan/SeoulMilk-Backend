@@ -57,6 +57,7 @@ public class TaxInvoiceResponseDTO {
         @Schema(description = "공급받는자 성명") String suName,
         @Schema(description = "세금명세서 이미지 URL") String imageUrl,
         @Schema(description = "에러 상세 내역") List<String> errorDetails,
+        @Schema(description = "임시저장 여부") Boolean isTemporary,
         @Schema(description = "생성일자") LocalDateTime createdAt
     ) {
         public static GetOne from(TaxInvoice taxInvoice) {
@@ -75,6 +76,7 @@ public class TaxInvoiceResponseDTO {
                     taxInvoice.getSuName(),
                     taxInvoice.getFile().getFileUrl(),
                     taxInvoice.getErrorDetails() != null ? taxInvoice.getErrorDetails() : new ArrayList<>(),
+                    taxInvoice.getIsTemporary(),
                     taxInvoice.getCreatedAt()
             );
         }
