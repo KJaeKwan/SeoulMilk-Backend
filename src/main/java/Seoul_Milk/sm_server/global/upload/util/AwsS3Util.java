@@ -36,7 +36,7 @@ public class AwsS3Util {
         // 확장자 추출
         String fileExtension = fileName.substring(fileName.lastIndexOf(".") + 1).toLowerCase();
 
-        List<String> imageExtensions = List.of("jpg", "jpeg", "png");
+        List<String> imageExtensions = List.of("jpg", "jpeg", "png", "pdf");
         List<String> documentExtensions = List.of("pdf", "pptx", "hwp", "docx", "xlsx", "txt", "csv", "zip");
 
         // 리스트에서 확장자 포함 여부 확인
