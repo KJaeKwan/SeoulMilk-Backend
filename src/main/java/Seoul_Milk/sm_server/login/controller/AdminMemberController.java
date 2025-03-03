@@ -26,7 +26,7 @@ public class AdminMemberController {
      */
     @PostMapping("/register/tmp")
     @Operation(summary = "사원 등록 API", description = "사번, 사원명, 권한을 입력받습니다.")
-    public SuccessResponse<MemberResponse> tmpRegisterMember(@Valid @RequestBody RegisterDTO registerDTO) {
+    public SuccessResponse<MemberResponse> tmpRegisterMember(@RequestBody RegisterDTO registerDTO) {
         MemberResponse result = memberService.register(registerDTO);
         return SuccessResponse.ok(result);
     }
