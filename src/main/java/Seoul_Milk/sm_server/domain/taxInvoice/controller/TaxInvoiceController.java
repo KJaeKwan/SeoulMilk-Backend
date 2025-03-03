@@ -12,10 +12,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -68,6 +70,9 @@ public class TaxInvoiceController {
      * 내 업무 조회 - 세금계산서 리스트 반환 (검색 조건에 따라)
      * @param provider 공급자 상호명
      * @param consumer 공급받는자 상호명
+     * @param date 특정 날짜
+     * @param period 기간
+     * @param status 승인 상태
      * @param page 페이지 정보
      * @param size 페이지 크기
      * @return 조건에 따른 페이지
@@ -78,6 +83,8 @@ public class TaxInvoiceController {
             description = """
                     - 일반 사원은 본인이 등록한 자료만 조회 가능 (employeeId 사용X)
                     - 관리자는 모든 자료 조회 가능하고, employeeId를 입력하면 특정 사원이 등록한 자료 조회 가능
+                    - 특정 날짜 또는 최근 1, 3, 6개월 내 데이터 조회 가능
+                    - 승인 상태(승인, 반려, 미승인) 필터링 가능
                     """
     )
     @GetMapping("/search")
@@ -86,9 +93,12 @@ public class TaxInvoiceController {
             @RequestParam(required = false) String provider,
             @RequestParam(required = false) String consumer,
             @RequestParam(required = false) String employeeId,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
+            @RequestParam(required = false) Integer period,
+            @RequestParam(required = false) String status,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
-        Page<TaxInvoiceResponseDTO.GetOne> result = taxInvoiceService.search(member, provider, consumer, employeeId, page-1, size);
+        Page<TaxInvoiceResponseDTO.GetOne> result = taxInvoiceService.search(member, provider, consumer, employeeId, date, period, status, page-1, size);
         return SuccessResponse.ok(result);
     }
 

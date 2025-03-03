@@ -2,6 +2,7 @@ package Seoul_Milk.sm_server.domain.taxInvoice.service;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
+import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.global.clovaOcr.dto.BoundingPoly;
@@ -24,6 +25,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -136,22 +138,39 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
      * 세금계산서 검색 - provider, consumer 입력 값이 없으면 전체 조회
      * @param provider 공급자
      * @param consumer 공급받는자
+     * @param employeeId 관리자는 사번으로 검색 가능
+     * @param date 특정 날짜
+     * @param period 기간
+     * @param status 승인 상태
      * @return 검색 결과
      */
     @Override
-    public Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String employeeId, int page, int size) {
+    public Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String employeeId,
+                                                     LocalDate date, Integer period, String status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<TaxInvoice> taxInvoicePage;
-        if (provider != null && !provider.isEmpty() && consumer != null && !consumer.isEmpty()) {
-            taxInvoicePage = taxInvoiceRepository.findByProviderAndConsumer(provider, consumer, employeeId, member, pageable); // 공급자 + 공급받는자 로 검색
-        } else if (provider != null && !provider.isEmpty()) {
-            taxInvoicePage = taxInvoiceRepository.findByProvider(provider, employeeId, member, pageable); // 공급자 로만 검색
-        } else if (consumer != null && !consumer.isEmpty()) {
-            taxInvoicePage = taxInvoiceRepository.findByConsumer(consumer, employeeId, member, pageable);// 공급받는자 로만 검색
-        } else {
-            taxInvoicePage = taxInvoiceRepository.findAll(employeeId, member, pageable); // 전체 조회
+        LocalDate startDate = null;
+        LocalDate endDate = null;
+
+        if (date != null) {
+            startDate = date;
+            endDate = date;
+        } else if (period != null) {
+            endDate = LocalDate.now();
+            startDate = endDate.minusMonths(period);
         }
+
+        ProcessStatus processStatus = null;
+        if (status != null) {
+            try {
+                processStatus = ProcessStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new CustomException(ErrorCode.PROCESS_STATUS_INVALID);
+            }
+        }
+
+        Page<TaxInvoice> taxInvoicePage = taxInvoiceRepository.searchWithFilters(
+                provider, consumer, employeeId, member, startDate, endDate, processStatus, pageable);
 
         return taxInvoicePage.map(TaxInvoiceResponseDTO.GetOne::from);
     }
