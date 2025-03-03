@@ -4,14 +4,17 @@ import Seoul_Milk.sm_server.global.annotation.CurrentMember;
 import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
 import Seoul_Milk.sm_server.login.dto.VerifyPwDTO;
 import Seoul_Milk.sm_server.login.dto.request.UpdatePwDTO;
+import Seoul_Milk.sm_server.login.dto.response.MemberResponse;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import Seoul_Milk.sm_server.login.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/members")
 @RequiredArgsConstructor
@@ -27,8 +30,9 @@ public class MemberController {
      */
     @GetMapping("/myPage")
     @Operation(summary = "마이페이지")
-    public SuccessResponse<MemberEntity> myPage(@CurrentMember MemberEntity member) {
-        MemberEntity my = memberService.getMember(member.getEmployeeId());
+    public SuccessResponse<MemberResponse> myPage(@CurrentMember MemberEntity member) {
+        log.info("myPage 호출 - 현재 로그인 유저: {}", member);
+        MemberResponse my = memberService.getMember(member.getEmployeeId());
         return SuccessResponse.ok(my);
     }
 

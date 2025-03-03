@@ -3,11 +3,11 @@ package Seoul_Milk.sm_server.login.service;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.login.constant.Role;
-import Seoul_Milk.sm_server.login.dto.request.RegisterDTO;
-import Seoul_Milk.sm_server.login.dto.request.UpdateRoleDTO;
-import Seoul_Milk.sm_server.login.dto.request.UpdatePwDTO;
-import Seoul_Milk.sm_server.login.dto.response.MemberResponse;
 import Seoul_Milk.sm_server.login.dto.VerifyPwDTO;
+import Seoul_Milk.sm_server.login.dto.request.RegisterDTO;
+import Seoul_Milk.sm_server.login.dto.request.UpdatePwDTO;
+import Seoul_Milk.sm_server.login.dto.request.UpdateRoleDTO;
+import Seoul_Milk.sm_server.login.dto.response.MemberResponse;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import Seoul_Milk.sm_server.login.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +27,9 @@ public class MemberServiceImpl implements MemberService {
      * 회원 정보
      */
     @Override
-    public MemberEntity getMember(String employeeId) {
-        return memberRepository.getByEmployeeId(employeeId);
+    public MemberResponse getMember(String employeeId) {
+        MemberEntity member = memberRepository.getByEmployeeId(employeeId);
+        return MemberResponse.from(member);
     }
 
     /**

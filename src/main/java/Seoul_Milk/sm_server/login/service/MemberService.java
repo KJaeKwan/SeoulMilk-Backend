@@ -8,7 +8,7 @@ import Seoul_Milk.sm_server.login.dto.VerifyPwDTO;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 
 public interface MemberService {
-    MemberEntity getMember(String employeeId);
+    MemberResponse getMember(String employeeId);
     void updatePw(Long memberId, UpdatePwDTO request);
     MemberResponse testUpdateRole(UpdateRoleDTO request);
     MemberResponse updateRole(UpdateRoleDTO request);
