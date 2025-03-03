@@ -13,9 +13,9 @@ public class AsyncConfig {
     @Bean(name = "ocrTaskExecutor")
     public Executor asyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);  // 최소 10개 스레드
-        executor.setMaxPoolSize(50);   // 최대 50개 스레드
-        executor.setQueueCapacity(100); // 대기열 설정
+        executor.setCorePoolSize(5);  // 최소 스레드
+        executor.setMaxPoolSize(10);   // 최대 스레드
+        executor.setQueueCapacity(20); // 대기열 설정
         executor.setThreadNamePrefix("OCR-Async-");
         executor.initialize();
         return executor;
