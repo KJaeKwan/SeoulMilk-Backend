@@ -82,6 +82,8 @@ public enum ErrorCode {
     OCR_FIELD_CONVERSION_ERROR("OCR500", "OCR 필드 변환 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     OCR_JSON_PARSING_ERROR("OCR500", "OCR JSON 파싱 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
+    // PROCESS_STATUS (승인 상태)
+    PROCESS_STATUS_INVALID("PROCESS_STATUS400", "존재하지 않은 승인 상태입니다. UNAPPROVED, APPROVED, REJECTED 중 하나로 입력하세요.", HttpStatus.BAD_REQUEST),
 
     // EMAIL
     EMAIL_VERIFICATION_EXPIRED("EMAIL_VERIFICATION404", "인증 코드가 만료되었습니다.", HttpStatus.NOT_FOUND),

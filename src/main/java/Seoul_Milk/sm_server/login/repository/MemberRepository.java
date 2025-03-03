@@ -10,5 +10,5 @@ public interface MemberRepository {
     MemberEntity getByEmployeeId(String employeeId);
     Optional<MemberEntity> findByEmail(String email);
     Boolean existsByEmployeeId(String employeeId);
-    void save(MemberEntity memberEntity);
+    MemberEntity save(MemberEntity memberEntity);
 }
