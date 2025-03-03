@@ -65,31 +65,4 @@ public class MemberController {
         return SuccessResponse.ok(isMatch);
     }
 
-    /**
-     * [임시] 권한 변경 API
-     * @param request 사용자 ID, 변경할 권한 입력
-     * @return 사용자 정보 반환
-     */
-    @PatchMapping("/{memberId}/role/test")
-    @Operation(summary = "[통신에 사용X] 관리자 권한 없이 권한 변경 - 초기에 관리자 등록을 위해 만들어 놓았습니다.")
-    public SuccessResponse<MemberResponse> testUpdateRole(
-            @Valid @RequestBody UpdateRoleDTO request
-    ) {
-        MemberResponse result = memberService.testUpdateRole(request);
-        return SuccessResponse.ok(result);
-    }
-
-    /**
-     * 권한 변경 API
-     */
-    @PatchMapping("/{memberId}/role")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Operation(summary = "사용자 권한 변경")
-    public SuccessResponse<MemberResponse> updateRole(
-            @CurrentMember MemberEntity member,
-            @Valid @RequestBody UpdateRoleDTO request
-    ) {
-        MemberResponse result = memberService.updateRole(member.getId(), request);
-        return SuccessResponse.ok(result);
-    }
 }
