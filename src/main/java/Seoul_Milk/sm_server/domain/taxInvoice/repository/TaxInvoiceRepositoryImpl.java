@@ -2,6 +2,7 @@ package Seoul_Milk.sm_server.domain.taxInvoice.repository;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.QTaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
+import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.login.constant.Role;
@@ -15,6 +16,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,77 +50,37 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     }
 
     @Override
-    public Page<TaxInvoice> findByProvider(String provider, String employeeId, MemberEntity member, Pageable pageable) {
+    public Page<TaxInvoice> searchWithFilters(String provider, String consumer, String employeeId, MemberEntity member,
+                                              LocalDate startDate, LocalDate endDate, ProcessStatus status, Pageable pageable) {
         QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
         BooleanBuilder whereClause = new BooleanBuilder();
 
-        whereClause.and(taxInvoice.ipBusinessName.eq(provider));
-
-        // 일반 사원은 본인 자료만 조회 가능
+        // 권한 조건
         if (member.getRole() == Role.ROLE_NORMAL) {
             whereClause.and(taxInvoice.member.employeeId.eq(member.getEmployeeId()));
         }
-
-        // 관리자는 기본적으로 모든 것을 조회 가능하지만, employeeId가 검색 조건으로 들어오면 필터링
         if (member.getRole() == Role.ROLE_ADMIN && employeeId != null && !employeeId.isEmpty()) {
             whereClause.and(taxInvoice.member.employeeId.eq(employeeId));
         }
 
-        return executeQuery(whereClause, pageable);
-    }
-
-    @Override
-    public Page<TaxInvoice> findByConsumer(String consumer, String employeeId, MemberEntity member, Pageable pageable) {
-        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
-        BooleanBuilder whereClause = new BooleanBuilder();
-
-        whereClause.and(taxInvoice.suBusinessName.eq(consumer));
-
-        if (member.getRole() == Role.ROLE_NORMAL) {
-            whereClause.and(taxInvoice.member.employeeId.eq(member.getEmployeeId()));
-        }
-
-        if (member.getRole() == Role.ROLE_ADMIN && employeeId != null && !employeeId.isEmpty()) {
-            whereClause.and(taxInvoice.member.employeeId.eq(employeeId));
-        }
-
-        return executeQuery(whereClause, pageable);
-    }
-
-    @Override
-    public Page<TaxInvoice> findByProviderAndConsumer(String provider, String consumer, String employeeId, MemberEntity member, Pageable pageable) {
-        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
-        BooleanBuilder whereClause = new BooleanBuilder();
-
+        // 공급자 검색 조건
         if (provider != null && !provider.isEmpty()) {
-            whereClause.and(taxInvoice.ipBusinessName.eq(provider));
+            whereClause.and(taxInvoice.ipName.eq(provider));
         }
+
+        // 공급받는자 검색 조건
         if (consumer != null && !consumer.isEmpty()) {
-            whereClause.and(taxInvoice.suBusinessName.eq(consumer));
+            whereClause.and(taxInvoice.suName.eq(consumer));
         }
 
-        if (member.getRole() == Role.ROLE_NORMAL) {
-            whereClause.and(taxInvoice.member.employeeId.eq(member.getEmployeeId()));
+        // 날짜 검색 (특정 날짜 or 최근 N개월 내)
+        if (startDate != null && endDate != null) {
+            whereClause.and(taxInvoice.createdAt.between(startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX)));
         }
 
-        if (member.getRole() == Role.ROLE_ADMIN && employeeId != null && !employeeId.isEmpty()) {
-            whereClause.and(taxInvoice.member.employeeId.eq(employeeId));
-        }
-
-        return executeQuery(whereClause, pageable);
-    }
-
-    @Override
-    public Page<TaxInvoice> findAll(String employeeId, MemberEntity member, Pageable pageable) {
-        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
-        BooleanBuilder whereClause = new BooleanBuilder();
-
-        if (member.getRole() == Role.ROLE_NORMAL) {
-            whereClause.and(taxInvoice.member.employeeId.eq(member.getEmployeeId()));
-        }
-
-        if (member.getRole() == Role.ROLE_ADMIN && employeeId != null && !employeeId.isEmpty()) {
-            whereClause.and(taxInvoice.member.employeeId.eq(employeeId));
+        // 승인 상태 조건
+        if (status != null) {
+            whereClause.and(taxInvoice.processStatus.eq(status));
         }
 
         return executeQuery(whereClause, pageable);
