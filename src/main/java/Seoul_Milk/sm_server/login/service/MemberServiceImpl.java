@@ -3,6 +3,7 @@ package Seoul_Milk.sm_server.login.service;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.login.constant.Role;
+import Seoul_Milk.sm_server.login.dto.request.RegisterDTO;
 import Seoul_Milk.sm_server.login.dto.request.UpdateRoleDTO;
 import Seoul_Milk.sm_server.login.dto.request.UpdatePwDTO;
 import Seoul_Milk.sm_server.login.dto.response.MemberResponse;
@@ -87,7 +88,7 @@ public class MemberServiceImpl implements MemberService {
      */
     @Override
     @Transactional
-    public MemberResponse updateRole(Long id, UpdateRoleDTO request) {
+    public MemberResponse updateRole(UpdateRoleDTO request) {
         MemberEntity member = memberRepository.getById(request.memberId());
 
         try {
@@ -98,5 +99,24 @@ public class MemberServiceImpl implements MemberService {
         }
 
         return MemberResponse.from(member);
+    }
+
+    /**
+     * 사원 등록
+     */
+    @Override
+    @Transactional
+    public MemberResponse register(RegisterDTO request) {
+        if (memberRepository.existsByEmployeeId(request.employeeId())) {
+            throw new CustomException(ErrorCode.USER_ALREADY_EXIST);
+        }
+
+        // 비밀번호 초기 설정
+        String encodedPassword = passwordEncoder.encode("0000");
+
+        MemberEntity member = MemberEntity.createVerifiedMember(request.employeeId(), request.name(), encodedPassword, Role.valueOf(request.role()));
+        MemberEntity savedMember = memberRepository.save(member);
+
+        return MemberResponse.from(savedMember);
     }
 }

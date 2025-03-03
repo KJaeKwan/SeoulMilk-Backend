@@ -42,7 +42,7 @@ public class SecurityConfig {
             "/",
             "/swagger-ui/**",
             "/v3/api-docs/**",
-            "/join",
+            "/tmp/**",
             "/login",
             "/reissue",
             "/api/emails/**"
@@ -50,7 +50,7 @@ public class SecurityConfig {
 
     // 관리자 권한이 필요한 URL 목록
     private final String[] adminUrls = {
-            "/api/members/{memberId}/role"
+            "/api/admin/members/**"
     };
 
     @Bean
