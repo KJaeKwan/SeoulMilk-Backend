@@ -81,6 +81,7 @@ public enum ErrorCode {
     OCR_NO_BUSINESS_NAME_CANDIDATES("OCR404", "필터링된 상호명 후보가 없습니다.", HttpStatus.NOT_FOUND),
     OCR_FIELD_CONVERSION_ERROR("OCR500", "OCR 필드 변환 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     OCR_JSON_PARSING_ERROR("OCR500", "OCR JSON 파싱 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    OCR_INVALID_FILE("OCR500", "OCR에 올바르지 않은 파일이 들어왔습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // PROCESS_STATUS (승인 상태)
     PROCESS_STATUS_INVALID("PROCESS_STATUS400", "존재하지 않은 승인 상태입니다. UNAPPROVED, APPROVED, REJECTED 중 하나로 입력하세요.", HttpStatus.BAD_REQUEST),
