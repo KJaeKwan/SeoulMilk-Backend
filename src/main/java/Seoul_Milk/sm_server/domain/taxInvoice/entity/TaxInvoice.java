@@ -9,6 +9,7 @@ import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -66,6 +67,7 @@ public class TaxInvoice {
     @ElementCollection
     @CollectionTable(name = "tax_invoice_errors", joinColumns = @JoinColumn(name = "tax_invoice_id"))
     @Column(name = "error_detail")
+    @BatchSize(size = 10)
     private List<String> errorDetails = new ArrayList<>();
 
     @Builder.Default

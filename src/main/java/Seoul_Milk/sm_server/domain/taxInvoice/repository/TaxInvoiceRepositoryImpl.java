@@ -3,10 +3,12 @@ package Seoul_Milk.sm_server.domain.taxInvoice.repository;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.QTaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
+import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.QTaxInvoiceFile;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.login.constant.Role;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
+import Seoul_Milk.sm_server.login.entity.QMemberEntity;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -53,6 +55,9 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     public Page<TaxInvoice> searchWithFilters(String provider, String consumer, String employeeId, MemberEntity member,
                                               LocalDate startDate, LocalDate endDate, ProcessStatus status, Pageable pageable) {
         QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+        QMemberEntity memberEntity = QMemberEntity.memberEntity;
+        QTaxInvoiceFile taxInvoiceFile = QTaxInvoiceFile.taxInvoiceFile;
+
         BooleanBuilder whereClause = new BooleanBuilder();
 
         // 권한 조건
@@ -83,7 +88,25 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
             whereClause.and(taxInvoice.processStatus.eq(status));
         }
 
-        return executeQuery(whereClause, pageable);
+        long total = Optional.ofNullable(
+                queryFactory
+                        .select(Wildcard.count)
+                        .from(taxInvoice)
+                        .where(whereClause)
+                        .fetchOne()
+        ).orElse(0L);
+
+        List<TaxInvoice> results = queryFactory
+                .selectFrom(taxInvoice)
+                .leftJoin(taxInvoice.member, memberEntity).fetchJoin()
+                .leftJoin(taxInvoice.file, taxInvoiceFile).fetchJoin()
+                .where(whereClause)
+                .orderBy(taxInvoice.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, total);
     }
 
     @Override
@@ -113,29 +136,6 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     @Override
     public List<TaxInvoice> saveAll(List<TaxInvoice> taxInvoices) {
         return taxInvoiceJpaRepository.saveAll(taxInvoices);
-    }
-
-    /** 공통 쿼리 실행 및 페이지 처리 */
-    private Page<TaxInvoice> executeQuery(BooleanBuilder whereClause, Pageable pageable) {
-        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
-
-        long total = Optional.ofNullable(
-                queryFactory
-                        .select(Wildcard.count)
-                        .from(taxInvoice)
-                        .where(whereClause)
-                        .fetchOne()
-        ).orElse(0L);
-
-        List<TaxInvoice> results = queryFactory
-                .selectFrom(taxInvoice)
-                .where(whereClause)
-                .orderBy(taxInvoice.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        return new PageImpl<>(results, pageable, total);
     }
 
     @Override
