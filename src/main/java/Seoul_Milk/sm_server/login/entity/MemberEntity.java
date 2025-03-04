@@ -1,5 +1,6 @@
 package Seoul_Milk.sm_server.login.entity;
 
+import Seoul_Milk.sm_server.domain.image.entity.Image;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.login.constant.Role;
 import jakarta.persistence.*;
@@ -38,6 +39,9 @@ public class MemberEntity {
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaxInvoice> taxInvoices = new ArrayList<>();
 
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Image> images = new ArrayList<>();
+
     public static MemberEntity createUnverifiedMember(String employeeId, Role role){
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.employeeId = employeeId;
@@ -71,6 +75,10 @@ public class MemberEntity {
     public void addTaxInvoice(TaxInvoice taxInvoice) {
         this.taxInvoices.add(taxInvoice);
         taxInvoice.attachMember(this);
+    }
+
+    public void addImage(Image image) {
+        this.images.add(image);
     }
 
     /**
