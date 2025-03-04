@@ -98,8 +98,10 @@ public enum ErrorCode {
 
     // CODEF
     CODEF_INTERANL_SERVER_ERROR("CODEF001", "codef api 연동에 문제가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
-    CODEF_NEED_AUTHENTICATION("CODEF002", "간편인증이 진행되지 않았습니다 진행 후 다시 시도해주세요.", HttpStatus.UNAUTHORIZED);
+    CODEF_NEED_AUTHENTICATION("CODEF002", "간편인증이 진행되지 않았습니다 진행 후 다시 시도해주세요.", HttpStatus.UNAUTHORIZED),
 
+    // IMAGE (임시저장 이미지)
+    TMP_IMAGE_NOT_EXIST("TMP_IMAGE404", "해당 임시저장 이미지를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
 
     private final String errorCode;
     private final String message;
