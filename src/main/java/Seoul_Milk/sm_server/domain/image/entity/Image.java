@@ -4,6 +4,8 @@ import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "IMAGE")
 @Getter
@@ -23,6 +25,9 @@ public class Image {
     @Column(name = "TEMPORARY", nullable = false)
     private boolean temporary = false;
 
+    @Column(name = "UPLOAD_DATE", nullable = false)
+    private LocalDate uploadDate;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEMBER_ID")
     private MemberEntity member;
@@ -31,7 +36,7 @@ public class Image {
         Image image = Image.builder()
                 .imageUrl(imageUrl)
                 .temporary(false)
-                .member(member)
+                .uploadDate(LocalDate.now())
                 .build();
         image.attachMember(member);
         return image;
