@@ -28,7 +28,7 @@ public class TaxInvoiceValidationHistoryController {
                     - 전체검색 원하면 option 파라미터에 null값(아무값도 x)
                     - 승인데이터 검색 원하면 option 파라미터에 APPROVED
                     - 반려데이터 검색 원하면 option 파라미터에 REJECTED
-                    - 검증실패는 검색 원하면 option 파라미터에 OCR_ERROR(필드 값 안정해짐)
+                    - 검증실패는 검색 원하면 option 파라미터에 UNAPPROVED
                     """)
     @GetMapping
     public SuccessResponse<Page<GetHistoryData>> showTaxInvoiceValidationData(
