@@ -53,7 +53,16 @@ public class ClovaOcrApi {
             json.put("timestamp", System.currentTimeMillis());
 
             JSONObject image = new JSONObject();
-            image.put("format", contentType.replace("image/", ""));
+            String format;
+            if (contentType.equals("application/pdf")) {
+                format = "pdf";
+            } else if (contentType.startsWith("image/")) {
+                format = contentType.replace("image/", "");
+            } else {
+                throw new CustomException(ErrorCode.OCR_INVALID_FILE);
+            }
+            image.put("format", format);
+
             image.put("name", file.getOriginalFilename());
 
             JSONArray images = new JSONArray();
