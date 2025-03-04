@@ -206,7 +206,13 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
      */
     @Override
     public void delete(Long taxInvoiceId) {
-        taxInvoiceRepository.getById(taxInvoiceId);
+        TaxInvoice taxInvoice = taxInvoiceRepository.getById(taxInvoiceId);
+
+        if (taxInvoice.getFile() != null) {
+            String fileUrl = taxInvoice.getFile().getFileUrl();
+            awsS3Service.deleteFile(fileUrl);
+        }
+
         taxInvoiceRepository.delete(taxInvoiceId);
     }
 
