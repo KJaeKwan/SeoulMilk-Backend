@@ -193,6 +193,16 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     }
 
     @Override
+    public List<TaxInvoice> findAllById(List<Long> taxInvoiceIdList) {
+        return taxInvoiceJpaRepository.findAllById(taxInvoiceIdList);
+    }
+
+    @Override
+    public void deleteAll(List<TaxInvoice> taxInvoices) {
+        taxInvoiceJpaRepository.deleteAll(taxInvoices);
+    }
+
+    @Override
     public TaxInvoice findByIssueId(String issueId) {
         return taxInvoiceJpaRepository.findByIssueId(issueId);
     }
