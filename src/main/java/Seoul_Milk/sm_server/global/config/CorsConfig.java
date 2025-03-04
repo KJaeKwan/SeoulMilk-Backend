@@ -21,6 +21,7 @@ public class CorsConfig {
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
         config.addExposedHeader("access");
+        config.addAllowedHeader("Authorization");
 
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
