@@ -25,20 +25,6 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
     private final TaxInvoiceRepository taxInvoiceRepository;
 
     @Override
-    public Page<GetHistoryData> showTaxInvoice(ProcessStatus processStatus, MemberEntity memberEntity, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<TaxInvoice> taxInvoicePage = taxInvoiceRepository.searchWithFilters(
-                null, null, null, memberEntity, null, null, processStatus, pageable
-        );
-
-        List<GetHistoryData> historyDataList = taxInvoicePage.stream()
-                .map(taxInvoice -> TaxInvoiceValidationHistoryDTO.GetHistoryData.from(taxInvoice, taxInvoice.getFile()))
-                .toList();
-
-        return new PageImpl<>(historyDataList, pageable, taxInvoicePage.getTotalElements());
-    }
-
-    @Override
     public TaxInvoiceSearchResult.GetData searchByProviderOrConsumer(MemberEntity memberEntity, ProcessStatus processStatus, String poc, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<TaxInvoice> taxInvoicePage = taxInvoiceRepository.searchConsumerOrProvider(poc, memberEntity.getEmployeeId(), processStatus, memberEntity, pageable);
