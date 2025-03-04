@@ -8,7 +8,6 @@ import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceVal
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.validator.PocValidator;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -27,7 +26,7 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
         Pageable pageable = PageRequest.of(page, size);
         Page<TaxInvoice> taxInvoicePage = taxInvoiceRepository.searchWithFilters(
                 null, null, null, memberEntity, null, null, processStatus, pageable
-        ); //Todo employeeId 넣기, 응답값에 pk값 추가
+        );
 
         List<GetHistoryData> historyDataList = taxInvoicePage.stream()
                 .map(taxInvoice -> TaxInvoiceValidationHistoryDTO.GetHistoryData.from(taxInvoice, taxInvoice.getFile()))
