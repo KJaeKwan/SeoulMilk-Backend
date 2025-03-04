@@ -23,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -46,9 +47,17 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
     private final TaxInvoiceRepository taxInvoiceRepository;
     private final AwsS3Service awsS3Service;
 
-    @Override
     @Async("ocrTaskExecutor")
+    @Override
     public CompletableFuture<TaxInvoiceResponseDTO.Create> processOcrAsync(MultipartFile image, MemberEntity member) {
+        TaxInvoiceResponseDTO.Create response = processOcrSync(image, member);
+        return CompletableFuture.completedFuture(response);
+    }
+
+
+    // 트랜잭션 적용
+    @Transactional
+    public TaxInvoiceResponseDTO.Create processOcrSync(MultipartFile image, MemberEntity member) {
         long startTime = System.nanoTime();
         List<String> errorDetails = new ArrayList<>();
         Map<String, Object> extractedData;
@@ -108,7 +117,6 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             // TaxInvoice 생성 및 저장
             TaxInvoice taxInvoice = TaxInvoice.create(issueId, ipId, suId, taxTotal, erDat,
                     ipBusinessName, suBusinessName, ipName, suName, member, errorDetails);
-
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
             // OCR 추출 성공한 경우 S3 업로드
@@ -121,17 +129,14 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
 
             // DTO 반환
-            TaxInvoiceResponseDTO.Create responseDTO = TaxInvoiceResponseDTO.Create.from(
-                    savedTaxInvoice, image.getOriginalFilename(), extractedData, errorDetails, elapsedTimeMillis
-            );
-
-            return CompletableFuture.completedFuture(responseDTO);
+            return TaxInvoiceResponseDTO.Create.from(savedTaxInvoice, image.getOriginalFilename(), extractedData, errorDetails, elapsedTimeMillis);
 
         } catch (Exception e) {
             System.out.println("[ERROR] 세금계산서 처리 중 예외 발생: " + e.getMessage());
-            return CompletableFuture.completedFuture(TaxInvoiceResponseDTO.Create.error(image.getOriginalFilename(), e.getMessage()));
+            return TaxInvoiceResponseDTO.Create.error(image.getOriginalFilename(), e.getMessage());
         }
     }
+
 
 
     /**
