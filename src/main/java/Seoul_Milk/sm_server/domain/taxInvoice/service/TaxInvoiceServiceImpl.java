@@ -23,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -47,16 +49,34 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
     private final TaxInvoiceRepository taxInvoiceRepository;
     private final AwsS3Service awsS3Service;
 
+    private static final int MAX_REQUESTS_PER_SECOND = 5;  // 초당 최대 5개 요청
+    private final Semaphore semaphore = new Semaphore(MAX_REQUESTS_PER_SECOND, true);
+
     @Async("ocrTaskExecutor")
     @Override
     public CompletableFuture<TaxInvoiceResponseDTO.Create> processOcrAsync(MultipartFile image, MemberEntity member) {
-        TaxInvoiceResponseDTO.Create response = processOcrSync(image, member);
-        return CompletableFuture.completedFuture(response);
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                semaphore.acquire(); // 요청 개수가 5개를 초과하면 자동 대기
+
+                long startTime = System.nanoTime();
+                TaxInvoiceResponseDTO.Create response = processOcrSync(image, member);
+                long endTime = System.nanoTime();
+
+                long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+                System.out.println("OCR 요청 처리 시간: " + elapsedTimeMillis + " ms");
+
+                return response;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return TaxInvoiceResponseDTO.Create.error(image.getOriginalFilename(), "OCR 요청 대기 중 인터럽트 발생");
+            } finally {
+                semaphore.release(); // 실행이 끝나면 세마포어 해제
+            }
+        });
     }
 
-
-    // 트랜잭션 적용
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public TaxInvoiceResponseDTO.Create processOcrSync(MultipartFile image, MemberEntity member) {
         long startTime = System.nanoTime();
         List<String> errorDetails = new ArrayList<>();
