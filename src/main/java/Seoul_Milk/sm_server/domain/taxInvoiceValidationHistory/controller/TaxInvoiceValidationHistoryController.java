@@ -49,7 +49,6 @@ public class TaxInvoiceValidationHistoryController {
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size
     ){
-        System.out.println(poc);
         return SuccessResponse.ok(taxInvoiceValidationService.searchByProviderOrConsumer(memberEntity, poc, page-1, size));
     }
 }
