@@ -20,7 +20,7 @@ public class CorsConfig {
         config.addAllowedOriginPattern("https://jk-project.site");
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
-        config.addExposedHeader("access");
+        config.addExposedHeader("*");
 
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
