@@ -5,6 +5,7 @@ import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO.GetHistoryData;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.validator.PocValidator;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationService{
     private final TaxInvoiceRepository taxInvoiceRepository;
+    private final PocValidator pocValidator;
 
     @Override
     public Page<GetHistoryData> showTaxInvoice(ProcessStatus processStatus, MemberEntity memberEntity, int page, int size) {
@@ -37,6 +39,7 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
     @Override
     public Page<GetHistoryData> searchByProviderOrConsumer(MemberEntity memberEntity, String poc, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
+        pocValidator.validate(poc); // 파라미터 검증
         Page<TaxInvoice> taxInvoicePage = taxInvoiceRepository.searchConsumerOrProvider(poc, memberEntity.getEmployeeId(), memberEntity, pageable);
         List<GetHistoryData> historyDataList = taxInvoicePage.stream()
                 .map(taxInvoice -> TaxInvoiceValidationHistoryDTO.GetHistoryData.from(taxInvoice, taxInvoice.getFile()))
