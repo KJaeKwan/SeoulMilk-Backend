@@ -23,5 +23,6 @@ public interface TaxInvoiceRepository {
     List<TaxInvoice> findTempInvoicesByIds(List<Long> taxInvoiceIds, MemberEntity member);
     List<TaxInvoice> saveAll(List<TaxInvoice> taxInvoices);
     List<TaxInvoice> findAll();
+    Page<TaxInvoice> searchConsumerOrProvider(String poc, String employeeId, MemberEntity member, Pageable pageable);
 }
 

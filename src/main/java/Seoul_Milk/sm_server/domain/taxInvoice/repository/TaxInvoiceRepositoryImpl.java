@@ -10,6 +10,7 @@ import Seoul_Milk.sm_server.login.constant.Role;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import Seoul_Milk.sm_server.login.entity.QMemberEntity;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -141,6 +142,54 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     @Override
     public List<TaxInvoice> findAll() {
         return taxInvoiceJpaRepository.findAll();
+    }
+
+    @Override
+    public Page<TaxInvoice> searchConsumerOrProvider(String poc, String employeeId, MemberEntity member, Pageable pageable) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+        QMemberEntity memberEntity = QMemberEntity.memberEntity;
+        QTaxInvoiceFile taxInvoiceFile = QTaxInvoiceFile.taxInvoiceFile;
+
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        // 권한 조건
+        if (member.getRole() == Role.ROLE_NORMAL) {
+            whereClause.and(taxInvoice.member.employeeId.eq(member.getEmployeeId()));
+        }
+        if (member.getRole() == Role.ROLE_ADMIN && employeeId != null && !employeeId.isEmpty()) {
+            whereClause.and(taxInvoice.member.employeeId.eq(employeeId));
+        }
+
+        // 공급자 검색 조건
+        if (poc != null && !poc.isEmpty()) {
+            BooleanBuilder supplierCondition = new BooleanBuilder();
+
+            supplierCondition.or(taxInvoice.ipName.eq(poc).and(taxInvoice.suName.eq(poc))); // 둘 다 같은 경우
+            supplierCondition.or(taxInvoice.ipName.eq(poc));
+            supplierCondition.or(taxInvoice.suName.eq(poc));
+
+            whereClause.and(supplierCondition);
+        }
+
+        long total = Optional.ofNullable(
+                queryFactory
+                        .select(Wildcard.count)
+                        .from(taxInvoice)
+                        .where(whereClause)
+                        .fetchOne()
+        ).orElse(0L);
+
+        List<TaxInvoice> results = queryFactory
+                .selectFrom(taxInvoice)
+                .leftJoin(taxInvoice.member, memberEntity).fetchJoin()
+                .leftJoin(taxInvoice.file, taxInvoiceFile).fetchJoin()
+                .where(whereClause)
+                .orderBy(taxInvoice.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, total);
     }
 
     @Override

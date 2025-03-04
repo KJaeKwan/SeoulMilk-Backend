@@ -8,6 +8,7 @@ import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.lang.Nullable;
@@ -38,5 +39,17 @@ public class TaxInvoiceValidationHistoryController {
             @RequestParam(value = "size", defaultValue = "10") int size
     ){
         return SuccessResponse.ok(taxInvoiceValidationService.showTaxInvoice(processStatus, memberEntity, page-1, size));
+    }
+
+    @Operation(summary = "<RE_01> 공급자 또는 공급받는자 검색 api")
+    @GetMapping("/search")
+    public SuccessResponse<Page<GetHistoryData>> searchByProviderOrConsumer(
+            @CurrentMember MemberEntity memberEntity,
+            @RequestParam(value = "poc") String poc,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ){
+        System.out.println(poc);
+        return SuccessResponse.ok(taxInvoiceValidationService.searchByProviderOrConsumer(memberEntity, poc, page-1, size));
     }
 }

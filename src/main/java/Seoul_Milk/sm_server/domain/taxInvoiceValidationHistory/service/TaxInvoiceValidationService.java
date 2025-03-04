@@ -8,4 +8,6 @@ import org.springframework.data.domain.Page;
 public interface TaxInvoiceValidationService {
 
     Page<GetHistoryData> showTaxInvoice(ProcessStatus processStatus, MemberEntity memberEntity, int page, int size);
+
+    Page<GetHistoryData> searchByProviderOrConsumer(MemberEntity memberEntity, String poc, int page, int size);
 }

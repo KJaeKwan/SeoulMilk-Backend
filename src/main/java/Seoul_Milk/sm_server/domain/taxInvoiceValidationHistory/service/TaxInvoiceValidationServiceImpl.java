@@ -25,12 +25,22 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
         Pageable pageable = PageRequest.of(page, size);
         Page<TaxInvoice> taxInvoicePage = taxInvoiceRepository.searchWithFilters(
                 null, null, null, memberEntity, null, null, processStatus, pageable
-        );
+        ); //Todo employeeId 넣기, 응답값에 pk값 추가
 
         List<GetHistoryData> historyDataList = taxInvoicePage.stream()
                 .map(taxInvoice -> TaxInvoiceValidationHistoryDTO.GetHistoryData.from(taxInvoice, taxInvoice.getFile()))
-                .collect(Collectors.toList());
+                .toList();
 
+        return new PageImpl<>(historyDataList, pageable, taxInvoicePage.getTotalElements());
+    }
+
+    @Override
+    public Page<GetHistoryData> searchByProviderOrConsumer(MemberEntity memberEntity, String poc, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<TaxInvoice> taxInvoicePage = taxInvoiceRepository.searchConsumerOrProvider(poc, memberEntity.getEmployeeId(), memberEntity, pageable);
+        List<GetHistoryData> historyDataList = taxInvoicePage.stream()
+                .map(taxInvoice -> TaxInvoiceValidationHistoryDTO.GetHistoryData.from(taxInvoice, taxInvoice.getFile()))
+                .toList();
         return new PageImpl<>(historyDataList, pageable, taxInvoicePage.getTotalElements());
     }
 }
