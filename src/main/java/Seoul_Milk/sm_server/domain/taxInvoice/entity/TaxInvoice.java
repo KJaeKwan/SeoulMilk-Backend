@@ -115,7 +115,7 @@ public class TaxInvoice {
                 .suName(suName)
                 .member(member)
                 .errorDetails(errorDetails)
-                .isTemporary(true)
+                .isTemporary(INITIAL)
                 .build();
     }
 
@@ -140,7 +140,7 @@ public class TaxInvoice {
     }
 
     /** 임시 저장 여부 변경 **/
-    public void updateIsTemp(boolean isTemporary) {
+    public void updateIsTemp(TempStatus isTemporary) {
         this.isTemporary = isTemporary;
     }
 }

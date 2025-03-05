@@ -3,10 +3,12 @@ package Seoul_Milk.sm_server.domain.taxInvoice.repository;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.APPROVED;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.REJECTED;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.UNAPPROVED;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.TEMP;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.QTaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
+import Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.QTaxInvoiceFile;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSearchResult;
 import Seoul_Milk.sm_server.global.exception.CustomException;
@@ -122,7 +124,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         return queryFactory.selectFrom(taxInvoice)
                 .where(
                         taxInvoice.member.eq(member),
-                        taxInvoice.isTemporary.isTrue()
+                        taxInvoice.isTemporary.eq(TEMP)
                 )
                 .fetch();
     }

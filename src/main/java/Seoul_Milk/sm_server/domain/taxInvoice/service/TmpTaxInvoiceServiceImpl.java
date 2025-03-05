@@ -1,7 +1,11 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.service;
 
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.TEMP;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.UNTEMP;
+
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
+import Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
@@ -49,7 +53,7 @@ public class TmpTaxInvoiceServiceImpl implements TmpTaxInvoiceService {
             throw new CustomException(ErrorCode.TAX_INVOICE_NOT_EXIST);
         }
 
-        taxInvoices.forEach(invoice -> invoice.updateIsTemp(true));
+        taxInvoices.forEach(invoice -> invoice.updateIsTemp(TEMP));
         taxInvoiceRepository.saveAll(taxInvoices);
     }
 
@@ -71,7 +75,7 @@ public class TmpTaxInvoiceServiceImpl implements TmpTaxInvoiceService {
             throw new CustomException(ErrorCode.TAX_INVOICE_NOT_EXIST);
         }
 
-        taxInvoices.forEach(invoice -> invoice.updateIsTemp(false));
+        taxInvoices.forEach(invoice -> invoice.updateIsTemp(UNTEMP));
         taxInvoiceRepository.saveAll(taxInvoices);
     }
 }
