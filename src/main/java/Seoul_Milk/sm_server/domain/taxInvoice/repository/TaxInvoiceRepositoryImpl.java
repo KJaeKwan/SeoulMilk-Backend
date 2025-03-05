@@ -100,6 +100,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
                 .selectFrom(taxInvoice)
                 .leftJoin(taxInvoice.member, memberEntity).fetchJoin()
                 .leftJoin(taxInvoice.file, taxInvoiceFile).fetchJoin()
+                .where(whereClause.and(taxInvoice.file.isNotNull()))
                 .where(whereClause)
                 .orderBy(taxInvoice.createdAt.desc())
                 .offset(pageable.getOffset())
