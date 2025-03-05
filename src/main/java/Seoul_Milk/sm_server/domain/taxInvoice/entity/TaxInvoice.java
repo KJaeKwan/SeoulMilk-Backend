@@ -1,6 +1,7 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.entity;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
+import Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import jakarta.persistence.*;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.*;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.INITIAL;
 
 @Entity
 @Getter
@@ -70,7 +72,7 @@ public class TaxInvoice {
 
     @Builder.Default
     @Column(name = "IS_TEMPORARY")
-    private Boolean isTemporary = true;
+    private TempStatus isTemporary = INITIAL;
 
     @CreatedDate
     @Column(name = "CREATED_AT", updatable = false)
