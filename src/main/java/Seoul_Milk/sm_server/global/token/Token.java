@@ -6,7 +6,7 @@ package Seoul_Milk.sm_server.global.token;
 public enum Token {
 
     // 첫 번째 인자 : token category 이름, 두 번째 인자 : 만료시간
-    ACCESS_TOKEN("access", 600000L), // 만료시간 10분
+    ACCESS_TOKEN("access", 86400000L), // 만료시간 24시간 //TODO 최종 제출 전 반드시 10분으로 되돌려 놓기!
     REFRESH_TOKEN("refresh", 86400000L); // 만료시간 24시간
 
     private final String category;
