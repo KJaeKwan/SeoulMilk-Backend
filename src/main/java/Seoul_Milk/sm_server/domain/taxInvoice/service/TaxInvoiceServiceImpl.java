@@ -1,10 +1,12 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.service;
 
+import Seoul_Milk.sm_server.domain.image.service.ImageService;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
+import Seoul_Milk.sm_server.domain.taxInvoiceFile.repository.TaxInvoiceFileRepository;
 import Seoul_Milk.sm_server.global.clovaOcr.dto.BoundingPoly;
 import Seoul_Milk.sm_server.global.clovaOcr.dto.OcrField;
 import Seoul_Milk.sm_server.global.clovaOcr.infrastructure.ClovaOcrApi;
@@ -23,7 +25,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -47,6 +49,8 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
     private final ClovaOcrApi clovaOcrApi;
     private final OcrDataExtractor ocrDataExtractor;
     private final TaxInvoiceRepository taxInvoiceRepository;
+    private final TaxInvoiceFileRepository taxInvoiceFileRepository;
+    private final ImageService imageService;
     private final AwsS3Service awsS3Service;
 
     private static final int MAX_REQUESTS_PER_SECOND = 5;  // 초당 최대 5개 요청
@@ -70,13 +74,16 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return TaxInvoiceResponseDTO.Create.error(image.getOriginalFilename(), "OCR 요청 대기 중 인터럽트 발생");
+            } catch (Exception e) {
+                System.out.println("[ERROR] OCR 처리 중 예외 발생: " + e.getMessage());
+                return TaxInvoiceResponseDTO.Create.error(image.getOriginalFilename(), e.getMessage());
             } finally {
                 semaphore.release(); // 실행이 끝나면 세마포어 해제
             }
         });
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public TaxInvoiceResponseDTO.Create processOcrSync(MultipartFile image, MemberEntity member) {
         long startTime = System.nanoTime();
         List<String> errorDetails = new ArrayList<>();
@@ -87,6 +94,8 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             String jsonResponse = clovaOcrApi.callApi("POST", image, clovaSecretKey, image.getContentType());
             List<OcrField> ocrFields = convertToOcrFields(jsonResponse);
             extractedData = ocrDataExtractor.extractDataFromOcrFields(ocrFields);
+
+            System.out.println("99997");
 
             // 데이터 추출
             String issueId = (String) extractedData.get("approval_number");
@@ -137,8 +146,11 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             // TaxInvoice 생성 및 저장
             TaxInvoice taxInvoice = TaxInvoice.create(issueId, ipId, suId, taxTotal, erDat,
                     ipBusinessName, suBusinessName, ipName, suName, member, errorDetails);
+
+            System.out.println("Before saving: " + taxInvoice);
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
+            System.out.println("99998");
             // OCR 추출 성공한 경우 S3 업로드
             String fileUrl = awsS3Service.uploadFile("tax_invoices", image, true);
             TaxInvoiceFile file = TaxInvoiceFile.create(savedTaxInvoice, fileUrl, image.getContentType(), image.getOriginalFilename(), image.getSize(), LocalDateTime.now());
@@ -158,16 +170,15 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
     }
 
 
-    //TODO 처리 필요
     @Async("ocrTaskExecutor")
     @Override
-    public CompletableFuture<TaxInvoiceResponseDTO.Create> processOcrAsync(String imageUrl, MemberEntity member) {
+    public CompletableFuture<TaxInvoiceResponseDTO.Create> processOcrAsync(String imageUrl, MemberEntity member, Long imageId) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 semaphore.acquire(); // 요청 개수가 5개를 초과하면 자동 대기
 
                 long startTime = System.nanoTime();
-                TaxInvoiceResponseDTO.Create response = processOcrSync(imageUrl, member);
+                TaxInvoiceResponseDTO.Create response = processOcrSync(imageUrl, member, imageId);
                 long endTime = System.nanoTime();
 
                 long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
@@ -183,8 +194,8 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
         });
     }
 
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public TaxInvoiceResponseDTO.Create processOcrSync(String imageUrl, MemberEntity member) {
+    @Transactional
+    public TaxInvoiceResponseDTO.Create processOcrSync(String imageUrl, MemberEntity member, Long imageId) {
         long startTime = System.nanoTime();
         List<String> errorDetails = new ArrayList<>();
         Map<String, Object> extractedData;
@@ -193,9 +204,14 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             System.out.println("[DEBUG] S3에서 파일 다운로드 시작: " + imageUrl);
 
             // S3에서 파일 다운로드하여 MultipartFile 변환
-            MultipartFile file = awsS3Service.downloadFileFromS3(imageUrl);
-
-            System.out.println("[DEBUG] 파일 다운로드 완료: " + file.getOriginalFilename());
+            MultipartFile file;
+            try {
+                file = awsS3Service.downloadFileFromS3(imageUrl);
+                System.out.println("[DEBUG] 파일 다운로드 완료: " + file.getOriginalFilename());
+            } catch (Exception e) {
+                System.out.println("[ERROR] S3 파일 다운로드 실패: " + e.getMessage());
+                return TaxInvoiceResponseDTO.Create.error(imageUrl, "S3 파일 다운로드 실패");
+            }
 
             // CLOVA OCR API 요청
             String jsonResponse = clovaOcrApi.callApi("POST", file, clovaSecretKey, file.getContentType());
@@ -214,38 +230,69 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 throw new CustomException(ErrorCode.OCR_EMPTY_JSON);
             }
 
-            // OCR 데이터 검증
-            if (!extractedData.containsKey("approval_number")) {
-                errorDetails.add("승인번호 인식 오류");
-            }
-            if (!extractedData.containsKey("total_amount")) {
-                errorDetails.add("공급가액 인식 오류");
+            // OCR 데이터 검증 및 기본값 설정
+            String issueId = getOrDefault(extractedData, "approval_number", "UNKNOWN");
+            String totalAmountStr = getOrDefault(extractedData, "total_amount", "UNKNOWN");
+            String issueDate = getOrDefault(extractedData, "issue_date", "UNKNOWN");
+            String supplierBusinessName = getOrDefault(extractedData, "supplier_business_name", "UNKNOWN");
+            String recipientBusinessName = getOrDefault(extractedData, "recipient_business_name", "UNKNOWN");
+            String supplierName = getOrDefault(extractedData, "supplier_name", "UNKNOWN");
+            String recipientName = getOrDefault(extractedData, "recipient_name", "UNKNOWN");
+
+            // 사업자 등록번호 리스트 처리
+            List<String> registrationNumbers = (List<String>) extractedData.get("registration_numbers");
+            String supplierId = "UNKNOWN";
+            String recipientId = "UNKNOWN";
+
+            if (registrationNumbers != null && !registrationNumbers.isEmpty()) {
+                supplierId = registrationNumbers.get(0);
+            } else {
+                errorDetails.add("공급자 사업자 등록번호 인식 오류");
             }
 
-            // total_amount 값 처리
-            String totalAmountStr = (String) extractedData.getOrDefault("total_amount", "-1");
-            totalAmountStr = totalAmountStr.replace(",", ""); // 쉼표 제거
-            int totalAmount = Integer.parseInt(totalAmountStr);
+            if (registrationNumbers != null && registrationNumbers.size() > 1) {
+                recipientId = registrationNumbers.get(1);
+            } else {
+                errorDetails.add("공급받는자 사업자 등록번호 인식 오류");
+            }
 
-            // TaxInvoice 생성 및 저장
-            TaxInvoice taxInvoice = TaxInvoice.create(
-                    (String) extractedData.get("approval_number"),
-                    (String) extractedData.get("supplier_id"),
-                    (String) extractedData.get("recipient_id"),
-                    totalAmount,
-                    (String) extractedData.get("issue_date"),
-                    (String) extractedData.get("supplier_business_name"),
-                    (String) extractedData.get("recipient_business_name"),
-                    (String) extractedData.get("supplier_name"),
-                    (String) extractedData.get("recipient_name"),
-                    member,
-                    errorDetails
-            );
-            taxInvoiceRepository.save(taxInvoice);
+            // 공급가액 숫자 변환 (쉼표 제거 후 변환)
+            int totalAmount;
+            try {
+                totalAmount = totalAmountStr.equals("UNKNOWN") ? -1 : Integer.parseInt(totalAmountStr.replaceAll(",", ""));
+            } catch (NumberFormatException e) {
+                errorDetails.add("공급가액 숫자 변환 오류");
+                totalAmount = -1;
+            }
 
             // OCR 성공 후 S3 파일 이동
             System.out.println("[DEBUG] OCR 성공 후 파일 이동: " + imageUrl);
-            awsS3Service.moveFileToFinalFolder(imageUrl, "tax_invoices");
+            String movedFileUrl;
+            try {
+                movedFileUrl = awsS3Service.moveFileToFinalFolder(imageUrl, "tax_invoices");
+            } catch (Exception e) {
+                System.out.println("[ERROR] S3 파일 이동 실패: " + e.getMessage());
+                return TaxInvoiceResponseDTO.Create.error(imageUrl, "S3 파일 이동 실패");
+            }
+
+            // TaxInvoice 생성 및 저장
+            TaxInvoice taxInvoice = TaxInvoice.create(issueId, supplierId, recipientId, totalAmount, issueDate,
+                    supplierBusinessName, recipientBusinessName, supplierName, recipientName, member, errorDetails);
+            TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
+
+            // TaxInvoiceFile 생성하여 TaxInvoice 에 연결
+            TaxInvoiceFile taxFile = TaxInvoiceFile.create(savedTaxInvoice, movedFileUrl, file.getContentType(),
+                    file.getOriginalFilename(), file.getSize(), LocalDateTime.now());
+            taxInvoiceFileRepository.save(taxFile);
+
+            savedTaxInvoice.attachFile(taxFile);
+            taxInvoiceRepository.save(savedTaxInvoice);
+
+            // OCR 처리 후 해당 이미지의 임시 저장 해제
+            if (imageId != null) {
+                imageService.removeFromTemporary(member, List.of(imageId));
+                System.out.println("[INFO] OCR 완료 후 이미지 삭제됨: " + imageId);
+            }
 
             long endTime = System.nanoTime();
             long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
@@ -356,4 +403,11 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
         }
     }
 
+    private String getOrDefault(Map<String, Object> data, String key, String defaultValue) {
+        Object value = data.get(key);
+        if (value == null || value.toString().trim().isEmpty()) {
+            return defaultValue;
+        }
+        return value.toString().trim();
+    }
 }

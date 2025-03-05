@@ -106,7 +106,8 @@ public enum ErrorCode {
     S3_FILE_MOVE_FAILED("S3500", "S3 파일 이동 중 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // IMAGE (임시저장 이미지)
-    TMP_IMAGE_NOT_EXIST("TMP_IMAGE404", "해당 임시저장 이미지를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+    TMP_IMAGE_NOT_EXIST("TMP_IMAGE404", "해당 임시저장 이미지를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    UNAUTHORIZED_ACCESS("TMP_IMAGE401", "본인의 임시저장 이미지만 삭제할 수 있습니다.", HttpStatus.UNAUTHORIZED);
 
     private final String errorCode;
     private final String message;
