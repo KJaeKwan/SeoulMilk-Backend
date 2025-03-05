@@ -6,7 +6,7 @@ import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 
-@Schema(description = "RE_01관련 DTO")
+@Schema(description = "RE 관련 DTO")
 public class TaxInvoiceValidationHistoryDTO {
 
     @Schema(description = "검증 내역 조회 결과 단일 DTO")
@@ -31,5 +31,31 @@ public class TaxInvoiceValidationHistoryDTO {
         }
     }
 
+    @Schema(description = "승인/반려/수정됨 결과 조회 모달 응답 DTO")
+    public record GetModalResponse(
+            @Schema(description = "승인번호") String issueId,
+            @Schema(description = "작성일자") String erDat,
+            @Schema(description = "공급자명") String suName,
+            @Schema(description = "공급자 등록번호") String suId,
+            @Schema(description = "공급받는자명") String ipName,
+            @Schema(description = "공급받는자 등록번호") String ipId,
+            @Schema(description = "공급가액") String taxTotal,
+            @Schema(description = "처리현황") ProcessStatus processStatus
+    ){
+        public static GetModalResponse from(
+                TaxInvoice taxInvoice
+        ){
+            return new GetModalResponse(
+                    taxInvoice.getIssueId(),
+                    taxInvoice.getErDat(),
+                    taxInvoice.getSuName(),
+                    taxInvoice.getSuId(),
+                    taxInvoice.getIpName(),
+                    taxInvoice.getIpId(),
+                    String.valueOf(taxInvoice.getTaxTotal()),
+                    taxInvoice.getProcessStatus()
+            );
+        }
+    }
 
 }

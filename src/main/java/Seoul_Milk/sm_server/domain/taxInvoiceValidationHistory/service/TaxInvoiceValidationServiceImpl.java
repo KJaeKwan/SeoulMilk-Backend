@@ -12,6 +12,7 @@ import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSearchResult;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO.GetHistoryData;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO.GetModalResponse;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.validator.TaxInvoiceValidator;
 import Seoul_Milk.sm_server.global.exception.CustomException;
@@ -87,5 +88,17 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
 
         taxInvoiceRepository.updateIsTemporaryToTemp(taxInvoiceIdList);
         return null;
+    }
+
+    /**
+     * 모달 띄우는 api
+     * @param taxInvoiceId
+     * @return
+     */
+    @Override
+    public GetModalResponse showModal(Long taxInvoiceId) {
+        TaxInvoice taxInvoice = taxInvoiceRepository.findById(taxInvoiceId)
+                .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
+        return TaxInvoiceValidationHistoryDTO.GetModalResponse.from(taxInvoice);
     }
 }
