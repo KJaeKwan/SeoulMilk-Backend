@@ -70,6 +70,7 @@ public class TaxInvoice {
     @BatchSize(size = 10)
     private List<String> errorDetails = new ArrayList<>();
 
+    @Enumerated(EnumType.STRING)
     @Builder.Default
     @Column(name = "IS_TEMPORARY")
     private TempStatus isTemporary = INITIAL;
