@@ -82,6 +82,7 @@ public enum ErrorCode {
     OCR_FIELD_CONVERSION_ERROR("OCR500", "OCR 필드 변환 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     OCR_JSON_PARSING_ERROR("OCR500", "OCR JSON 파싱 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     OCR_INVALID_FILE("OCR500", "OCR에 올바르지 않은 파일이 들어왔습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    OCR_FILE_DOWNLOAD_FAILED("OCR500", "OCR 과정에서 S3 이미지를 다운로드 받지 못했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // PROCESS_STATUS (승인 상태)
     PROCESS_STATUS_INVALID("PROCESS_STATUS400", "존재하지 않은 승인 상태입니다. UNAPPROVED, APPROVED, REJECTED 중 하나로 입력하세요.", HttpStatus.BAD_REQUEST),
@@ -99,6 +100,10 @@ public enum ErrorCode {
     // CODEF
     CODEF_INTERANL_SERVER_ERROR("CODEF001", "codef api 연동에 문제가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
     CODEF_NEED_AUTHENTICATION("CODEF002", "간편인증이 진행되지 않았습니다 진행 후 다시 시도해주세요.", HttpStatus.UNAUTHORIZED),
+
+    // S3
+    S3_FILE_NOT_FOUND("S3404", "S3에서 이동된 파일을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    S3_FILE_MOVE_FAILED("S3500", "S3 파일 이동 중 오류 발생", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // IMAGE (임시저장 이미지)
     TMP_IMAGE_NOT_EXIST("TMP_IMAGE404", "해당 임시저장 이미지를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);

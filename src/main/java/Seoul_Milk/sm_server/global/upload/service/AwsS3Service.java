@@ -52,7 +52,7 @@ public class AwsS3Service {
                 s3Client.putObject(PutObjectRequest.builder()
                                 .bucket(bucket)
                                 .key(fileName)
-                                .acl(ObjectCannedACL.PUBLIC_READ) // ✅ 퍼블릭 접근 허용
+                                .acl(ObjectCannedACL.PUBLIC_READ)
                                 .contentType(file.getContentType())
                                 .build(),
                         RequestBody.fromInputStream(inputStream, file.getSize())
@@ -149,27 +149,46 @@ public class AwsS3Service {
     }
 
     // 파일 이동
-    public void moveFileToFinalFolder(String fileUrl, String destinationFolder) {
+    public String moveFileToFinalFolder(String fileUrl, String destinationFolder) {
         String sourceKey = awsS3Util.extractS3Key(bucket, fileUrl);
         String fileName = sourceKey.substring(sourceKey.lastIndexOf("/") + 1);
         String destinationKey = destinationFolder + "/" + fileName;
 
-        // S3 객체 복사
-        s3Client.copyObject(CopyObjectRequest.builder()
-                .sourceBucket(bucket)
-                .sourceKey(sourceKey)
-                .destinationBucket(bucket)
-                .destinationKey(destinationKey)
-                .acl(ObjectCannedACL.PUBLIC_READ)
-                .build()
-        );
+        try {
+            // S3 객체 복사
+            s3Client.copyObject(CopyObjectRequest.builder()
+                    .sourceBucket(bucket)
+                    .sourceKey(sourceKey)
+                    .destinationBucket(bucket)
+                    .destinationKey(destinationKey)
+                    .acl(ObjectCannedACL.PUBLIC_READ)
+                    .build()
+            );
 
-        // 원본 객체 삭제
-        s3Client.deleteObject(DeleteObjectRequest.builder()
-                .bucket(bucket)
-                .key(sourceKey)
-                .build()
-        );
+            // ACL 설정
+            s3Client.putObjectAcl(PutObjectAclRequest.builder()
+                    .bucket(bucket)
+                    .key(destinationKey)
+                    .acl(ObjectCannedACL.PUBLIC_READ)
+                    .build()
+            );
+
+            // 원본 객체 삭제
+            s3Client.deleteObject(DeleteObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(sourceKey)
+                    .build()
+            );
+
+            // 이동된 파일의 새로운 URL 반환
+            return "https://" + bucket + ".s3.ap-northeast-2.amazonaws.com/" + destinationKey;
+        } catch (NoSuchKeyException e) {
+            System.out.println("[ERROR] 이동한 파일이 S3에 존재하지 않습니다: " + destinationKey);
+            throw new CustomException(ErrorCode.S3_FILE_NOT_FOUND);
+        } catch (Exception e) {
+            System.out.println("[ERROR] S3 파일 이동 중 오류 발생: " + e.getMessage());
+            throw new CustomException(ErrorCode.S3_FILE_MOVE_FAILED);
+        }
     }
 
     // S3 URL에서 버킷 이름 추출하는 메서드
