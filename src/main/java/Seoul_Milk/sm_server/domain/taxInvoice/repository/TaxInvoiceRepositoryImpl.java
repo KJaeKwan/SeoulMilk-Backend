@@ -202,10 +202,6 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
                         .fetchOne()
         ).orElse(0L);
 
-        BooleanBuilder approvedWhereClause = new BooleanBuilder();
-        approvedWhereClause.and(whereClause).and(taxInvoice.processStatus.eq(APPROVED));
-
-
         List<TaxInvoice> results = queryFactory
                 .selectFrom(taxInvoice)
                 .leftJoin(taxInvoice.member, memberEntity).fetchJoin()
