@@ -2,6 +2,7 @@ package Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.controller;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSearchResult;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.service.TaxInvoiceValidationService;
 import Seoul_Milk.sm_server.global.annotation.CurrentMember;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,6 +57,14 @@ public class TaxInvoiceValidationHistoryController {
             @RequestBody TaxInvoiceRequest taxInvoiceRequest
     ){
         return SuccessResponse.ok(taxInvoiceValidationService.tempSave(memberEntity, taxInvoiceRequest));
+    }
+
+    @Operation(summary = "<RE_02> 승인/반려/수정된 결과 조회 모달 띄우기 api")
+    @GetMapping("/modal/{taxInvoiceId}")
+    public SuccessResponse<TaxInvoiceValidationHistoryDTO.GetModalResponse> showModal(
+            @PathVariable(name = "taxInvoiceId") Long taxInvoiceId
+    ){
+        return SuccessResponse.ok(taxInvoiceValidationService.showModal(taxInvoiceId));
     }
 
 }
