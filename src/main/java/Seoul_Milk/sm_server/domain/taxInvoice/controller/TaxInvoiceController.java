@@ -53,7 +53,7 @@ public class TaxInvoiceController {
                     - 두 경우를 합친 이미지가 0개이면 에러 발생
                     """)
     @PostMapping(value = "/multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public SuccessResponse<String> processParallelMultipleImages(
+    public SuccessResponse<List<TaxInvoiceResponseDTO.Create>> processParallelMultipleImages(
             @RequestParam(value = "images", required = false) List<MultipartFile> images,
             @CurrentMember MemberEntity member
     ) {
@@ -94,10 +94,9 @@ public class TaxInvoiceController {
         System.out.println("3111");
 
         // allOf로 실행 후 한 번에 처리
-        CompletableFuture.allOf(
-                Stream.concat(futureLocalResults.stream(), futureTempResults.stream())
-                        .toArray(CompletableFuture[]::new)
-        ).join();
+        List<TaxInvoiceResponseDTO.Create> result = Stream.concat(futureLocalResults.stream(), futureTempResults.stream())
+                .map(CompletableFuture::join)
+                .toList();
         System.out.println("4111");
 
         long totalEndTime = System.nanoTime();
@@ -105,7 +104,7 @@ public class TaxInvoiceController {
 
         System.out.println("totalElapsedTimeMillis = " + totalElapsedTimeMillis);
 
-        return SuccessResponse.ok("이미지 OCR 처리 후 저장에 성공했습니다.");
+        return SuccessResponse.ok(result);
     }
 
     /**
