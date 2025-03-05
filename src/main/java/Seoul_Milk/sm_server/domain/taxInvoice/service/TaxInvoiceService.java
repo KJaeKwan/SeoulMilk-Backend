@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface TaxInvoiceService {
     CompletableFuture<TaxInvoiceResponseDTO.Create> processOcrAsync(MultipartFile image, MemberEntity member);
+    CompletableFuture<TaxInvoiceResponseDTO.Create> processOcrAsync(String imageUrl, MemberEntity member, Long imageId);
     Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String employeeId,
                                               LocalDate date, Integer period, String status, int page, int size);
     void delete(Long taxInvoiceId);

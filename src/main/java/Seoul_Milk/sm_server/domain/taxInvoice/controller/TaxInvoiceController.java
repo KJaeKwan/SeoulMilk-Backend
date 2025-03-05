@@ -1,5 +1,7 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.controller;
 
+import Seoul_Milk.sm_server.domain.image.entity.Image;
+import Seoul_Milk.sm_server.domain.image.service.ImageService;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.service.TaxInvoiceService;
 import Seoul_Milk.sm_server.global.annotation.CurrentMember;
@@ -18,9 +20,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/ocr")
@@ -32,31 +36,69 @@ public class TaxInvoiceController {
     private String clovaSecretKey;
 
     private final TaxInvoiceService taxInvoiceService;
+    private final ImageService imageService;
 
     /**
      * 여러 이미지를 병렬로 OCR 처리
      * @param images 입력 이미지 리스트
+     * @param member 로그인 유저
      * @return 성공 메세지
      */
-    @Operation(summary = "여러 개의 이미지를 병렬로 OCR 처리")
+    @Operation(
+            summary = "로컬 업로드 + 임시 저장 이미지를 병렬로 OCR 처리",
+            description = """
+                    - 로컬 업로드 이미지만 넣어도 동작
+                    - 임시 저장 이미지만 넣어도 동작
+                    - 로그인 유저의 임시 저장 이미지는 자동으로 전부 들어간다
+                    - 두 경우를 합친 이미지가 0개이면 에러 발생
+                    """)
     @PostMapping(value = "/multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public SuccessResponse<String> processParallelMultipleImages(
-            @RequestParam("images") List<MultipartFile> images,
+            @RequestParam(value = "images", required = false) List<MultipartFile> images,
             @CurrentMember MemberEntity member
     ) {
-        if (images.isEmpty()) {
+        long totalStartTime = System.nanoTime();
+
+        // 로컬 업로드된 이미지 리스트
+        List<MultipartFile> localFiles = (images != null) ? images : new ArrayList<>();
+
+        // 임시 저장된 이미지 조회
+        List<Image> tempImages = new ArrayList<>();
+        try {
+            tempImages.addAll(imageService.getTempImagesForOcr(member)); // 기존 String 대신 Image 객체 리스트 반환
+        } catch (CustomException e) {
+            if (!e.getErrorCode().equals(ErrorCode.TMP_IMAGE_NOT_EXIST)) {
+                throw e;
+            }
+        }
+
+        // 처리할 이미지가 없는 경우 예외 발생
+        if (localFiles.isEmpty() && tempImages.isEmpty()) {
             throw new CustomException(ErrorCode.UPLOAD_FAILED);
         }
 
-        long totalStartTime = System.nanoTime();
-
         // 비동기 OCR 요청 실행
-        List<CompletableFuture<TaxInvoiceResponseDTO.Create>> futureResults = images.stream()
-                .map(image -> taxInvoiceService.processOcrAsync(image, member))
+        List<CompletableFuture<TaxInvoiceResponseDTO.Create>> futureLocalResults = localFiles.stream()
+                .map(file -> taxInvoiceService.processOcrAsync(file, member))
                 .toList();
+        List<CompletableFuture<TaxInvoiceResponseDTO.Create>> futureTempResults = tempImages.stream()
+                .map(image -> {
+                    System.out.println("[DEBUG] OCR 요청: 임시 저장 이미지 ID -> " + image.getId());
+                    return taxInvoiceService.processOcrAsync(image.getImageUrl(), member, image.getId())
+                            .thenApply(result -> {
+                                System.out.println("[DEBUG] OCR 완료: " + image.getId());
+                                return result;
+                            });
+                })
+                .toList();
+        System.out.println("3111");
 
         // allOf로 실행 후 한 번에 처리
-        CompletableFuture.allOf(futureResults.toArray(new CompletableFuture[0])).join();
+        CompletableFuture.allOf(
+                Stream.concat(futureLocalResults.stream(), futureTempResults.stream())
+                        .toArray(CompletableFuture[]::new)
+        ).join();
+        System.out.println("4111");
 
         long totalEndTime = System.nanoTime();
         long totalElapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(totalEndTime - totalStartTime);
