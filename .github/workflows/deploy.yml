@@ -104,49 +104,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: docker pull
-        run: sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/spring-cicd-test
-
-      - name: Stop and remove existing container
-        run: |
-          CONTAINER_ID=$(sudo docker ps -aq -f name=spring-cicd-test)
-          if [ -n "$CONTAINER_ID" ]; then
-            echo "Stopping existing container: $CONTAINER_ID"
-            sudo docker stop $CONTAINER_ID
-            sleep 3  # 컨테이너 종료 대기
-            echo "Removing container: $CONTAINER_ID"
-            sudo docker rm -f $CONTAINER_ID
-          else
-            echo "No existing container found, skipping stop/remove step."
-          fi
-
-      # 컨테이너 실행용 .env 파일 생성 (실행 시 환경 변수 주입)
-      - name: Generate .env file for container run
-        run: |
-          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" > .env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-          echo "DB_URL=${{ secrets.DB_URL }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "CLOVA_OCR_URL=${{ secrets.CLOVA_OCR_URL }}" >> .env
-          echo "CLOVA_SECRET_KEY=${{ secrets.CLOVA_SECRET_KEY }}" >> .env
-          echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> .env
-          echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> .env
-          echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}" >> .env
-          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
-          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
-          echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> .env
-          echo "MAIL_SENDER=${{ secrets.MAIL_SENDER }}" >> .env
-          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> .env
-          echo "PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}" >> .env
-          echo "CLIENT_ID=${{ secrets.CLIENT_ID }}" >> .env
-          echo "CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}" >> .env
-          echo "VALID_URL=${{ secrets.VALID_URL }}" >> .env
-
-      # 환경 변수를 적용하여 컨테이너 실행
-      - name: docker run new container
-        run: |
-          sudo docker run --rm -it -d -p 8080:8080 --name spring-cicd-test ${{ secrets.DOCKERHUB_USERNAME }}/spring-cicd-test
-
-      # 사용되지 않는 Docker 이미지 삭제 (dangling images만 정리)
-      - name: Cleanup old Docker images
-        run: sudo docker image prune -f
+      - name: Deploy on EC2 via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            CONTAINER_ID=$(sudo docker ps -aq -f name=spring-cicd-test)
+            if [ -n "$CONTAINER_ID" ]; then
+              sudo docker stop $CONTAINER_ID
+              sudo docker rm -f $CONTAINER_ID
+            fi
+            
+            OLD_IMAGE_ID=$(sudo docker images -q ${{ secrets.DOCKERHUB_USERNAME }}/spring-cicd-test)
+            if [ -n "$OLD_IMAGE_ID" ]; then
+              sudo docker rmi -f $OLD_IMAGE_ID
+            fi
+            
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/spring-cicd-test:latest
+            
+            PID=$(sudo lsof -t -i:8080)
+            if [ -n "$PID" ]; then
+              sudo kill -9 $PID
+            fi
+            
+            sudo docker run -d -p 8080:8080 --name spring-cicd-test ${{ secrets.DOCKERHUB_USERNAME }}/spring-cicd-test:latest
+            
+            sleep 5
+            if ! sudo docker ps -f name=spring-cicd-test --format "{{.Status}}" | grep "Up"; then
+              sudo docker logs spring-cicd-test
+              exit 1
+            fi
+            
+            sudo docker image prune -af
