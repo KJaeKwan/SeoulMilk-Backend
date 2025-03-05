@@ -50,9 +50,7 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
     @Override
     public Void deleteValidationTaxInvoice(MemberEntity memberEntity, DeleteTaxInvoiceRequest deleteTaxInvoiceRequest) {
         List<Long> taxInvoiceIdList = deleteTaxInvoiceRequest.getTaxInvoiceIdList();
-        System.out.println(taxInvoiceIdList);
         List<TaxInvoice> taxInvoices = taxInvoiceRepository.findAllById(taxInvoiceIdList);
-        System.out.println(taxInvoices.size());
 
         // 존재하지 않는 ID가 있다면 예외 발생
         if (taxInvoices.size() != taxInvoiceIdList.size()) {
