@@ -10,5 +10,6 @@ import java.util.List;
 public interface ImageRepository {
     Page<Image> searchTempImages(MemberEntity member, Pageable pageable);
     void saveAll(List<Image> images);
-    List<Image> findAllByMember(MemberEntity member);
+    List<Image> findByMemberAndIds(MemberEntity member, List<Long> imageIds);
+    List<Image> findTmpAllByMember(MemberEntity member);
 }

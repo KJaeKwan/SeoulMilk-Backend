@@ -1,5 +1,6 @@
 package Seoul_Milk.sm_server.domain.image.controller;
 
+import Seoul_Milk.sm_server.domain.image.dto.ImageRequestDTO;
 import Seoul_Milk.sm_server.domain.image.dto.ImageResponseDTO;
 import Seoul_Milk.sm_server.domain.image.service.ImageService;
 import Seoul_Milk.sm_server.global.annotation.CurrentMember;
@@ -58,11 +59,13 @@ public class ImageController {
      * @param member 로그인 유저
      * @return 성공 메시지
      */
-    @Operation(summary = "모든 임시 저장 이미지를 해제")
+    @Operation(summary = "리스트(ID)로 받은 임시 저장 이미지를 해제")
     @PatchMapping("/unmark")
     public SuccessResponse<String> removeFromTemporary(
-            @CurrentMember MemberEntity member) {
-        imageService.removeFromTemporary(member);
+            @CurrentMember MemberEntity member,
+            @RequestBody ImageRequestDTO.RemoveTemporary request
+    ) {
+        imageService.removeFromTemporary(member, request.imageIds());
         return SuccessResponse.ok("모든 임시 저장 이미지가 해제되었습니다.");
     }
 }
