@@ -23,9 +23,10 @@ public interface TaxInvoiceRepository {
     List<TaxInvoice> findTempInvoicesByIds(List<Long> taxInvoiceIds, MemberEntity member);
     List<TaxInvoice> saveAll(List<TaxInvoice> taxInvoices);
     List<TaxInvoice> findAll();
-    Page<TaxInvoice> searchConsumerOrProvider(String poc, String employeeId, MemberEntity member, Pageable pageable);
     List<TaxInvoice> findAllById(List<Long> taxInvoiceIdList);
 
     void deleteAll(List<TaxInvoice> taxInvoices);
+    Page<TaxInvoice> searchConsumerOrProvider(String poc, String employeeId, ProcessStatus processStatus, MemberEntity member, Pageable pageable);
+    long getProcessStatusCount(ProcessStatus processStatus, MemberEntity member);
 }
 

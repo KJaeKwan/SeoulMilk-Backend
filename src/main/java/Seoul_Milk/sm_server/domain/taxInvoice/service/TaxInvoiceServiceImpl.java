@@ -23,6 +23,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
@@ -31,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -46,9 +49,35 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
     private final TaxInvoiceRepository taxInvoiceRepository;
     private final AwsS3Service awsS3Service;
 
-    @Override
+    private static final int MAX_REQUESTS_PER_SECOND = 5;  // 초당 최대 5개 요청
+    private final Semaphore semaphore = new Semaphore(MAX_REQUESTS_PER_SECOND, true);
+
     @Async("ocrTaskExecutor")
+    @Override
     public CompletableFuture<TaxInvoiceResponseDTO.Create> processOcrAsync(MultipartFile image, MemberEntity member) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                semaphore.acquire(); // 요청 개수가 5개를 초과하면 자동 대기
+
+                long startTime = System.nanoTime();
+                TaxInvoiceResponseDTO.Create response = processOcrSync(image, member);
+                long endTime = System.nanoTime();
+
+                long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+                System.out.println("OCR 요청 처리 시간: " + elapsedTimeMillis + " ms");
+
+                return response;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return TaxInvoiceResponseDTO.Create.error(image.getOriginalFilename(), "OCR 요청 대기 중 인터럽트 발생");
+            } finally {
+                semaphore.release(); // 실행이 끝나면 세마포어 해제
+            }
+        });
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public TaxInvoiceResponseDTO.Create processOcrSync(MultipartFile image, MemberEntity member) {
         long startTime = System.nanoTime();
         List<String> errorDetails = new ArrayList<>();
         Map<String, Object> extractedData;
@@ -108,7 +137,6 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             // TaxInvoice 생성 및 저장
             TaxInvoice taxInvoice = TaxInvoice.create(issueId, ipId, suId, taxTotal, erDat,
                     ipBusinessName, suBusinessName, ipName, suName, member, errorDetails);
-
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
             // OCR 추출 성공한 경우 S3 업로드
@@ -121,17 +149,14 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
 
             // DTO 반환
-            TaxInvoiceResponseDTO.Create responseDTO = TaxInvoiceResponseDTO.Create.from(
-                    savedTaxInvoice, image.getOriginalFilename(), extractedData, errorDetails, elapsedTimeMillis
-            );
-
-            return CompletableFuture.completedFuture(responseDTO);
+            return TaxInvoiceResponseDTO.Create.from(savedTaxInvoice, image.getOriginalFilename(), extractedData, errorDetails, elapsedTimeMillis);
 
         } catch (Exception e) {
             System.out.println("[ERROR] 세금계산서 처리 중 예외 발생: " + e.getMessage());
-            return CompletableFuture.completedFuture(TaxInvoiceResponseDTO.Create.error(image.getOriginalFilename(), e.getMessage()));
+            return TaxInvoiceResponseDTO.Create.error(image.getOriginalFilename(), e.getMessage());
         }
     }
+
 
 
     /**
@@ -181,7 +206,13 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
      */
     @Override
     public void delete(Long taxInvoiceId) {
-        taxInvoiceRepository.getById(taxInvoiceId);
+        TaxInvoice taxInvoice = taxInvoiceRepository.getById(taxInvoiceId);
+
+        if (taxInvoice.getFile() != null) {
+            String fileUrl = taxInvoice.getFile().getFileUrl();
+            awsS3Service.deleteFile(fileUrl);
+        }
+
         taxInvoiceRepository.delete(taxInvoiceId);
     }
 

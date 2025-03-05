@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,12 +91,21 @@ public class AwsS3Service {
 
 
     // 파일 삭제
-    public void deleteFile(String fileName) {
+    public void deleteFile(String fileUrl) {
         try {
-            s3Client.deleteObject(new DeleteObjectRequest(bucket, fileName));
-        } catch (Exception e){
+            URI uri = new URI(fileUrl);
+            String fileKey = uri.getPath().substring(1); // 첫 번째 "/" 제거
+
+            System.out.println("삭제할 파일 경로: " + fileKey); // 디버깅용
+
+            s3Client.deleteObject(new DeleteObjectRequest(bucket, fileKey));
+            System.out.println("S3 파일 삭제 완료: " + fileKey);
+
+        } catch (Exception e) {
+            System.err.println("[ERROR] S3 파일 삭제 실패: " + e.getMessage());
             throw new CustomException(ErrorCode.DELETE_FAILED);
         }
     }
+
 
 }
