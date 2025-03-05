@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.Getter;
 
 @Getter
-public class DeleteTaxInvoiceRequest {
+public class TaxInvoiceRequest {
     @Schema(description = "검증된 세금계산서 pk값 리스트")
     private List<Long> taxInvoiceIdList;
 }

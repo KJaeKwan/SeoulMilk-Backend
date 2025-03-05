@@ -12,7 +12,8 @@ import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSearchResult;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO.GetHistoryData;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.DeleteTaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.TaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.validator.TaxInvoiceValidator;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import jakarta.transaction.Transactional;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationService{
     private final TaxInvoiceRepository taxInvoiceRepository;
+    private final TaxInvoiceValidator taxInvoiceValidator;
 
     @Override
     public TaxInvoiceSearchResult.GetData searchByProviderOrConsumer(MemberEntity memberEntity, ProcessStatus processStatus, String poc, int page, int size) {
@@ -37,6 +39,12 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
         Long approved = taxInvoiceRepository.getProcessStatusCount(APPROVED, memberEntity);
         Long rejected = taxInvoiceRepository.getProcessStatusCount(REJECTED, memberEntity);
         Long unapproved = taxInvoiceRepository.getProcessStatusCount(UNAPPROVED, memberEntity);
+
+        List<Long> taxInvoiceIds = taxInvoicePage.getContent().stream()
+                .map(TaxInvoice::getTaxInvoiceId)
+                .toList();
+        //임시저장 상태가 INITIAL인건 모두 Untemp로 바꾸기
+        taxInvoiceRepository.updateInitialToUntemp(taxInvoiceIds);
 
         List<GetHistoryData> historyDataList = taxInvoicePage.stream()
                 .map(taxInvoice -> TaxInvoiceValidationHistoryDTO.GetHistoryData.from(taxInvoice, taxInvoice.getFile()))
@@ -48,25 +56,36 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
 
     @Transactional
     @Override
-    public Void deleteValidationTaxInvoice(MemberEntity memberEntity, DeleteTaxInvoiceRequest deleteTaxInvoiceRequest) {
-        List<Long> taxInvoiceIdList = deleteTaxInvoiceRequest.getTaxInvoiceIdList();
+    public Void deleteValidationTaxInvoice(MemberEntity memberEntity, TaxInvoiceRequest taxInvoiceRequest) {
+        List<Long> taxInvoiceIdList = taxInvoiceRequest.getTaxInvoiceIdList();
         List<TaxInvoice> taxInvoices = taxInvoiceRepository.findAllById(taxInvoiceIdList);
 
-        // 존재하지 않는 ID가 있다면 예외 발생
-        if (taxInvoices.size() != taxInvoiceIdList.size()) {
-            throw new CustomException(TAX_INVOICE_NOT_EXIST);
-        }
-
-        // 다른 사용자의 세금계산서를 삭제하려 하면 예외 발생
-        boolean hasUnauthorizedAccess = taxInvoices.stream()
-                .anyMatch(invoice -> !invoice.getMember().getId().equals(memberEntity.getId()));
-
-        if (hasUnauthorizedAccess) {
-            throw new CustomException(DO_NOT_ACCESS_OTHER_TAX_INVOICE);
-        }
+        // 검증 수행 (Validator에서 처리)
+        taxInvoiceValidator.validateExistence(taxInvoices, taxInvoiceIdList);
+        taxInvoiceValidator.validateOwnership(memberEntity, taxInvoices);
 
         // 한 번의 deleteAll() 호출로 일괄 삭제
         taxInvoiceRepository.deleteAll(taxInvoices);
+        return null;
+    }
+
+    /**
+     * 임시저장 로직
+     * @param memberEntity
+     * @param taxInvoiceRequest
+     * @return
+     */
+    @Transactional
+    @Override
+    public Void tempSave(MemberEntity memberEntity, TaxInvoiceRequest taxInvoiceRequest) {
+        List<Long> taxInvoiceIdList = taxInvoiceRequest.getTaxInvoiceIdList();
+        List<TaxInvoice> taxInvoices = taxInvoiceRepository.findAllById(taxInvoiceIdList);
+
+        // 검증 수행 (Validator에서 처리)
+        taxInvoiceValidator.validateExistence(taxInvoices, taxInvoiceIdList);
+        taxInvoiceValidator.validateOwnership(memberEntity, taxInvoices);
+
+        taxInvoiceRepository.updateIsTemporaryToTemp(taxInvoiceIdList);
         return null;
     }
 }

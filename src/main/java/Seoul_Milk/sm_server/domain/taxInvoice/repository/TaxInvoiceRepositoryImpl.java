@@ -3,10 +3,14 @@ package Seoul_Milk.sm_server.domain.taxInvoice.repository;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.APPROVED;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.REJECTED;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.UNAPPROVED;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.INITIAL;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.TEMP;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.UNTEMP;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.QTaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
+import Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.QTaxInvoiceFile;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSearchResult;
 import Seoul_Milk.sm_server.global.exception.CustomException;
@@ -18,6 +22,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -122,7 +127,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         return queryFactory.selectFrom(taxInvoice)
                 .where(
                         taxInvoice.member.eq(member),
-                        taxInvoice.isTemporary.isTrue()
+                        taxInvoice.isTemporary.eq(TEMP)
                 )
                 .fetch();
     }
@@ -167,6 +172,31 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         return count;
     }
 
+    //임시저장 상태가 INITIAL인건 모두 Untemp로 바꾸기
+    @Override
+    @Transactional
+    public void updateInitialToUntemp(List<Long> taxInvoiceIds) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+        queryFactory
+                .update(taxInvoice)
+                .set(taxInvoice.isTemporary, UNTEMP) // UNTEMP로 변경
+                .where(
+                        taxInvoice.taxInvoiceId.in(taxInvoiceIds)
+                                .and(taxInvoice.isTemporary.eq(INITIAL)) // INITIAL인 것만 변경
+                )
+                .execute();
+    }
+
+    @Override
+    public void updateIsTemporaryToTemp(List<Long> taxInvoiceIds) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+        queryFactory
+                .update(taxInvoice)
+                .set(taxInvoice.isTemporary, TEMP) // TEMP로 변경
+                .where(taxInvoice.taxInvoiceId.in(taxInvoiceIds)) // 특정 ID들만 업데이트
+                .execute();
+    }
+
     @Override
     public Page<TaxInvoice> searchConsumerOrProvider(String poc, String employeeId, ProcessStatus processStatus, MemberEntity member, Pageable pageable) {
         QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
@@ -192,6 +222,9 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
             whereClause.and(taxInvoice.processStatus.eq(processStatus));
         }
 
+        //임시저장 여부 조건 추가
+        whereClause.and(taxInvoice.isTemporary.eq(UNTEMP).not());
+
         long total = Optional.ofNullable(
                 queryFactory
                         .select(Wildcard.count)
@@ -199,10 +232,6 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
                         .where(whereClause)
                         .fetchOne()
         ).orElse(0L);
-
-        BooleanBuilder approvedWhereClause = new BooleanBuilder();
-        approvedWhereClause.and(whereClause).and(taxInvoice.processStatus.eq(APPROVED));
-
 
         List<TaxInvoice> results = queryFactory
                 .selectFrom(taxInvoice)
