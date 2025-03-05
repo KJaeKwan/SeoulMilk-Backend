@@ -11,4 +11,5 @@ public interface ImageService {
     Page<ImageResponseDTO.GetOne> getAll(MemberEntity member, int page, int size);
     void markAsTemporary(List<MultipartFile> images, MemberEntity member);
     void removeFromTemporary(MemberEntity member);
+    List<String> getTempImageUrlsForOcr(MemberEntity member);
 }

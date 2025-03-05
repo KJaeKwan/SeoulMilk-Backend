@@ -75,4 +75,20 @@ public class ImageServiceImpl implements ImageService {
         images.forEach(Image::removeFromTemporary);
         imageRepository.saveAll(images);
     }
+
+
+    @Override
+    public List<String> getTempImageUrlsForOcr(MemberEntity member) {
+        List<Image> images = imageRepository.findAllByMember(member);
+
+        if (images.isEmpty()) {
+            throw new CustomException(ErrorCode.TMP_IMAGE_NOT_EXIST);
+        }
+
+        // URL 리스트 반환
+        return images.stream()
+                .map(Image::getImageUrl)
+                .toList();
+    }
+
 }
