@@ -28,8 +28,10 @@ public class RequestThread extends Thread {
     private final RedisUtils redisUtils;
     private final TaxInvoiceRepository taxInvoiceRepository;
 
+    private final String originalApproveNo;
+
     public RequestThread(String id, EasyCodef codef, HashMap<String, Object> parameterMap, int threadNo, String productUrl,
-            RedisUtils redisUtils, TaxInvoiceRepository taxInvoiceRepository) {
+            RedisUtils redisUtils, TaxInvoiceRepository taxInvoiceRepository, String originalApproveNo) {
         this.codef = codef;
         this.parameterMap = parameterMap;
         this.threadNo = threadNo;
@@ -37,6 +39,7 @@ public class RequestThread extends Thread {
         this.id = id;
         this.redisUtils = redisUtils;
         this.taxInvoiceRepository = taxInvoiceRepository;
+        this.originalApproveNo = originalApproveNo;
     }
 
     @Override
@@ -93,11 +96,12 @@ public class RequestThread extends Thread {
                     CONTRACTOR_REG_NUMBER.getKey(), parameterMap.get(CONTRACTOR_REG_NUMBER.getKey()),
                     APPROVAL_NO.getKey(), parameterMap.get(APPROVAL_NO.getKey()),
                     REPORTING_DATE.getKey(), parameterMap.get(REPORTING_DATE.getKey()),
-                    SUPPLY_VALUE.getKey(), parameterMap.get(SUPPLY_VALUE.getKey())
+                    SUPPLY_VALUE.getKey(), parameterMap.get(SUPPLY_VALUE.getKey()),
+                    ORIGINAL_APPROVAL_NO.getKey(), originalApproveNo
             ));
         }
         if(threadNo > 0){
-            TaxInvoice taxInvoice = taxInvoiceRepository.findByIssueId(parameterMap.get(APPROVAL_NO.getKey()).toString());
+            TaxInvoice taxInvoice = taxInvoiceRepository.findByIssueId(originalApproveNo);
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = null;
             try {
