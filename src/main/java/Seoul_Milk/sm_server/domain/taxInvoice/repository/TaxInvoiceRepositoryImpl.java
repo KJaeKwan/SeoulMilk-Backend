@@ -3,7 +3,9 @@ package Seoul_Milk.sm_server.domain.taxInvoice.repository;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.APPROVED;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.REJECTED;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.UNAPPROVED;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.INITIAL;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.TEMP;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.UNTEMP;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.QTaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
@@ -20,6 +22,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -167,6 +170,21 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
                         .fetchOne()
         ).orElse(0L);
         return count;
+    }
+
+    //임시저장 상태가 INITIAL인건 모두 Untemp로 바꾸기
+    @Override
+    @Transactional
+    public void updateInitialToUntemp(List<Long> taxInvoiceIds) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+        queryFactory
+                .update(taxInvoice)
+                .set(taxInvoice.isTemporary, UNTEMP) // UNTEMP로 변경
+                .where(
+                        taxInvoice.taxInvoiceId.in(taxInvoiceIds)
+                                .and(taxInvoice.isTemporary.eq(INITIAL)) // INITIAL인 것만 변경
+                )
+                .execute();
     }
 
     @Override

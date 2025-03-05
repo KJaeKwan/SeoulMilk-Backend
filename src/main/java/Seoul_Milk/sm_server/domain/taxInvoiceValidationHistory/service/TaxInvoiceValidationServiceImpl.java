@@ -3,6 +3,7 @@ package Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.service;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.APPROVED;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.REJECTED;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.UNAPPROVED;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.INITIAL;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.DO_NOT_ACCESS_OTHER_TAX_INVOICE;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
 
@@ -37,6 +38,12 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
         Long approved = taxInvoiceRepository.getProcessStatusCount(APPROVED, memberEntity);
         Long rejected = taxInvoiceRepository.getProcessStatusCount(REJECTED, memberEntity);
         Long unapproved = taxInvoiceRepository.getProcessStatusCount(UNAPPROVED, memberEntity);
+
+        List<Long> taxInvoiceIds = taxInvoicePage.getContent().stream()
+                .map(TaxInvoice::getTaxInvoiceId)
+                .toList();
+        //임시저장 상태가 INITIAL인건 모두 Untemp로 바꾸기
+        taxInvoiceRepository.updateInitialToUntemp(taxInvoiceIds);
 
         List<GetHistoryData> historyDataList = taxInvoicePage.stream()
                 .map(taxInvoice -> TaxInvoiceValidationHistoryDTO.GetHistoryData.from(taxInvoice, taxInvoice.getFile()))

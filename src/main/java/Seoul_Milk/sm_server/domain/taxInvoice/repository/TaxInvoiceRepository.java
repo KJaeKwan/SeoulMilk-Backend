@@ -28,5 +28,8 @@ public interface TaxInvoiceRepository {
     void deleteAll(List<TaxInvoice> taxInvoices);
     Page<TaxInvoice> searchConsumerOrProvider(String poc, String employeeId, ProcessStatus processStatus, MemberEntity member, Pageable pageable);
     long getProcessStatusCount(ProcessStatus processStatus, MemberEntity member);
+
+    //임시저장 상태가 INITIAL인건 모두 Untemp로 바꾸기
+    void updateInitialToUntemp(List<Long> taxInvoiceIds);
 }
 
