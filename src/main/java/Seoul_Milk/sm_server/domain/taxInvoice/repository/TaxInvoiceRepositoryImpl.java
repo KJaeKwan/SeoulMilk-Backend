@@ -1,15 +1,21 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.repository;
 
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.APPROVED;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.REJECTED;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.UNAPPROVED;
+
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.QTaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.QTaxInvoiceFile;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSearchResult;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.login.constant.Role;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import Seoul_Milk.sm_server.login.entity.QMemberEntity;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -88,7 +94,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
             whereClause.and(taxInvoice.processStatus.eq(status));
         }
 
-        long total = Optional.ofNullable(
+        long total = Optional.ofNullable( //전체개수 파악
                 queryFactory
                         .select(Wildcard.count)
                         .from(taxInvoice)
@@ -142,6 +148,75 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     public List<TaxInvoice> findAll() {
         return taxInvoiceJpaRepository.findAll();
     }
+
+    @Override
+    public long getProcessStatusCount(ProcessStatus processStatus, MemberEntity member) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+        BooleanBuilder whereClause = new BooleanBuilder();
+        whereClause.and(taxInvoice.member.id.eq(member.getId()));
+        if(processStatus != null){
+            whereClause.and(taxInvoice.processStatus.eq(processStatus));
+        }
+        long count = Optional.ofNullable(
+                queryFactory
+                        .select(Wildcard.count)
+                        .from(taxInvoice)
+                        .where(whereClause)
+                        .fetchOne()
+        ).orElse(0L);
+        return count;
+    }
+
+    @Override
+    public Page<TaxInvoice> searchConsumerOrProvider(String poc, String employeeId, ProcessStatus processStatus, MemberEntity member, Pageable pageable) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+        QMemberEntity memberEntity = QMemberEntity.memberEntity;
+        QTaxInvoiceFile taxInvoiceFile = QTaxInvoiceFile.taxInvoiceFile;
+
+        BooleanBuilder whereClause = new BooleanBuilder();
+        whereClause.and(taxInvoice.member.id.eq(member.getId()));
+
+        // 공급자 또는 공급받는자 검색 조건
+        if (poc != null && !poc.isEmpty()) {
+            BooleanBuilder supplierCondition = new BooleanBuilder();
+
+            supplierCondition.or(taxInvoice.ipName.eq(poc).and(taxInvoice.suName.eq(poc))); // 둘 다 같은 경우
+            supplierCondition.or(taxInvoice.ipName.eq(poc));
+            supplierCondition.or(taxInvoice.suName.eq(poc));
+
+            whereClause.and(supplierCondition);
+        }
+
+        //처리여부 별 검색 조건
+        if(processStatus != null){
+            whereClause.and(taxInvoice.processStatus.eq(processStatus));
+        }
+
+        long total = Optional.ofNullable(
+                queryFactory
+                        .select(Wildcard.count)
+                        .from(taxInvoice)
+                        .where(whereClause)
+                        .fetchOne()
+        ).orElse(0L);
+
+        BooleanBuilder approvedWhereClause = new BooleanBuilder();
+        approvedWhereClause.and(whereClause).and(taxInvoice.processStatus.eq(APPROVED));
+
+
+        List<TaxInvoice> results = queryFactory
+                .selectFrom(taxInvoice)
+                .leftJoin(taxInvoice.member, memberEntity).fetchJoin()
+                .leftJoin(taxInvoice.file, taxInvoiceFile).fetchJoin()
+                .where(whereClause)
+                .orderBy(taxInvoice.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        return new PageImpl<>(results, pageable, total);
+    }
+
 
     @Override
     public TaxInvoice findByIssueId(String issueId) {
