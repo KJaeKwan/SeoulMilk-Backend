@@ -7,6 +7,7 @@ import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.ID
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.LOGIN_TYPE;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.LOGIN_TYPE_LEVEL;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.ORGANIZATION;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.ORIGINAL_APPROVAL_NO;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.PHONE_NO;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.REPORTING_DATE;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.SUPPLIER_REG_NUMBER;
@@ -96,14 +97,14 @@ public class TaxValidationServiceImpl implements TaxValidationService {
                     IDENTITY.getKey(), nonVerifiedTaxValidationRequestDTO.getIdentity(),
                     TELECOM.getKey(), nonVerifiedTaxValidationRequestDTO.getTelecom()
             ), Map.of(
-                    SUPPLIER_REG_NUMBER.getKey(), taxInvoiceInfo.getSupplierRegNumber(),
-                    CONTRACTOR_REG_NUMBER.getKey(), taxInvoiceInfo.getContractorRegNumber(),
-                    APPROVAL_NO.getKey(), taxInvoiceInfo.getApprovalNo(),
-                    REPORTING_DATE.getKey(), taxInvoiceInfo.getReportingDate(),
+                    SUPPLIER_REG_NUMBER.getKey(), taxInvoiceInfo.getSupplierRegNumber().replaceAll("-", ""),
+                    CONTRACTOR_REG_NUMBER.getKey(), taxInvoiceInfo.getContractorRegNumber().replaceAll("-", ""),
+                    APPROVAL_NO.getKey(), taxInvoiceInfo.getApprovalNo().replaceAll("-", ""),
+                    REPORTING_DATE.getKey(), taxInvoiceInfo.getReportingDate().replaceAll("-", ""),
                     SUPPLY_VALUE.getKey(), taxInvoiceInfo.getSupplyValue()
             ));
 
-            Thread t = new RequestThread(id, easyCodef, requestData, i, PRODUCT_URL, redisUtils, taxInvoiceRepository);
+            Thread t = new RequestThread(id, easyCodef, requestData, i, PRODUCT_URL, redisUtils, taxInvoiceRepository, taxInvoiceInfo.getApprovalNo());
 
             t.start();
 
@@ -122,9 +123,11 @@ public class TaxValidationServiceImpl implements TaxValidationService {
         Map<String, Object> addAuthResponse = redisUtils.getCodefApiResponse(key);
         Map<String, Object> commonResponse = redisUtils.getCodefApiResponse(key+"common");
         Map<String, Object> firstResponse = redisUtils.getCodefApiResponse(key+"first");
+        String originalApproveNo = firstResponse.get(ORIGINAL_APPROVAL_NO.getKey()).toString();
+        firstResponse.remove(ORIGINAL_APPROVAL_NO.getKey());
 
         HashMap<String, Object> parameterMap = populateParameters(key, commonResponse, firstResponse);
-
+        parameterMap.remove(ORIGINAL_APPROVAL_NO.getKey());
         //간편인증 추가인증 입력부
         parameterMap.put("simpleAuth", "1");
         parameterMap.put("is2Way", true);
@@ -140,7 +143,7 @@ public class TaxValidationServiceImpl implements TaxValidationService {
         // 추가인증 요청 시에는 이지코드에프.requestCertification 으로 호출
         result = easyCodef.requestCertification(PRODUCT_URL, EasyCodefServiceType.DEMO, parameterMap);
 
-        TaxInvoice taxInvoice = taxInvoiceRepository.findByIssueId(firstResponse.get(APPROVAL_NO.getKey()).toString());
+        TaxInvoice taxInvoice = taxInvoiceRepository.findByIssueId(originalApproveNo);
         ObjectMapper objectMapper = new ObjectMapper();
 
         JsonNode rootNode = null;

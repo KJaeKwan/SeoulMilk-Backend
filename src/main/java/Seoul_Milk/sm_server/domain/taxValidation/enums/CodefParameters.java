@@ -14,7 +14,8 @@ public enum CodefParameters {
     APPROVAL_NO("approvalNo"),
     REPORTING_DATE("reportingDate"),
     SUPPLY_VALUE("supplyValue"),
-    TWO_WAY_INFO("twoWayInfo");
+    TWO_WAY_INFO("twoWayInfo"),
+    ORIGINAL_APPROVAL_NO("originalApprovalNo");
 
     private final String key;
 
