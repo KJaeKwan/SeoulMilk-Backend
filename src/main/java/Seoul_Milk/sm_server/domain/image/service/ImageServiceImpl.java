@@ -64,11 +64,15 @@ public class ImageServiceImpl implements ImageService {
      */
     @Override
     @Transactional
-    public void removeFromTemporary(MemberEntity member) {
-        List<Image> images = imageRepository.findAllByMember(member);
-
-        if (images.isEmpty()) {
+    public void removeFromTemporary(MemberEntity member, List<Long> imageIds) {
+        if (imageIds == null || imageIds.isEmpty()) {
             throw new CustomException(ErrorCode.TMP_IMAGE_NOT_EXIST);
+        }
+
+        List<Image> images = imageRepository.findByMemberAndIds(member, imageIds);
+
+        if (images.size() != imageIds.size()) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED_ACCESS);
         }
 
         images.forEach(image -> awsS3Service.deleteFile(image.getImageUrl()));
@@ -76,19 +80,15 @@ public class ImageServiceImpl implements ImageService {
         imageRepository.saveAll(images);
     }
 
-
     @Override
-    public List<String> getTempImageUrlsForOcr(MemberEntity member) {
-        List<Image> images = imageRepository.findAllByMember(member);
+    public List<Image> getTempImagesForOcr(MemberEntity member) {
+        List<Image> images = imageRepository.findTmpAllByMember(member);
 
         if (images.isEmpty()) {
             throw new CustomException(ErrorCode.TMP_IMAGE_NOT_EXIST);
         }
 
-        // URL 리스트 반환
-        return images.stream()
-                .map(Image::getImageUrl)
-                .toList();
+        return images;
     }
 
 }
