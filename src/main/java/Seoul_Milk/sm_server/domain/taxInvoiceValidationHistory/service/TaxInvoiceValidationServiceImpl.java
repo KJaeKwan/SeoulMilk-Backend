@@ -3,7 +3,6 @@ package Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.service;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.APPROVED;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.REJECTED;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.UNAPPROVED;
-import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.INITIAL;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.DO_NOT_ACCESS_OTHER_TAX_INVOICE;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
 
@@ -13,7 +12,7 @@ import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSearchResult;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO.GetHistoryData;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.DeleteTaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import jakarta.transaction.Transactional;
@@ -55,8 +54,8 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
 
     @Transactional
     @Override
-    public Void deleteValidationTaxInvoice(MemberEntity memberEntity, DeleteTaxInvoiceRequest deleteTaxInvoiceRequest) {
-        List<Long> taxInvoiceIdList = deleteTaxInvoiceRequest.getTaxInvoiceIdList();
+    public Void deleteValidationTaxInvoice(MemberEntity memberEntity, TaxInvoiceRequest taxInvoiceRequest) {
+        List<Long> taxInvoiceIdList = taxInvoiceRequest.getTaxInvoiceIdList();
         List<TaxInvoice> taxInvoices = taxInvoiceRepository.findAllById(taxInvoiceIdList);
 
         // 존재하지 않는 ID가 있다면 예외 발생
@@ -74,6 +73,35 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
 
         // 한 번의 deleteAll() 호출로 일괄 삭제
         taxInvoiceRepository.deleteAll(taxInvoices);
+        return null;
+    }
+
+    /**
+     * 임시저장 로직
+     * @param memberEntity
+     * @param taxInvoiceRequest
+     * @return
+     */
+    @Transactional
+    @Override
+    public Void tempSave(MemberEntity memberEntity, TaxInvoiceRequest taxInvoiceRequest) {
+        List<Long> taxInvoiceIdList = taxInvoiceRequest.getTaxInvoiceIdList();
+        List<TaxInvoice> taxInvoices = taxInvoiceRepository.findAllById(taxInvoiceIdList);
+
+        // 존재하지 않는 ID가 있다면 예외 발생
+        if (taxInvoices.size() != taxInvoiceIdList.size()) {
+            throw new CustomException(TAX_INVOICE_NOT_EXIST);
+        }
+
+        // 다른 사용자의 세금계산서를 임시저장 하려 하면 예외 발생
+        boolean hasUnauthorizedAccess = taxInvoices.stream()
+                .anyMatch(invoice -> !invoice.getMember().getId().equals(memberEntity.getId()));
+
+        if (hasUnauthorizedAccess) {
+            throw new CustomException(DO_NOT_ACCESS_OTHER_TAX_INVOICE);
+        }
+
+        taxInvoiceRepository.updateIsTemporaryToTemp(taxInvoiceIdList);
         return null;
     }
 }

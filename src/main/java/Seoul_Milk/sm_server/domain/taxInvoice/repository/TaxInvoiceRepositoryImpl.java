@@ -188,6 +188,16 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     }
 
     @Override
+    public void updateIsTemporaryToTemp(List<Long> taxInvoiceIds) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+        queryFactory
+                .update(taxInvoice)
+                .set(taxInvoice.isTemporary, TEMP) // TEMP로 변경
+                .where(taxInvoice.taxInvoiceId.in(taxInvoiceIds)) // 특정 ID들만 업데이트
+                .execute();
+    }
+
+    @Override
     public Page<TaxInvoice> searchConsumerOrProvider(String poc, String employeeId, ProcessStatus processStatus, MemberEntity member, Pageable pageable) {
         QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
         QMemberEntity memberEntity = QMemberEntity.memberEntity;

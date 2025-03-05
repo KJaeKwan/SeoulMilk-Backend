@@ -2,7 +2,7 @@ package Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.controller;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSearchResult;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.DeleteTaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.service.TaxInvoiceValidationService;
 import Seoul_Milk.sm_server.global.annotation.CurrentMember;
 import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,9 +42,19 @@ public class TaxInvoiceValidationHistoryController {
     @DeleteMapping
     public SuccessResponse<Void> deleteValidationTaxInvoice(
             @CurrentMember MemberEntity memberEntity,
-            @RequestBody DeleteTaxInvoiceRequest deleteTaxInvoiceRequest
+            @RequestBody TaxInvoiceRequest taxInvoiceRequest
     ){
-        return SuccessResponse.ok(taxInvoiceValidationService.deleteValidationTaxInvoice(memberEntity, deleteTaxInvoiceRequest));
+        return SuccessResponse.ok(taxInvoiceValidationService.deleteValidationTaxInvoice(memberEntity,
+                taxInvoiceRequest));
+    }
+
+    @Operation(summary = "<RE_01> 임시 저장 api")
+    @PostMapping("/temp")
+    public SuccessResponse<Void> tempSave(
+            @CurrentMember MemberEntity memberEntity,
+            @RequestBody TaxInvoiceRequest taxInvoiceRequest
+    ){
+        return SuccessResponse.ok(taxInvoiceValidationService.tempSave(memberEntity, taxInvoiceRequest));
     }
 
 }
