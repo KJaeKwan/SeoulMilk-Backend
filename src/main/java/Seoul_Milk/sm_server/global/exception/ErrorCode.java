@@ -62,6 +62,7 @@ public enum ErrorCode {
 
     // 세금계산서 (TaxInvoice)
     TAX_INVOICE_NOT_EXIST("TAX_INVOICE404", "존재하지 않는 세금계산서입니다.", HttpStatus.NOT_FOUND),
+    DO_NOT_ACCESS_OTHER_TAX_INVOICE("TAX_INVOICE401", "다른 사람의 세금계산서에 접근할 수 없습니다.", HttpStatus.UNAUTHORIZED),
 
     // UPLOAD (업로드)
     UPLOAD_FAILED("UPLOAD001", "업로드 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),

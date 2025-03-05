@@ -2,7 +2,6 @@ package Seoul_Milk.sm_server.domain.taxInvoice.repository;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSearchResult;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +23,9 @@ public interface TaxInvoiceRepository {
     List<TaxInvoice> findTempInvoicesByIds(List<Long> taxInvoiceIds, MemberEntity member);
     List<TaxInvoice> saveAll(List<TaxInvoice> taxInvoices);
     List<TaxInvoice> findAll();
+    List<TaxInvoice> findAllById(List<Long> taxInvoiceIdList);
+
+    void deleteAll(List<TaxInvoice> taxInvoices);
     Page<TaxInvoice> searchConsumerOrProvider(String poc, String employeeId, ProcessStatus processStatus, MemberEntity member, Pageable pageable);
     long getProcessStatusCount(ProcessStatus processStatus, MemberEntity member);
 }
