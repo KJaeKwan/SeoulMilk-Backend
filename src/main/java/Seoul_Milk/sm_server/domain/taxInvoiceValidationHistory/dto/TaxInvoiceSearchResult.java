@@ -2,11 +2,9 @@ package Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto;
 
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO.GetHistoryData;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 
 
-@AllArgsConstructor
 public class TaxInvoiceSearchResult {
     public record GetData(
             @Schema(description = "검증된 세금계산서 페이징 결과") Page<GetHistoryData> page,
