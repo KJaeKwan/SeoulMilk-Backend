@@ -89,24 +89,18 @@ public class SecurityConfig {
 
                     @Override
                     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-
                         CorsConfiguration configuration = new CorsConfiguration();
-
                         configuration.setAllowedOrigins(List.of(
                                 "http://localhost:5173",
                                 "https://sm-frontend-eosin.vercel.app",
                                 "http://localhost:8080",
                                 "https://jk-project.site"
                         ));
-
-                        configuration.setAllowedMethods(Collections.singletonList("*"));
+                        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Access-Control-Allow-Origin"));
+                        configuration.setExposedHeaders(List.of("Set-Cookie", "access")); // 추가 가능
                         configuration.setAllowCredentials(true);
-                        configuration.setAllowedHeaders(Collections.singletonList("*"));
                         configuration.setMaxAge(3600L);
-
-                        configuration.setExposedHeaders(Collections.singletonList("Set-Cookie"));
-                        configuration.setExposedHeaders(Collections.singletonList("access"));
-
                         return configuration;
                     }
                 }));
