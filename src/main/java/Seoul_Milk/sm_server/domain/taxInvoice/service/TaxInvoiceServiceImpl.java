@@ -158,6 +158,105 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
     }
 
 
+    //TODO 처리 필요
+    @Async("ocrTaskExecutor")
+    @Override
+    public CompletableFuture<TaxInvoiceResponseDTO.Create> processOcrAsync(String imageUrl, MemberEntity member) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                semaphore.acquire(); // 요청 개수가 5개를 초과하면 자동 대기
+
+                long startTime = System.nanoTime();
+                TaxInvoiceResponseDTO.Create response = processOcrSync(imageUrl, member);
+                long endTime = System.nanoTime();
+
+                long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+                System.out.println("OCR 요청 처리 시간 (S3 URL): " + elapsedTimeMillis + " ms");
+
+                return response;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return TaxInvoiceResponseDTO.Create.error(imageUrl, "OCR 요청 대기 중 인터럽트 발생");
+            } finally {
+                semaphore.release(); // 실행이 끝나면 세마포어 해제
+            }
+        });
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public TaxInvoiceResponseDTO.Create processOcrSync(String imageUrl, MemberEntity member) {
+        long startTime = System.nanoTime();
+        List<String> errorDetails = new ArrayList<>();
+        Map<String, Object> extractedData;
+
+        try {
+            System.out.println("[DEBUG] S3에서 파일 다운로드 시작: " + imageUrl);
+
+            // S3에서 파일 다운로드하여 MultipartFile 변환
+            MultipartFile file = awsS3Service.downloadFileFromS3(imageUrl);
+
+            System.out.println("[DEBUG] 파일 다운로드 완료: " + file.getOriginalFilename());
+
+            // CLOVA OCR API 요청
+            String jsonResponse = clovaOcrApi.callApi("POST", file, clovaSecretKey, file.getContentType());
+
+            if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
+                throw new CustomException(ErrorCode.OCR_NO_RESULT);
+            }
+
+            System.out.println("[DEBUG] Clova OCR 응답 JSON: " + jsonResponse);
+
+            // OCR 데이터 변환
+            List<OcrField> ocrFields = convertToOcrFields(jsonResponse);
+            extractedData = ocrDataExtractor.extractDataFromOcrFields(ocrFields);
+
+            if (extractedData == null || extractedData.isEmpty()) {
+                throw new CustomException(ErrorCode.OCR_EMPTY_JSON);
+            }
+
+            // OCR 데이터 검증
+            if (!extractedData.containsKey("approval_number")) {
+                errorDetails.add("승인번호 인식 오류");
+            }
+            if (!extractedData.containsKey("total_amount")) {
+                errorDetails.add("공급가액 인식 오류");
+            }
+
+            // total_amount 값 처리
+            String totalAmountStr = (String) extractedData.getOrDefault("total_amount", "-1");
+            totalAmountStr = totalAmountStr.replace(",", ""); // 쉼표 제거
+            int totalAmount = Integer.parseInt(totalAmountStr);
+
+            // TaxInvoice 생성 및 저장
+            TaxInvoice taxInvoice = TaxInvoice.create(
+                    (String) extractedData.get("approval_number"),
+                    (String) extractedData.get("supplier_id"),
+                    (String) extractedData.get("recipient_id"),
+                    totalAmount,
+                    (String) extractedData.get("issue_date"),
+                    (String) extractedData.get("supplier_business_name"),
+                    (String) extractedData.get("recipient_business_name"),
+                    (String) extractedData.get("supplier_name"),
+                    (String) extractedData.get("recipient_name"),
+                    member,
+                    errorDetails
+            );
+            taxInvoiceRepository.save(taxInvoice);
+
+            // OCR 성공 후 S3 파일 이동
+            System.out.println("[DEBUG] OCR 성공 후 파일 이동: " + imageUrl);
+            awsS3Service.moveFileToFinalFolder(imageUrl, "tax_invoices");
+
+            long endTime = System.nanoTime();
+            long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+            return TaxInvoiceResponseDTO.Create.from(taxInvoice, imageUrl, extractedData, errorDetails, elapsedTimeMillis);
+
+        } catch (Exception e) {
+            System.out.println("[ERROR] OCR 처리 중 예외 발생: " + e.getMessage());
+            return TaxInvoiceResponseDTO.Create.error(imageUrl, e.getMessage());
+        }
+    }
+
 
     /**
      * 세금계산서 검색 - provider, consumer 입력 값이 없으면 전체 조회
