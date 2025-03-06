@@ -91,13 +91,11 @@ public class TaxInvoiceController {
                             });
                 })
                 .toList();
-        System.out.println("3111");
 
         // allOf로 실행 후 한 번에 처리
         List<TaxInvoiceResponseDTO.Create> result = Stream.concat(futureLocalResults.stream(), futureTempResults.stream())
                 .map(CompletableFuture::join)
                 .toList();
-        System.out.println("4111");
 
         long totalEndTime = System.nanoTime();
         long totalElapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(totalEndTime - totalStartTime);
