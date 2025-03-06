@@ -84,7 +84,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
 
         // 날짜 검색 (특정 날짜 or 최근 N개월 내)
         if (startDate != null && endDate != null) {
-            whereClause.and(taxInvoice.erDat.between(startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX)));
+            whereClause.and(taxInvoice.createAt.between(startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX)));
         }
 
         // 승인 상태 조건

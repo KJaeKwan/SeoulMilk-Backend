@@ -37,34 +37,34 @@ public class OcrDataExtractor {
                 case "suId":
                     extractedData.put("recipient_registration_number", fieldValue);
                     break;
-                case "issueDate":
+                case "erDat":
                     extractedData.put("issue_date", fieldValue);
                     break;
                 case "chargeTotal":
-                    extractedData.put("total_amount", fieldValue);
+                    extractedData.put("chargeTotal", fieldValue);
                     break;
                 case "taxTotal":
-                    extractedData.put("tax_amount", fieldValue);
+                    extractedData.put("total_amount", fieldValue);
                     break;
                 case "grandTotal":
-                    extractedData.put("grand_total", fieldValue);
+                    extractedData.put("grandTotal", fieldValue);
                     break;
-                case "ipName":
+                case "ipBusinessName":
                     extractedData.put("supplier_business_name", fieldValue);
                     break;
-                case "suName":
+                case "suBusinessName":
                     extractedData.put("recipient_business_name", fieldValue);
                     break;
-                case "ipRepres":
+                case "ipName":
                     extractedData.put("supplier_name", fieldValue);
                     break;
-                case "suRepres":
+                case "suName":
                     extractedData.put("recipient_name", fieldValue);
                     break;
-                case "ipAddr":
+                case "ipAddress":
                     extractedData.put("supplier_address", fieldValue);
                     break;
-                case "suAddr":
+                case "suAddress":
                     extractedData.put("recipient_address", fieldValue);
                     break;
                 case "ipEmail":

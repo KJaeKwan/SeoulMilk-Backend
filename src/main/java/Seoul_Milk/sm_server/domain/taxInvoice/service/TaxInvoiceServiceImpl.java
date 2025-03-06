@@ -107,31 +107,38 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 throw new CustomException(ErrorCode.OCR_EMPTY_JSON);
             }
 
+            System.out.println("[DEBUG] OCR 필드 데이터: " + extractedData);
+
+
             // OCR 데이터 검증 및 기본값 설정
             String issueId = getOrDefault(extractedData, "approval_number", "UNKNOWN");
-            String supplierId = getOrDefault(extractedData, "supplier_registration_number", "UNKNOWN");
-            String recipientId = getOrDefault(extractedData, "recipient_registration_number", "UNKNOWN");
-            String issueDate = getOrDefault(extractedData, "issue_date", "UNKNOWN");
-            String supplierBusinessName = getOrDefault(extractedData, "supplier_business_name", "UNKNOWN");
-            String recipientBusinessName = getOrDefault(extractedData, "recipient_business_name", "UNKNOWN");
-            String supplierName = getOrDefault(extractedData, "supplier_name", "UNKNOWN");
-            String recipientName = getOrDefault(extractedData, "recipient_name", "UNKNOWN");
-            String supplierAddress = getOrDefault(extractedData, "supplier_address", "UNKNOWN");
-            String recipientAddress = getOrDefault(extractedData, "recipient_address", "UNKNOWN");
-            String supplierEmail = getOrDefault(extractedData, "supplier_email", "UNKNOWN");
-            String recipientEmail = getOrDefault(extractedData, "recipient_email", "UNKNOWN");
+            String ipId = getOrDefault(extractedData, "supplier_registration_number", "UNKNOWN");
+            String suId = getOrDefault(extractedData, "recipient_registration_number", "UNKNOWN");
+            String erDat = getOrDefault(extractedData, "issue_date", "UNKNOWN");
+            System.out.println("최종 erDat 값: " + erDat);
+            String ipBusinessName = getOrDefault(extractedData, "supplier_business_name", "UNKNOWN");
+            String suBusinessName = getOrDefault(extractedData, "recipient_business_name", "UNKNOWN");
+            String ipName = getOrDefault(extractedData, "supplier_name", "UNKNOWN");
+            String suName = getOrDefault(extractedData, "recipient_name", "UNKNOWN");
+            String ipAddress = getOrDefault(extractedData, "supplier_address", "UNKNOWN");
+            String suAddress = getOrDefault(extractedData, "recipient_address", "UNKNOWN");
+            String ipEmail = getOrDefault(extractedData, "supplier_email", "UNKNOWN");
+            String suEmail = getOrDefault(extractedData, "recipient_email", "UNKNOWN");
 
             // 가격 변환
             int chargeTotal = parseAmount(extractedData, "chargeTotal", errorDetails);
-            int totalAmount = parseAmount(extractedData, "total_amount", errorDetails);
+            int taxTotal = parseAmount(extractedData, "total_amount", errorDetails);
             int grandTotal = parseAmount(extractedData, "grandTotal", errorDetails);
 
             // OCR 성공 후 S3 파일 저장
             String fileUrl = awsS3Service.uploadFile("tax_invoices", image, true);
 
             // TaxInvoice 생성 및 저장
-            TaxInvoice taxInvoice = TaxInvoice.create(issueId, supplierId, recipientId, chargeTotal, totalAmount, grandTotal,
-                    issueDate, supplierBusinessName, recipientBusinessName, supplierName, recipientName, supplierAddress, recipientAddress, supplierEmail, recipientEmail, member, errorDetails);
+            TaxInvoice taxInvoice = TaxInvoice.create(
+                    issueId, ipId, suId, chargeTotal, taxTotal, grandTotal,
+                    erDat, ipBusinessName, suBusinessName, ipName, suName, ipAddress, suAddress,
+                    ipEmail, suEmail, member, errorDetails
+            );
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
             // TaxInvoiceFile 생성 및 저장
@@ -206,7 +213,8 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
                 // TaxInvoice 생성 및 저장
                 TaxInvoice taxInvoice = TaxInvoice.create(issueId, supplierId, recipientId, chargeTotal, totalAmount, grandTotal,
-                        issueDate, supplierBusinessName, recipientBusinessName, supplierName, recipientName, supplierAddress, recipientAddress, supplierEmail, recipientEmail, member, errorDetails);
+                        issueDate, supplierBusinessName, recipientBusinessName, supplierName, recipientName, supplierAddress,
+                        recipientAddress, supplierEmail, recipientEmail, member, errorDetails);
                 TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
                 // TaxInvoiceFile 생성 및 저장

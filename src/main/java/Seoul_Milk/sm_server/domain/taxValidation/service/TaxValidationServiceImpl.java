@@ -174,7 +174,7 @@ public class TaxValidationServiceImpl implements TaxValidationService {
                     taxInvoice.getSuId(),
                     taxInvoice.getIpId(),
                     taxInvoice.getIssueId(),
-                    taxInvoice.getIssueDate(),
+                    taxInvoice.getErDat(),
                     String.valueOf(taxInvoice.getTaxTotal())
             );
             testDTOList.add(testDTO);

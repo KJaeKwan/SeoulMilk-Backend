@@ -39,7 +39,7 @@ public class TaxInvoice {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ARAP", nullable = false)
-    private ArapType arap = SALES; // 매입, 매출
+    private ArapType arap; // 매입, 매출
 
     @Enumerated(EnumType.STRING)
     @Column(name = "PROGRESS_STATUS", nullable = false)
@@ -60,26 +60,26 @@ public class TaxInvoice {
     @Column(name = "GRAND_TOTAL")
     private int grandTotal; // 총액
 
-    @Column(name = "ISSUE_DATE", nullable = false, length = 40)
-    private String issueDate; // 작성일자
+    @Column(name = "ER_DAT", nullable = false, length = 40)
+    private String erDat; // 작성일자
+
+    @Column(name = "IP_BUSINESS_NAME")
+    private String ipBusinessName; // 상호명
+
+    @Column(name = "SU_ipBusinessName")
+    private String suBusinessName;
 
     @Column(name = "IP_NAME")
-    private String ipName; // 상호명
+    private String ipName; // 대표자명
 
     @Column(name = "SU_NAME")
     private String suName;
 
-    @Column(name = "IP_REPRES")
-    private String ipRepres; // 대표자명
+    @Column(name = "IP_ADDRESS")
+    private String ipAddress; // 사업체 주소
 
-    @Column(name = "SU_REPRES")
-    private String suRepres;
-
-    @Column(name = "IP_ADDR")
-    private String ipAddr; // 사업체 주소
-
-    @Column(name = "SU_ADDR")
-    private String suAddr;
+    @Column(name = "SU_ADDRESS")
+    private String suAddress;
 
     @Column(name = "IP_EMAIL")
     private String ipEmail; // 이메일
@@ -95,13 +95,12 @@ public class TaxInvoice {
     private List<String> errorDetails = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
-    @Builder.Default
     @Column(name = "IS_TEMPORARY")
-    private TempStatus isTemporary = INITIAL;
+    private TempStatus isTemporary;
 
     @CreatedDate
-    @Column(name = "ER_DAT", updatable = false)
-    private LocalDateTime erDat;
+    @Column(name = "CREATE_AT", updatable = false)
+    private LocalDateTime createAt; // 생성일자
 
     @LastModifiedDate
     @Column(name = "UPDATED_AT")
@@ -121,13 +120,13 @@ public class TaxInvoice {
             int chargeTotal,
             int taxTotal,
             int grandTotal,
-            String issueDate,
+            String erDat,
+            String ipBusinessName,
+            String suBusinessName,
             String ipName,
             String suName,
-            String ipRepres,
-            String suRepres,
-            String ipAddr,
-            String suAddr,
+            String ipAddress,
+            String suAddress,
             String ipEmail,
             String suEmail,
             MemberEntity member,
@@ -142,13 +141,13 @@ public class TaxInvoice {
                 .chargeTotal(chargeTotal)
                 .taxTotal(taxTotal)
                 .grandTotal(grandTotal)
-                .issueDate(issueDate)
+                .erDat(erDat)
+                .ipBusinessName(ipBusinessName)
+                .suBusinessName(suBusinessName)
                 .ipName(ipName)
                 .suName(suName)
-                .ipRepres(ipRepres)
-                .suRepres(suRepres)
-                .ipAddr(ipAddr)
-                .suAddr(suAddr)
+                .ipAddress(ipAddress)
+                .suAddress(suAddress)
                 .ipEmail(ipEmail)
                 .suEmail(suEmail)
                 .member(member)
