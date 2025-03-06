@@ -24,7 +24,7 @@ public class TaxInvoiceValidationHistoryDTO {
                 taxInvoice.getTaxInvoiceId(),
                 taxInvoice.getSuName(),
                 taxInvoice.getIpName(),
-                taxInvoice.getCreatedAt(),
+                taxInvoice.getCreateAt(),
                 taxInvoiceFile.getFileUrl(),
                 taxInvoice.getProcessStatus()
             );

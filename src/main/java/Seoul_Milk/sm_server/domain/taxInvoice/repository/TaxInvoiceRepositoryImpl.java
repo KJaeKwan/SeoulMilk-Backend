@@ -1,27 +1,15 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.repository;
 
-import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.APPROVED;
-import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.REJECTED;
-import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.UNAPPROVED;
-import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.INITIAL;
-import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.TEMP;
-import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.UNTEMP;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.enums.MaxSearchLimit.MAX_SEARCH_LIMIT;
-
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.QTaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
-import Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.QTaxInvoiceFile;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSearchResult;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.enums.MaxSearchLimit;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.login.constant.Role;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import Seoul_Milk.sm_server.login.entity.QMemberEntity;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.transaction.Transactional;
@@ -35,6 +23,9 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.*;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.enums.MaxSearchLimit.MAX_SEARCH_LIMIT;
 
 @Repository
 @RequiredArgsConstructor
@@ -93,7 +84,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
 
         // 날짜 검색 (특정 날짜 or 최근 N개월 내)
         if (startDate != null && endDate != null) {
-            whereClause.and(taxInvoice.createdAt.between(startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX)));
+            whereClause.and(taxInvoice.createAt.between(startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX)));
         }
 
         // 승인 상태 조건
@@ -115,7 +106,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
                 .leftJoin(taxInvoice.file, taxInvoiceFile).fetchJoin()
                 .where(whereClause.and(taxInvoice.file.isNotNull()))
                 .where(whereClause)
-                .orderBy(taxInvoice.createdAt.desc())
+                .orderBy(taxInvoice.erDat.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -170,7 +161,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
                 .select(taxInvoice.taxInvoiceId)
                 .from(taxInvoice)
                 .where(taxInvoice.member.id.eq(member.getId())) // 사용자 기준으로 필터링
-                .orderBy(taxInvoice.createdAt.desc()) // 최신순 정렬
+                .orderBy(taxInvoice.erDat.desc()) // 최신순 정렬
                 .limit(MAX_SEARCH_LIMIT.getNum()) // 최신 100개만 선택
                 .fetch();
 
@@ -247,7 +238,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
                         .fetchOne()
         ).orElse(0L);
 
-        // ✅ 전체 개수가 100개 초과하면, 100개까지만 표시
+        // 전체 개수가 100개 초과하면, 100개까지만 표시
         if (total > maxLimit) {
             total = maxLimit;
         }
@@ -258,7 +249,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
                 .leftJoin(taxInvoice.member, memberEntity).fetchJoin()
                 .leftJoin(taxInvoice.file, taxInvoiceFile).fetchJoin()
                 .where(whereClause)
-                .orderBy(taxInvoice.createdAt.desc())
+                .orderBy(taxInvoice.erDat.desc())
                 .offset(pageable.getOffset())
                 .limit(pageSize)
                 .fetch();
