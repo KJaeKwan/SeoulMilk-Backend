@@ -1,5 +1,6 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.entity;
 
+import Seoul_Milk.sm_server.domain.taxInvoice.enums.ArapType;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ArapType.*;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.*;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.INITIAL;
 
@@ -33,35 +35,57 @@ public class TaxInvoice {
     private Long taxInvoiceId;
 
     @Column(name = "ISSUE_ID", nullable = false, unique = true, length = 40)
-    private String issueId;
+    private String issueId; // 승인번호
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ARAP", nullable = false)
+    private ArapType arap = SALES; // 매입, 매출
 
     @Enumerated(EnumType.STRING)
     @Column(name = "PROGRESS_STATUS", nullable = false)
     private ProcessStatus processStatus;
 
     @Column(name = "IP_ID", nullable = false, length = 40)
-    private String ipId;
+    private String ipId; // 등록번호
 
     @Column(name = "SU_ID", nullable = false, length = 40)
     private String suId;
 
-    @Column(name = "TAX_TOTAL", nullable = false)
-    private int taxTotal;
+    @Column(name = "CHARGE_TOTAL", nullable = false)
+    private int chargeTotal; // 총 공급가액
 
-    @Column(name = "ER_DAT", nullable = false, length = 40)
-    private String erDat;
+    @Column(name = "TAX_TOTAL")
+    private int taxTotal; // 총 세액
 
-    @Column(name = "IP_ADDRESS")
-    private String ipBusinessName;
+    @Column(name = "GRAND_TOTAL")
+    private int grandTotal; // 총액
 
-    @Column(name = "SU_ADDRESS")
-    private String suBusinessName;
+    @Column(name = "ISSUE_DATE", nullable = false, length = 40)
+    private String issueDate; // 작성일자
 
     @Column(name = "IP_NAME")
-    private String ipName;
+    private String ipName; // 상호명
 
     @Column(name = "SU_NAME")
     private String suName;
+
+    @Column(name = "IP_REPRES")
+    private String ipRepres; // 대표자명
+
+    @Column(name = "SU_REPRES")
+    private String suRepres;
+
+    @Column(name = "IP_ADDR")
+    private String ipAddr; // 사업체 주소
+
+    @Column(name = "SU_ADDR")
+    private String suAddr;
+
+    @Column(name = "IP_EMAIL")
+    private String ipEmail; // 이메일
+
+    @Column(name = "SU_EMAIL")
+    private String suEmail;
 
     @Builder.Default
     @ElementCollection
@@ -76,8 +100,8 @@ public class TaxInvoice {
     private TempStatus isTemporary = INITIAL;
 
     @CreatedDate
-    @Column(name = "CREATED_AT", updatable = false)
-    private LocalDateTime createdAt;
+    @Column(name = "ER_DAT", updatable = false)
+    private LocalDateTime erDat;
 
     @LastModifiedDate
     @Column(name = "UPDATED_AT")
@@ -94,26 +118,39 @@ public class TaxInvoice {
             String issueId,
             String ipId,
             String suId,
+            int chargeTotal,
             int taxTotal,
-            String erDat,
-            String ipBusinessName,
-            String suBusinessName,
+            int grandTotal,
+            String issueDate,
             String ipName,
             String suName,
+            String ipRepres,
+            String suRepres,
+            String ipAddr,
+            String suAddr,
+            String ipEmail,
+            String suEmail,
             MemberEntity member,
             List<String> errorDetails
     ) {
         return TaxInvoice.builder()
-                .processStatus(UNAPPROVED) // default 값 unapproved(미승인)
                 .issueId(issueId)
+                .arap(SALES)
+                .processStatus(UNAPPROVED) // default 값 unapproved(미승인)
                 .ipId(ipId)
                 .suId(suId)
+                .chargeTotal(chargeTotal)
                 .taxTotal(taxTotal)
-                .erDat(erDat)
-                .ipBusinessName(ipBusinessName)
-                .suBusinessName(suBusinessName)
+                .grandTotal(grandTotal)
+                .issueDate(issueDate)
                 .ipName(ipName)
                 .suName(suName)
+                .ipRepres(ipRepres)
+                .suRepres(suRepres)
+                .ipAddr(ipAddr)
+                .suAddr(suAddr)
+                .ipEmail(ipEmail)
+                .suEmail(suEmail)
                 .member(member)
                 .errorDetails(errorDetails)
                 .isTemporary(INITIAL)
