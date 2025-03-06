@@ -101,7 +101,7 @@ public class TaxValidationServiceImpl implements TaxValidationService {
                     CONTRACTOR_REG_NUMBER.getKey(), taxInvoiceInfo.getContractorRegNumber().replaceAll("-", ""),
                     APPROVAL_NO.getKey(), taxInvoiceInfo.getApprovalNo().replaceAll("-", ""),
                     REPORTING_DATE.getKey(), taxInvoiceInfo.getReportingDate().replaceAll("-", ""),
-                    SUPPLY_VALUE.getKey(), taxInvoiceInfo.getSupplyValue()
+                    SUPPLY_VALUE.getKey(), taxInvoiceInfo.getSupplyValue().replaceAll(",", "")
             ));
 
             Thread t = new RequestThread(id, easyCodef, requestData, i, PRODUCT_URL, redisUtils, taxInvoiceRepository, taxInvoiceInfo.getApprovalNo());
