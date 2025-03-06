@@ -23,7 +23,7 @@ public class Image {
     private String imageUrl;
 
     @Column(name = "TEMPORARY", nullable = false)
-    private boolean temporary = false;
+    private boolean temporary;
 
     @Column(name = "UPLOAD_DATE", nullable = false)
     private LocalDate uploadDate;
