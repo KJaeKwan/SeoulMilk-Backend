@@ -100,12 +100,18 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             // 데이터 추출
             String issueId = (String) extractedData.get("approval_number");
             List<String> registrationNumbers = (List<String>) extractedData.get("registration_numbers");
+            String chargeTotalStr = (String) extractedData.get("chargeTotal");
             String totalAmountStr = (String) extractedData.get("total_amount");
-            String erDat = (String) extractedData.get("issue_date");
-            String ipBusinessName = (String) extractedData.get("supplier_business_name");
-            String suBusinessName = (String) extractedData.get("recipient_business_name");
-            String ipName = (String) extractedData.get("supplier_name");
-            String suName = (String) extractedData.get("recipient_name");
+            String grandTotalStr = (String) extractedData.get("grandTotal");
+            String issueDate = (String) extractedData.get("issueDate");
+            String ipName = (String) extractedData.get("supplier_business_name");
+            String suName = (String) extractedData.get("recipient_business_name");
+            String ipRepres = (String) extractedData.get("supplier_name");
+            String suRepres = (String) extractedData.get("recipient_name");
+            String ipAddr = (String) extractedData.get("ipAddr");
+            String suAddr = (String) extractedData.get("suAddr");
+            String ipEmail = (String) extractedData.get("ipEmail");
+            String suEmail = (String) extractedData.get("suEmail");
 
             // 미승인 에러 케이스 추가
             if (issueId == null) {
@@ -116,9 +122,9 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 errorDetails.add("공급가액 인식 오류");
                 totalAmountStr = "UNKNOWN";
             }
-            if (erDat == null) {
+            if (issueDate == null) {
                 errorDetails.add("발행일 인식 오류");
-                erDat = "UNKNOWN";
+                issueDate = "UNKNOWN";
             }
 
             String ipId = "UNKNOWN";
@@ -135,17 +141,14 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 errorDetails.add("공급받는자 사업자 등록번호 인식 오류");
             }
 
-            int taxTotal;
-            if (!totalAmountStr.isEmpty() && !"UNKNOWN".equals(totalAmountStr)) {
-                taxTotal = Integer.parseInt(totalAmountStr.replaceAll(",", ""));
-            } else {
-                errorDetails.add("공급가액 인식 오류");
-                taxTotal = -1;
-            }
+            int chargeTotal = Integer.parseInt(chargeTotalStr.replaceAll(",", ""));
+            int taxTotal = Integer.parseInt(totalAmountStr.replaceAll(",", ""));
+            int grandTotal = Integer.parseInt(grandTotalStr.replaceAll(",", ""));
 
             // TaxInvoice 생성 및 저장
-            TaxInvoice taxInvoice = TaxInvoice.create(issueId, ipId, suId, taxTotal, erDat,
-                    ipBusinessName, suBusinessName, ipName, suName, member, errorDetails);
+            TaxInvoice taxInvoice = TaxInvoice.create(issueId, ipId, suId, chargeTotal, taxTotal, grandTotal,
+                    issueDate, ipName, suName, ipRepres, suRepres, ipAddr, suAddr,
+                    ipEmail, suEmail, member, errorDetails);
 
             System.out.println("Before saving: " + taxInvoice);
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
@@ -232,12 +235,18 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
             // OCR 데이터 검증 및 기본값 설정
             String issueId = getOrDefault(extractedData, "approval_number", "UNKNOWN");
-            String totalAmountStr = getOrDefault(extractedData, "total_amount", "UNKNOWN");
+            String chargeTotalStr = getOrDefault(extractedData, "chargeTotal", "0");
+            String totalAmountStr = getOrDefault(extractedData, "total_amount", "0");
+            String grandTotalStr = getOrDefault(extractedData, "grandTotal", "0");
             String issueDate = getOrDefault(extractedData, "issue_date", "UNKNOWN");
             String supplierBusinessName = getOrDefault(extractedData, "supplier_business_name", "UNKNOWN");
             String recipientBusinessName = getOrDefault(extractedData, "recipient_business_name", "UNKNOWN");
             String supplierName = getOrDefault(extractedData, "supplier_name", "UNKNOWN");
             String recipientName = getOrDefault(extractedData, "recipient_name", "UNKNOWN");
+            String supplierAddress = getOrDefault(extractedData, "supplier_address", "UNKNOWN");
+            String recipientAddress = getOrDefault(extractedData, "recipient_address", "UNKNOWN");
+            String supplierEmail = getOrDefault(extractedData, "supplier_email", "UNKNOWN");
+            String recipientEmail = getOrDefault(extractedData, "recipient_email", "UNKNOWN");
 
             // 사업자 등록번호 리스트 처리
             List<String> registrationNumbers = (List<String>) extractedData.get("registration_numbers");
@@ -256,14 +265,10 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 errorDetails.add("공급받는자 사업자 등록번호 인식 오류");
             }
 
-            // 공급가액 숫자 변환 (쉼표 제거 후 변환)
-            int totalAmount;
-            try {
-                totalAmount = totalAmountStr.equals("UNKNOWN") ? -1 : Integer.parseInt(totalAmountStr.replaceAll(",", ""));
-            } catch (NumberFormatException e) {
-                errorDetails.add("공급가액 숫자 변환 오류");
-                totalAmount = -1;
-            }
+            // 가격 숫자 변환
+            int chargeTotal = Integer.parseInt(chargeTotalStr.replaceAll(",", ""));
+            int totalAmount = Integer.parseInt(totalAmountStr.replaceAll(",", ""));
+            int grandTotal = Integer.parseInt(grandTotalStr.replaceAll(",", ""));
 
             // OCR 성공 후 S3 파일 이동
             System.out.println("[DEBUG] OCR 성공 후 파일 이동: " + imageUrl);
@@ -276,8 +281,8 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             }
 
             // TaxInvoice 생성 및 저장
-            TaxInvoice taxInvoice = TaxInvoice.create(issueId, supplierId, recipientId, totalAmount, issueDate,
-                    supplierBusinessName, recipientBusinessName, supplierName, recipientName, member, errorDetails);
+            TaxInvoice taxInvoice = TaxInvoice.create(issueId, supplierId, recipientId, chargeTotal, totalAmount, grandTotal,
+                    issueDate, supplierBusinessName, recipientBusinessName, supplierName, recipientName, supplierAddress, recipientAddress, supplierEmail, recipientEmail, member, errorDetails);
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
             // TaxInvoiceFile 생성하여 TaxInvoice 에 연결
