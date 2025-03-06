@@ -1,6 +1,7 @@
 package Seoul_Milk.sm_server.global.clovaOcr.service;
 
 import Seoul_Milk.sm_server.global.clovaOcr.dto.OcrField;
+import Seoul_Milk.sm_server.global.clovaOcr.dto.TemplateOcrField;
 import Seoul_Milk.sm_server.global.clovaOcr.dto.Vertex;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +14,75 @@ import java.util.stream.Collectors;
 public class OcrDataExtractor {
 
     /**
-     * OCR에서 필요한 데이터를 추출하는 메서드
+     * Template OCR에서 필요한 데이터를 추출하는 메서드
+     */
+    public Map<String, Object> extractDataFromTemplateOcrFields(List<TemplateOcrField> ocrFields) {
+        Map<String, Object> extractedData = new LinkedHashMap<>();
+
+        for (TemplateOcrField field : ocrFields) {
+            String fieldName = field.getName();
+            String fieldValue = field.getInferText().trim();
+
+            if (fieldName == null || fieldValue.isEmpty()) {
+                continue;
+            }
+
+            switch (fieldName) {
+                case "승인번호":
+                    extractedData.put("approval_number", fieldValue);
+                    break;
+                case "공급자 사업자 등록번호":
+                    extractedData.put("supplier_registration_number", fieldValue);
+                    break;
+                case "공급받는자 사업자 등록번호":
+                    extractedData.put("recipient_registration_number", fieldValue);
+                    break;
+                case "발행일":
+                    extractedData.put("issue_date", fieldValue);
+                    break;
+                case "공급가액":
+                    extractedData.put("total_amount", fieldValue);
+                    break;
+                case "세액":
+                    extractedData.put("tax_amount", fieldValue);
+                    break;
+                case "총금액":
+                    extractedData.put("grand_total", fieldValue);
+                    break;
+                case "공급자 상호":
+                    extractedData.put("supplier_business_name", fieldValue);
+                    break;
+                case "공급받는자 상호":
+                    extractedData.put("recipient_business_name", fieldValue);
+                    break;
+                case "공급자 성명":
+                    extractedData.put("supplier_name", fieldValue);
+                    break;
+                case "공급받는자 성명":
+                    extractedData.put("recipient_name", fieldValue);
+                    break;
+                case "공급자 주소":
+                    extractedData.put("supplier_address", fieldValue);
+                    break;
+                case "공급받는자 주소":
+                    extractedData.put("recipient_address", fieldValue);
+                    break;
+                case "공급자 이메일":
+                    extractedData.put("supplier_email", fieldValue);
+                    break;
+                case "공급받는자 이메일":
+                    extractedData.put("recipient_email", fieldValue);
+                    break;
+            }
+        }
+
+        return extractedData;
+    }
+
+
+
+    /**
+     * General OCR에서 필요한 데이터를 추출하는 메서드
      */
      public Map<String, Object> extractDataFromOcrFields(List<OcrField> ocrFields) {
 

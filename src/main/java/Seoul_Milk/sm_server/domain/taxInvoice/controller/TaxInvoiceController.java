@@ -79,12 +79,12 @@ public class TaxInvoiceController {
 
         // 비동기 OCR 요청 실행
         List<CompletableFuture<TaxInvoiceResponseDTO.Create>> futureLocalResults = localFiles.stream()
-                .map(file -> taxInvoiceService.processOcrAsync(file, member))
+                .map(file -> taxInvoiceService.processTemplateOcrAsync(file, member))
                 .toList();
         List<CompletableFuture<TaxInvoiceResponseDTO.Create>> futureTempResults = tempImages.stream()
                 .map(image -> {
                     System.out.println("[DEBUG] OCR 요청: 임시 저장 이미지 ID -> " + image.getId());
-                    return taxInvoiceService.processOcrAsync(image.getImageUrl(), member, image.getId())
+                    return taxInvoiceService.processTemplateOcrSync(image.getImageUrl(), member, image.getId())
                             .thenApply(result -> {
                                 System.out.println("[DEBUG] OCR 완료: " + image.getId());
                                 return result;

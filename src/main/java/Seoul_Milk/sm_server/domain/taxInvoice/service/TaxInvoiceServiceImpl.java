@@ -9,6 +9,7 @@ import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.repository.TaxInvoiceFileRepository;
 import Seoul_Milk.sm_server.global.clovaOcr.dto.BoundingPoly;
 import Seoul_Milk.sm_server.global.clovaOcr.dto.OcrField;
+import Seoul_Milk.sm_server.global.clovaOcr.dto.TemplateOcrField;
 import Seoul_Milk.sm_server.global.clovaOcr.infrastructure.ClovaOcrApi;
 import Seoul_Milk.sm_server.global.clovaOcr.service.OcrDataExtractor;
 import Seoul_Milk.sm_server.global.exception.CustomException;
@@ -55,6 +56,194 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
     private static final int MAX_REQUESTS_PER_SECOND = 5;  // 초당 최대 5개 요청
     private final Semaphore semaphore = new Semaphore(MAX_REQUESTS_PER_SECOND, true);
+
+
+    /**
+     * CLOCA OCR TEMPLATE 유형으로 보내는 요청에 맞게 처리
+     */
+    @Async("ocrTaskExecutor")
+    @Override
+    public CompletableFuture<TaxInvoiceResponseDTO.Create> processTemplateOcrAsync(MultipartFile image, MemberEntity member) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                semaphore.acquire(); // 요청 개수가 5개를 초과하면 자동 대기
+
+                long startTime = System.nanoTime();
+                TaxInvoiceResponseDTO.Create response = processTemplateOcrSync(image, member);
+                long endTime = System.nanoTime();
+
+                long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+                System.out.println("OCR 요청 처리 시간: " + elapsedTimeMillis + " ms");
+
+                return response;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return TaxInvoiceResponseDTO.Create.error(image.getOriginalFilename(), "OCR 요청 대기 중 인터럽트 발생");
+            } finally {
+                semaphore.release(); // 실행이 끝나면 세마포어 해제
+            }
+        });
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public TaxInvoiceResponseDTO.Create processTemplateOcrSync(MultipartFile image, MemberEntity member) {
+        long startTime = System.nanoTime();
+        List<String> errorDetails = new ArrayList<>();
+        Map<String, Object> extractedData;
+
+        try {
+            // CLOVA OCR API 호출
+            String jsonResponse = clovaOcrApi.callApi("POST", image, clovaSecretKey, image.getContentType());
+            if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
+                throw new CustomException(ErrorCode.OCR_NO_RESULT);
+            }
+
+            System.out.println("[DEBUG] Clova OCR 응답 JSON: " + jsonResponse);
+
+            // OCR 데이터 변환
+            List<TemplateOcrField> ocrFields = convertToTemplateOcrFields(jsonResponse);
+            extractedData = ocrDataExtractor.extractDataFromTemplateOcrFields(ocrFields);
+            if (extractedData == null || extractedData.isEmpty()) {
+                throw new CustomException(ErrorCode.OCR_EMPTY_JSON);
+            }
+
+            // OCR 데이터 검증 및 기본값 설정
+            String issueId = getOrDefault(extractedData, "approval_number", "UNKNOWN");
+            String supplierId = getOrDefault(extractedData, "supplier_registration_number", "UNKNOWN");
+            String recipientId = getOrDefault(extractedData, "recipient_registration_number", "UNKNOWN");
+            String issueDate = getOrDefault(extractedData, "issue_date", "UNKNOWN");
+            String supplierBusinessName = getOrDefault(extractedData, "supplier_business_name", "UNKNOWN");
+            String recipientBusinessName = getOrDefault(extractedData, "recipient_business_name", "UNKNOWN");
+            String supplierName = getOrDefault(extractedData, "supplier_name", "UNKNOWN");
+            String recipientName = getOrDefault(extractedData, "recipient_name", "UNKNOWN");
+            String supplierAddress = getOrDefault(extractedData, "supplier_address", "UNKNOWN");
+            String recipientAddress = getOrDefault(extractedData, "recipient_address", "UNKNOWN");
+            String supplierEmail = getOrDefault(extractedData, "supplier_email", "UNKNOWN");
+            String recipientEmail = getOrDefault(extractedData, "recipient_email", "UNKNOWN");
+
+            // 가격 변환
+            int chargeTotal = parseAmount(extractedData, "chargeTotal", errorDetails);
+            int totalAmount = parseAmount(extractedData, "total_amount", errorDetails);
+            int grandTotal = parseAmount(extractedData, "grandTotal", errorDetails);
+
+            // OCR 성공 후 S3 파일 저장
+            String fileUrl = awsS3Service.uploadFile("tax_invoices", image, true);
+
+            // TaxInvoice 생성 및 저장
+            TaxInvoice taxInvoice = TaxInvoice.create(issueId, supplierId, recipientId, chargeTotal, totalAmount, grandTotal,
+                    issueDate, supplierBusinessName, recipientBusinessName, supplierName, recipientName, supplierAddress, recipientAddress, supplierEmail, recipientEmail, member, errorDetails);
+            TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
+
+            // TaxInvoiceFile 생성 및 저장
+            TaxInvoiceFile taxFile = TaxInvoiceFile.create(savedTaxInvoice, fileUrl, image.getContentType(),
+                    image.getOriginalFilename(), image.getSize(), LocalDateTime.now());
+            taxInvoiceFileRepository.save(taxFile);
+            savedTaxInvoice.attachFile(taxFile);
+            taxInvoiceRepository.save(savedTaxInvoice);
+
+            long endTime = System.nanoTime();
+            long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+            return TaxInvoiceResponseDTO.Create.from(taxInvoice, image.getOriginalFilename(), extractedData, errorDetails, elapsedTimeMillis);
+
+        } catch (Exception e) {
+            System.out.println("[ERROR] OCR 처리 중 예외 발생: " + e.getMessage());
+            return TaxInvoiceResponseDTO.Create.error(image.getOriginalFilename(), e.getMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public CompletableFuture<TaxInvoiceResponseDTO.Create> processTemplateOcrSync(String imageUrl, MemberEntity member, Long imageId) {
+        return CompletableFuture.supplyAsync(() -> {
+            long startTime = System.nanoTime();
+            List<String> errorDetails = new ArrayList<>();
+            Map<String, Object> extractedData;
+
+            try {
+                System.out.println("[DEBUG] S3에서 파일 다운로드 시작: " + imageUrl);
+
+                // S3에서 파일 다운로드하여 MultipartFile 변환
+                MultipartFile file = awsS3Service.downloadFileFromS3(imageUrl);
+                System.out.println("[DEBUG] 파일 다운로드 완료: " + file.getOriginalFilename());
+
+                // CLOVA OCR API 요청
+                String jsonResponse = clovaOcrApi.callApi("POST", file, clovaSecretKey, file.getContentType());
+                if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
+                    throw new CustomException(ErrorCode.OCR_NO_RESULT);
+                }
+
+                System.out.println("[DEBUG] Clova OCR 응답 JSON: " + jsonResponse);
+
+                // OCR 데이터 변환
+                List<TemplateOcrField> ocrFields = convertToTemplateOcrFields(jsonResponse);
+                extractedData = ocrDataExtractor.extractDataFromTemplateOcrFields(ocrFields);
+                if (extractedData == null || extractedData.isEmpty()) {
+                    throw new CustomException(ErrorCode.OCR_EMPTY_JSON);
+                }
+
+                // OCR 데이터 검증 및 기본값 설정
+                String issueId = getOrDefault(extractedData, "approval_number", "UNKNOWN");
+                String supplierId = getOrDefault(extractedData, "supplier_registration_number", "UNKNOWN");
+                String recipientId = getOrDefault(extractedData, "recipient_registration_number", "UNKNOWN");
+                String issueDate = getOrDefault(extractedData, "issue_date", "UNKNOWN");
+                String supplierBusinessName = getOrDefault(extractedData, "supplier_business_name", "UNKNOWN");
+                String recipientBusinessName = getOrDefault(extractedData, "recipient_business_name", "UNKNOWN");
+                String supplierName = getOrDefault(extractedData, "supplier_name", "UNKNOWN");
+                String recipientName = getOrDefault(extractedData, "recipient_name", "UNKNOWN");
+                String supplierAddress = getOrDefault(extractedData, "supplier_address", "UNKNOWN");
+                String recipientAddress = getOrDefault(extractedData, "recipient_address", "UNKNOWN");
+                String supplierEmail = getOrDefault(extractedData, "supplier_email", "UNKNOWN");
+                String recipientEmail = getOrDefault(extractedData, "recipient_email", "UNKNOWN");
+
+                // 가격 변환
+                int chargeTotal = parseAmount(extractedData, "chargeTotal", errorDetails);
+                int totalAmount = parseAmount(extractedData, "total_amount", errorDetails);
+                int grandTotal = parseAmount(extractedData, "grandTotal", errorDetails);
+
+                // OCR 성공 후 S3 파일 이동
+                System.out.println("[DEBUG] OCR 성공 후 파일 이동: " + imageUrl);
+                String movedFileUrl = awsS3Service.moveFileToFinalFolder(imageUrl, "tax_invoices");
+
+                // TaxInvoice 생성 및 저장
+                TaxInvoice taxInvoice = TaxInvoice.create(issueId, supplierId, recipientId, chargeTotal, totalAmount, grandTotal,
+                        issueDate, supplierBusinessName, recipientBusinessName, supplierName, recipientName, supplierAddress, recipientAddress, supplierEmail, recipientEmail, member, errorDetails);
+                TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
+
+                // TaxInvoiceFile 생성 및 저장
+                TaxInvoiceFile taxFile = TaxInvoiceFile.create(savedTaxInvoice, movedFileUrl, file.getContentType(),
+                        file.getOriginalFilename(), file.getSize(), LocalDateTime.now());
+                taxInvoiceFileRepository.save(taxFile);
+                savedTaxInvoice.attachFile(taxFile);
+                taxInvoiceRepository.save(savedTaxInvoice);
+
+                // OCR 처리 후 해당 이미지의 임시 저장 해제
+                if (imageId != null) {
+                    imageService.removeFromTemporary(member, List.of(imageId));
+                    System.out.println("[INFO] OCR 완료 후 이미지 삭제됨: " + imageId);
+                }
+
+                long endTime = System.nanoTime();
+                long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+                return TaxInvoiceResponseDTO.Create.from(taxInvoice, imageUrl, extractedData, errorDetails, elapsedTimeMillis);
+
+            } catch (Exception e) {
+                System.out.println("[ERROR] OCR 처리 중 예외 발생: " + e.getMessage());
+                return TaxInvoiceResponseDTO.Create.error(imageUrl, e.getMessage());
+            }
+        });
+    }
+
+
+    private int parseAmount(Map<String, Object> extractedData, String key, List<String> errorDetails) {
+        String amountStr = getOrDefault(extractedData, key, "0");
+        try {
+            return Integer.parseInt(amountStr.replaceAll(",", ""));
+        } catch (NumberFormatException e) {
+            errorDetails.add(key + " 숫자 변환 오류");
+            return -1;
+        }
+    }
+
 
     @Async("ocrTaskExecutor")
     @Override
@@ -367,6 +556,47 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
         taxInvoiceRepository.delete(taxInvoiceId);
     }
 
+
+    /** 문자열을 TemplateOcrField로 변환하는 메서드 */
+    private List<TemplateOcrField> convertToTemplateOcrFields(String jsonResponse) {
+        if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
+            throw new CustomException(ErrorCode.OCR_EMPTY_JSON);
+        }
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Object> root = objectMapper.readValue(jsonResponse, new TypeReference<Map<String, Object>>() {});
+            List<Map<String, Object>> images = (List<Map<String, Object>>) root.get("images");
+
+            if (images == null || images.isEmpty()) {
+                throw new CustomException(ErrorCode.OCR_NO_IMAGES);
+            }
+
+            List<Map<String, Object>> fields = (List<Map<String, Object>>) images.get(0).get("fields");
+            if (fields == null || fields.isEmpty()) {
+                throw new CustomException(ErrorCode.OCR_NO_FIELDS);
+            }
+
+            return fields.stream()
+                    .map(field -> {
+                        try {
+                            String name = (String) field.get("name");
+                            String inferText = (String) field.get("inferText");
+                            Map<String, Object> boundingPolyMap = (Map<String, Object>) field.get("boundingPoly");
+                            BoundingPoly boundingPoly = objectMapper.convertValue(boundingPolyMap, BoundingPoly.class);
+                            return new TemplateOcrField(name, inferText, boundingPoly);
+                        } catch (Exception e) {
+                            throw new CustomException(ErrorCode.OCR_FIELD_CONVERSION_ERROR);
+                        }
+                    })
+                    .collect(Collectors.toList());
+
+        } catch (JsonProcessingException e) {
+            throw new CustomException(ErrorCode.OCR_JSON_PARSING_ERROR);
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.OCR_FIELD_CONVERSION_ERROR);
+        }
+    }
 
     /** 문자열을 OcrField로 변환하는 메서드 */
     private List<OcrField> convertToOcrFields(String jsonResponse) {
