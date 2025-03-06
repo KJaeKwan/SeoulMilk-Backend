@@ -49,6 +49,7 @@ clova:
   ocr:
     url: ${CLOVA_OCR_URL}
     secret-key: ${CLOVA_SECRET_KEY}
+    template-ids: 36392, 36405]
 
 springdoc:
   show-login-endpoint: true

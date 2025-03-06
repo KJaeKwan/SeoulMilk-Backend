@@ -24,7 +24,7 @@ public class TaxInvoiceValidationHistoryDTO {
                 taxInvoice.getTaxInvoiceId(),
                 taxInvoice.getSuName(),
                 taxInvoice.getIpName(),
-                taxInvoice.getCreatedAt(),
+                taxInvoice.getErDat(),
                 taxInvoiceFile.getFileUrl(),
                 taxInvoice.getProcessStatus()
             );
@@ -48,7 +48,7 @@ public class TaxInvoiceValidationHistoryDTO {
         ){
             return new GetModalResponse(
                     taxInvoice.getIssueId(),
-                    taxInvoice.getErDat(),
+                    taxInvoice.getIssueDate(),
                     taxInvoice.getSuName(),
                     taxInvoice.getSuId(),
                     taxInvoice.getIpName(),

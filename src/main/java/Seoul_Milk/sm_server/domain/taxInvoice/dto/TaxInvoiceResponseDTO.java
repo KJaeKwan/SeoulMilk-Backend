@@ -50,16 +50,20 @@ public class TaxInvoiceResponseDTO {
         @Schema(description = "승인번호") String issueId,
         @Schema(description = "공급자 등록번호") String ipId,
         @Schema(description = "공급받는자 등록번호") String suId,
-        @Schema(description = "공급가액") int taxTotal,
-        @Schema(description = "작성 일자") String erDat,
-        @Schema(description = "공급자 상호명") String ipBusinessName,
-        @Schema(description = "공급받는자 상호명") String suBusinessName,
-        @Schema(description = "공급자 성명") String ipName,
-        @Schema(description = "공급받는자 성명") String suName,
+        @Schema(description = "공급가액") int chargeTotal,
+        @Schema(description = "세액") int taxTotal,
+        @Schema(description = "총액") int grandTotal,
+        @Schema(description = "작성일자") String issueDate,
+        @Schema(description = "공급자 상호명") String ipName,
+        @Schema(description = "공급받는자 상호명") String suName,
+        @Schema(description = "공급자 성명") String ipRepres,
+        @Schema(description = "공급받는자 성명") String suRepres,
+        @Schema(description = "공급자 이메일") String ipEmail,
+        @Schema(description = "공급받는자 이메일") String suEmail,
         @Schema(description = "세금명세서 이미지 URL") String imageUrl,
         @Schema(description = "에러 상세 내역") List<String> errorDetails,
         @Schema(description = "임시저장 여부") TempStatus isTemporary,
-        @Schema(description = "생성일자") LocalDateTime createdAt
+        @Schema(description = "생성일자") LocalDateTime erDat
     ) {
         public static GetOne from(TaxInvoice taxInvoice) {
             return new GetOne(
@@ -69,16 +73,20 @@ public class TaxInvoiceResponseDTO {
                     taxInvoice.getIssueId(),
                     taxInvoice.getIpId(),
                     taxInvoice.getSuId(),
+                    taxInvoice.getChargeTotal(),
                     taxInvoice.getTaxTotal(),
-                    taxInvoice.getErDat(),
-                    taxInvoice.getIpBusinessName(),
-                    taxInvoice.getSuBusinessName(),
+                    taxInvoice.getGrandTotal(),
+                    taxInvoice.getIssueDate(),
                     taxInvoice.getIpName(),
                     taxInvoice.getSuName(),
+                    taxInvoice.getIpRepres(),
+                    taxInvoice.getSuRepres(),
+                    taxInvoice.getIpEmail(),
+                    taxInvoice.getSuEmail(),
                     taxInvoice.getFile().getFileUrl(),
                     taxInvoice.getErrorDetails() != null ? taxInvoice.getErrorDetails() : new ArrayList<>(),
                     taxInvoice.getIsTemporary(),
-                    taxInvoice.getCreatedAt()
+                    taxInvoice.getErDat()
             );
         }
     }
