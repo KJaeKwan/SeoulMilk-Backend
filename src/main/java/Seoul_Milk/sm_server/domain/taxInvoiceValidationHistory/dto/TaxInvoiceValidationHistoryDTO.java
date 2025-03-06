@@ -39,7 +39,9 @@ public class TaxInvoiceValidationHistoryDTO {
             @Schema(description = "공급자 등록번호") String suId,
             @Schema(description = "공급받는자명") String ipName,
             @Schema(description = "공급받는자 등록번호") String ipId,
-            @Schema(description = "공급가액") String taxTotal,
+            @Schema(description = "세액") String taxTotal,
+            @Schema(description = "공급가액") String chargeTotal,
+            @Schema(description = "총액") String grandTotal,
             @Schema(description = "처리현황") ProcessStatus processStatus,
             @Schema(description = "파일url") String url
     ){
@@ -54,6 +56,8 @@ public class TaxInvoiceValidationHistoryDTO {
                     taxInvoice.getIpName(),
                     taxInvoice.getIpId(),
                     String.valueOf(taxInvoice.getTaxTotal()),
+                    String.valueOf(taxInvoice.getChargeTotal()),
+                    String.valueOf(taxInvoice.getGrandTotal()),
                     taxInvoice.getProcessStatus(),
                     taxInvoice.getFile().getFileUrl()
             );
