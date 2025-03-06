@@ -45,8 +45,14 @@ public class TaxInvoice {
     @Column(name = "SU_ID", nullable = false, length = 40)
     private String suId;
 
-    @Column(name = "TAX_TOTAL", nullable = false)
-    private int taxTotal;
+    @Column(name = "CHARGE_TOTAL", nullable = false)
+    private int chargeTotal; // 총 공급가액
+
+    @Column(name = "TAX_TOTAL")
+    private int taxTotal; // 총 세액
+
+    @Column(name = "GRAND_TOTAL")
+    private int grandTotal; // 총액
 
     @Column(name = "ER_DAT", nullable = false, length = 40)
     private String erDat;
