@@ -21,56 +21,56 @@ public class OcrDataExtractor {
 
         for (TemplateOcrField field : ocrFields) {
             String fieldName = field.getName();
-            String fieldValue = field.getInferText().trim();
+            String fieldValue = field.getInferText().replaceAll("\\n", "").trim();
 
             if (fieldName == null || fieldValue.isEmpty()) {
                 continue;
             }
 
             switch (fieldName) {
-                case "승인번호":
+                case "issueId":
                     extractedData.put("approval_number", fieldValue);
                     break;
-                case "공급자 사업자 등록번호":
+                case "ipId":
                     extractedData.put("supplier_registration_number", fieldValue);
                     break;
-                case "공급받는자 사업자 등록번호":
+                case "suId":
                     extractedData.put("recipient_registration_number", fieldValue);
                     break;
-                case "발행일":
+                case "issueDate":
                     extractedData.put("issue_date", fieldValue);
                     break;
-                case "공급가액":
+                case "chargeTotal":
                     extractedData.put("total_amount", fieldValue);
                     break;
-                case "세액":
+                case "taxTotal":
                     extractedData.put("tax_amount", fieldValue);
                     break;
-                case "총금액":
+                case "grandTotal":
                     extractedData.put("grand_total", fieldValue);
                     break;
-                case "공급자 상호":
+                case "ipName":
                     extractedData.put("supplier_business_name", fieldValue);
                     break;
-                case "공급받는자 상호":
+                case "suName":
                     extractedData.put("recipient_business_name", fieldValue);
                     break;
-                case "공급자 성명":
+                case "ipRepres":
                     extractedData.put("supplier_name", fieldValue);
                     break;
-                case "공급받는자 성명":
+                case "suRepres":
                     extractedData.put("recipient_name", fieldValue);
                     break;
-                case "공급자 주소":
+                case "ipAddr":
                     extractedData.put("supplier_address", fieldValue);
                     break;
-                case "공급받는자 주소":
+                case "suAddr":
                     extractedData.put("recipient_address", fieldValue);
                     break;
-                case "공급자 이메일":
+                case "ipEmail":
                     extractedData.put("supplier_email", fieldValue);
                     break;
-                case "공급받는자 이메일":
+                case "suEmail":
                     extractedData.put("recipient_email", fieldValue);
                     break;
             }
