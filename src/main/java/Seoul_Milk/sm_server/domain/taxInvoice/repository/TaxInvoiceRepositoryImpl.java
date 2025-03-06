@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.*;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.enums.MaxSearchLimit.MAX_SEARCH_LIMIT;
 
 @Repository
 @RequiredArgsConstructor
@@ -155,14 +156,22 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         if(processStatus != null){
             whereClause.and(taxInvoice.processStatus.eq(processStatus));
         }
-        long count = Optional.ofNullable(
+        //최신 100개 데이터만 고려
+        List<Long> latestIds = queryFactory
+                .select(taxInvoice.taxInvoiceId)
+                .from(taxInvoice)
+                .where(taxInvoice.member.id.eq(member.getId())) // 사용자 기준으로 필터링
+                .orderBy(taxInvoice.erDat.desc()) // 최신순 정렬
+                .limit(MAX_SEARCH_LIMIT.getNum()) // 최신 100개만 선택
+                .fetch();
+
+        return Optional.ofNullable(
                 queryFactory
                         .select(Wildcard.count)
                         .from(taxInvoice)
-                        .where(whereClause)
+                        .where(whereClause.and(taxInvoice.taxInvoiceId.in(latestIds))) // 최신 100개 내에서 필터링
                         .fetchOne()
         ).orElse(0L);
-        return count;
     }
 
     //임시저장 상태가 INITIAL인건 모두 Untemp로 바꾸기
@@ -218,6 +227,9 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         //임시저장 여부 조건 추가
         whereClause.and(taxInvoice.isTemporary.eq(UNTEMP).not());
 
+        int maxLimit = MAX_SEARCH_LIMIT.getNum();
+        int pageSize = Math.min(pageable.getPageSize(), maxLimit);
+
         long total = Optional.ofNullable(
                 queryFactory
                         .select(Wildcard.count)
@@ -226,6 +238,12 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
                         .fetchOne()
         ).orElse(0L);
 
+        // 전체 개수가 100개 초과하면, 100개까지만 표시
+        if (total > maxLimit) {
+            total = maxLimit;
+        }
+
+
         List<TaxInvoice> results = queryFactory
                 .selectFrom(taxInvoice)
                 .leftJoin(taxInvoice.member, memberEntity).fetchJoin()
@@ -233,7 +251,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
                 .where(whereClause)
                 .orderBy(taxInvoice.erDat.desc())
                 .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .limit(pageSize)
                 .fetch();
 
         return new PageImpl<>(results, pageable, total);
