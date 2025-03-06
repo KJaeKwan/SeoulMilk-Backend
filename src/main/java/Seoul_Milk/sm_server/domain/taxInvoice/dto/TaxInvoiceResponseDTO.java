@@ -22,9 +22,17 @@ public class TaxInvoiceResponseDTO {
             @Schema(description = "응답 시간") long processingTime
     ) {
         public static Create from(TaxInvoice taxInvoice, String fileName, Map<String, Object> extractedData, List<String> errorDetails, long processingTime) {
+            Map<String, Object> filteredData = Map.of(
+                    "issueId", extractedData.getOrDefault("approval_number", ""),
+                    "ipId", extractedData.getOrDefault("supplier_registration_number", ""),
+                    "suId", extractedData.getOrDefault("recipient_registration_number", ""),
+                    "chargeTotal", extractedData.getOrDefault("chargeTotal", 0),
+                    "erDat", extractedData.getOrDefault("issue_date", "")
+            );
+
             return new Create(
                     fileName,
-                    extractedData,
+                    filteredData,
                     taxInvoice.getProcessStatus().name(),
                     errorDetails,
                     processingTime
@@ -91,12 +99,4 @@ public class TaxInvoiceResponseDTO {
         }
     }
 
-    @Schema(description = "세금 계산서 리스트 응답 DTO")
-    public record GetALL(
-            @Schema(description = "세금 계산서 리스트") List<GetOne> taxInvoices
-    ) {
-        public static GetALL from(List<TaxInvoice> taxInvoiceList) {
-            return new GetALL(taxInvoiceList.stream().map(GetOne::from).toList());
-        }
-    }
 }
