@@ -81,8 +81,12 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public List<Image> getTempImagesForOcr(MemberEntity member) {
-        List<Image> images = imageRepository.findTmpAllByMember(member);
+    public List<Image> getTempImagesByIds(MemberEntity member, List<Long> imageIds) {
+        if (imageIds == null || imageIds.isEmpty()) {
+            throw new CustomException(ErrorCode.TMP_IMAGE_NOT_EXIST);
+        }
+
+        List<Image> images = imageRepository.findByMemberAndIds(member, imageIds);
 
         if (images.isEmpty()) {
             throw new CustomException(ErrorCode.TMP_IMAGE_NOT_EXIST);
