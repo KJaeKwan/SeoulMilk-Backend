@@ -10,6 +10,9 @@ import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,9 +55,12 @@ public class TaxInvoiceController {
                     - 로그인 유저의 임시 저장 이미지는 자동으로 전부 들어간다
                     - 두 경우를 합친 이미지가 0개이면 에러 발생
                     """)
+    @RequestBody(content = @Content(
+            encoding = @Encoding(name = "request", contentType = MediaType.APPLICATION_JSON_VALUE))) // request 내부에 Content Type 설정 (Swagger)
     @PostMapping(value = "/multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public SuccessResponse<List<TaxInvoiceResponseDTO.Create>> processParallelMultipleImages(
-            @RequestParam(value = "images", required = false) List<MultipartFile> images,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestParam(value = "data", required = false) List<Long> tempImageIds,
             @CurrentMember MemberEntity member
     ) {
         long totalStartTime = System.nanoTime();
@@ -64,12 +70,8 @@ public class TaxInvoiceController {
 
         // 임시 저장된 이미지 조회
         List<Image> tempImages = new ArrayList<>();
-        try {
-            tempImages.addAll(imageService.getTempImagesForOcr(member)); // 기존 String 대신 Image 객체 리스트 반환
-        } catch (CustomException e) {
-            if (!e.getErrorCode().equals(ErrorCode.TMP_IMAGE_NOT_EXIST)) {
-                throw e;
-            }
+        if (tempImageIds != null && !tempImageIds.isEmpty()) {
+            tempImages = imageService.getTempImagesByIds(member, tempImageIds);
         }
 
         // 처리할 이미지가 없는 경우 예외 발생
@@ -95,6 +97,7 @@ public class TaxInvoiceController {
         // allOf로 실행 후 한 번에 처리
         List<TaxInvoiceResponseDTO.Create> result = Stream.concat(futureLocalResults.stream(), futureTempResults.stream())
                 .map(CompletableFuture::join)
+                .filter(response -> response != null && response.extractedData() != null && !response.extractedData().isEmpty()) // OCR 실패한 데이터 제거
                 .toList();
 
         long totalEndTime = System.nanoTime();
