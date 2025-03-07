@@ -3,6 +3,7 @@ package Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.controller;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSearchResult;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.ChangeTaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.service.TaxInvoiceValidationService;
 import Seoul_Milk.sm_server.global.annotation.CurrentMember;
@@ -65,6 +66,15 @@ public class TaxInvoiceValidationHistoryController {
             @PathVariable(name = "taxInvoiceId") Long taxInvoiceId
     ){
         return SuccessResponse.ok(taxInvoiceValidationService.showModal(taxInvoiceId));
+    }
+
+    @Operation(summary = "<RE_03> 필수컬럼 수정 api")
+    @PostMapping("/change")
+    public SuccessResponse<ChangeTaxInvoiceRequest> changeColunm(
+            @CurrentMember MemberEntity memberEntity,
+            @RequestBody ChangeTaxInvoiceRequest changeTaxInvoiceRequest
+    ){
+        return SuccessResponse.ok(taxInvoiceValidationService.changeColunm(memberEntity, changeTaxInvoiceRequest));
     }
 
 }

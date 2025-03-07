@@ -42,5 +42,11 @@ public interface TaxInvoiceRepository {
      * 있기 때문
      */
     boolean isAccessYourTaxInvoice(MemberEntity memberEntity, String issueId);
+    boolean isAccessYourTaxInvoice(MemberEntity memberEntity, Long id);
+
+    /**
+     * 필수컬럼 값 수정
+     */
+    void updateMandatoryColumns(Long targetId, String issueId, String erDat, String ipId, String suId, int chargeTotal);
 }
 
