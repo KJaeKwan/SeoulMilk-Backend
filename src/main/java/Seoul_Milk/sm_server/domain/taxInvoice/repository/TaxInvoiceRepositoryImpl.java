@@ -26,6 +26,7 @@ import java.util.Optional;
 
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.*;
 import static Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.enums.MaxSearchLimit.MAX_SEARCH_LIMIT;
+import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_ALREADY_EXIST;
 
 @Repository
 @RequiredArgsConstructor
@@ -203,6 +204,36 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     public boolean isAccessYourTaxInvoice(MemberEntity memberEntity, String issueId) {
         TaxInvoice taxInvoice = taxInvoiceJpaRepository.findByIssueId(issueId);
         return taxInvoice.isYourTaxInvoice(memberEntity);
+    }
+
+    @Override
+    public boolean isAccessYourTaxInvoice(MemberEntity memberEntity, Long id) {
+        TaxInvoice taxInvoice = taxInvoiceJpaRepository.findById(id)
+                .orElseThrow(() -> new CustomException(TAX_INVOICE_ALREADY_EXIST));
+        return taxInvoice.isYourTaxInvoice(memberEntity);
+    }
+
+    /**
+     * 필수 컬럼 값 수정
+     * @param issueId 승인번호
+     * @param erDat 작성일자
+     * @param ipId 공급받는자 등록번호
+     * @param suId 공급자 등록번호
+     * @param chargeTotal 공급가액
+     */
+    @Override
+    @Transactional
+    public void updateMandatoryColumns(Long targetId, String issueId, String erDat, String ipId, String suId, int chargeTotal) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+        queryFactory
+                .update(taxInvoice)
+                .set(taxInvoice.issueId, issueId)
+                .set(taxInvoice.erDat, erDat)
+                .set(taxInvoice.ipId, ipId)
+                .set(taxInvoice.suId, suId)
+                .set(taxInvoice.chargeTotal, chargeTotal)
+                .where(taxInvoice.taxInvoiceId.eq(targetId))
+                .execute();
     }
 
     @Override

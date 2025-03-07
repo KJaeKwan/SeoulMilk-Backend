@@ -13,6 +13,7 @@ import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSea
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO.GetHistoryData;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO.GetModalResponse;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.ChangeTaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.validator.TaxInvoiceValidator;
 import Seoul_Milk.sm_server.global.exception.CustomException;
@@ -100,5 +101,28 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
         TaxInvoice taxInvoice = taxInvoiceRepository.findById(taxInvoiceId)
                 .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
         return TaxInvoiceValidationHistoryDTO.GetModalResponse.from(taxInvoice);
+    }
+
+    /**
+     * 수정 api
+     * @param memberEntity
+     * @param changeTaxInvoiceRequest
+     * @return
+     */
+    @Override
+    public ChangeTaxInvoiceRequest changeColunm(MemberEntity memberEntity,
+            ChangeTaxInvoiceRequest changeTaxInvoiceRequest) {
+        if(!taxInvoiceRepository.isAccessYourTaxInvoice(memberEntity, changeTaxInvoiceRequest.getTaxInvoiceId())){
+            throw new CustomException(DO_NOT_ACCESS_OTHER_TAX_INVOICE);
+        }
+        taxInvoiceRepository.updateMandatoryColumns(
+                changeTaxInvoiceRequest.getTaxInvoiceId(),
+                changeTaxInvoiceRequest.getIssueId(),
+                changeTaxInvoiceRequest.getErDat(),
+                changeTaxInvoiceRequest.getIpId(),
+                changeTaxInvoiceRequest.getSuId(),
+                changeTaxInvoiceRequest.getChargeTotal()
+        );
+        return null;
     }
 }
