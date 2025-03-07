@@ -278,4 +278,15 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     public TaxInvoice findByIssueId(String issueId) {
         return taxInvoiceJpaRepository.findByIssueId(issueId);
     }
+
+    @Override
+    public boolean existsByIssueId(String issueId) {
+        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
+
+        return queryFactory
+                .selectOne()
+                .from(taxInvoice)
+                .where(taxInvoice.issueId.eq(issueId))
+                .fetchFirst() != null;
+    }
 }

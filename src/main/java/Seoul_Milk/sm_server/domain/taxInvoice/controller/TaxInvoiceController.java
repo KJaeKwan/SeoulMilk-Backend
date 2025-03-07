@@ -10,6 +10,9 @@ import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -52,9 +56,12 @@ public class TaxInvoiceController {
                     - 로그인 유저의 임시 저장 이미지는 자동으로 전부 들어간다
                     - 두 경우를 합친 이미지가 0개이면 에러 발생
                     """)
+    @RequestBody(content = @Content(
+            encoding = @Encoding(name = "request", contentType = MediaType.APPLICATION_JSON_VALUE))) // request 내부에 Content Type 설정 (Swagger)
     @PostMapping(value = "/multiple", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public SuccessResponse<List<TaxInvoiceResponseDTO.Create>> processParallelMultipleImages(
-            @RequestParam(value = "images", required = false) List<MultipartFile> images,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestParam(value = "data", required = false) List<Long> tempImageIds,
             @CurrentMember MemberEntity member
     ) {
         long totalStartTime = System.nanoTime();
@@ -64,12 +71,8 @@ public class TaxInvoiceController {
 
         // 임시 저장된 이미지 조회
         List<Image> tempImages = new ArrayList<>();
-        try {
-            tempImages.addAll(imageService.getTempImagesForOcr(member)); // 기존 String 대신 Image 객체 리스트 반환
-        } catch (CustomException e) {
-            if (!e.getErrorCode().equals(ErrorCode.TMP_IMAGE_NOT_EXIST)) {
-                throw e;
-            }
+        if (tempImageIds != null && !tempImageIds.isEmpty()) {
+            tempImages = imageService.getTempImagesByIds(member, tempImageIds);
         }
 
         // 처리할 이미지가 없는 경우 예외 발생
@@ -77,24 +80,21 @@ public class TaxInvoiceController {
             throw new CustomException(ErrorCode.UPLOAD_FAILED);
         }
 
-        // 비동기 OCR 요청 실행
+        // 비동기 OCR 요청 실행 (예외 처리 추가)
         List<CompletableFuture<TaxInvoiceResponseDTO.Create>> futureLocalResults = localFiles.stream()
-                .map(file -> taxInvoiceService.processTemplateOcrAsync(file, member))
+                .map(file -> taxInvoiceService.processTemplateOcrAsync(file, member)
+                        .exceptionally(e -> TaxInvoiceResponseDTO.Create.error(file.getOriginalFilename(), "OCR 처리 실패: " + e.getMessage())))
                 .toList();
+
         List<CompletableFuture<TaxInvoiceResponseDTO.Create>> futureTempResults = tempImages.stream()
-                .map(image -> {
-                    System.out.println("[DEBUG] OCR 요청: 임시 저장 이미지 ID -> " + image.getId());
-                    return taxInvoiceService.processTemplateOcrSync(image.getImageUrl(), member, image.getId())
-                            .thenApply(result -> {
-                                System.out.println("[DEBUG] OCR 완료: " + image.getId());
-                                return result;
-                            });
-                })
+                .map(image -> taxInvoiceService.processTemplateOcrSync(image.getImageUrl(), member, image.getId())
+                        .exceptionally(e -> TaxInvoiceResponseDTO.Create.error(image.getImageUrl(), "OCR 처리 실패: " + e.getMessage())))
                 .toList();
 
         // allOf로 실행 후 한 번에 처리
         List<TaxInvoiceResponseDTO.Create> result = Stream.concat(futureLocalResults.stream(), futureTempResults.stream())
                 .map(CompletableFuture::join)
+                .filter(Objects::nonNull)
                 .toList();
 
         long totalEndTime = System.nanoTime();

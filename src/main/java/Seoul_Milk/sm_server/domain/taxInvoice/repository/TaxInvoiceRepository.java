@@ -34,6 +34,7 @@ public interface TaxInvoiceRepository {
 
     //임시저장 상태를 모두 TEMP로 바꾸기
     void updateIsTemporaryToTemp(List<Long> taxInvoiceIds);
+    boolean existsByIssueId(String issueId);
 
     /**
      * 현재 유저가 본인의 TaxInvoice데이터에 접근하려고 하고 있는지 확인하는 로직
