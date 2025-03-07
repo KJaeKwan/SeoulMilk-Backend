@@ -15,6 +15,8 @@ import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.SU
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.TELECOM;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.TWO_WAY_INFO;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.USER_NAME;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.ERROR_APPROVE_NUM;
+import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.INVALID_APPROVE_NUM;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.NEED_SIMPLE_AUTHENTICATION;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.SUCCESS_RESPONSE;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.ThreadTerm.THREAD_TERM;
@@ -24,6 +26,7 @@ import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.THREAD_
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.TWO_WAY_TIMESTAMP;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_INTERANL_SERVER_ERROR;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_NEED_AUTHENTICATION;
+import static Seoul_Milk.sm_server.global.exception.ErrorCode.DO_NOT_ACCESS_OTHER_TAX_INVOICE;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
@@ -87,8 +90,18 @@ public class TaxValidationServiceImpl implements TaxValidationService {
         List<TaxInvoiceInfo> taxInvoiceInfoList = nonVerifiedTaxValidationRequestDTO.getTaxInvoiceInfoList();
         String id = memberEntity.makeUniqueId();
         int iter = taxInvoiceInfoList.size();
+
+        //codef api의 요청 전 요청 값 검사(진위여부 확인하려는 세금계산서가 본인 것이 맞는지)
+        if (taxInvoiceInfoList.stream()
+                .anyMatch(taxInvoiceInfo ->
+                        !taxInvoiceRepository.isAccessYourTaxInvoice(memberEntity, taxInvoiceInfo.getApprovalNo()))) {
+            throw new CustomException(DO_NOT_ACCESS_OTHER_TAX_INVOICE);
+        }
+
+
         for(int i=0; i<iter; i++) {
             TaxInvoiceInfo taxInvoiceInfo = taxInvoiceInfoList.get(i);
+
             // 공통 파라미터 설정
             HashMap<String, Object> requestData = populateParameters(id, Map.of(
                     LOGIN_TYPE_LEVEL.getKey(), nonVerifiedTaxValidationRequestDTO.getLoginTypeLevel(),
@@ -154,7 +167,7 @@ public class TaxValidationServiceImpl implements TaxValidationService {
         }
         String resAuthenticity = rootNode.path("data").path("resAuthenticity").asText();
         String code = rootNode.path("result").path("code").asText();
-        isSimpleAuthCompleted(code);
+        validateCodefApi(code);
         if(Objects.equals(resAuthenticity, "1")){
             taxInvoice.approve();
         }else{
@@ -183,19 +196,20 @@ public class TaxValidationServiceImpl implements TaxValidationService {
     }
 
     /**
-     * 간편인증했는지 확인하는 로직
+     * codef api에서 올바른 응답이 오는지 확인하는 로직
      */
-    private void isSimpleAuthCompleted(String code){
+    private void validateCodefApi(String code){
         System.out.println(code);
         if(!SUCCESS_RESPONSE.isEqual(code)){
             if(NEED_SIMPLE_AUTHENTICATION.isEqual(code)){
                 throw new CustomException(CODEF_NEED_AUTHENTICATION);
             }
-            else{
+            else if(!INVALID_APPROVE_NUM.isEqual(code) && !ERROR_APPROVE_NUM.isEqual(code)){ // 승인번호관련 에러(승인번호가 잘못되었을때)는 exception이 아니라 반려(reject)처리 해야하니깐
                 throw new CustomException(CODEF_INTERANL_SERVER_ERROR);
             }
         }
     }
+
     /**
      * verifiedTaxValidation과
      * nonVerifiedTaxValidation이 공통으로 필요한 파라미터 넣는 메서드

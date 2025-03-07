@@ -200,6 +200,12 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     }
 
     @Override
+    public boolean isAccessYourTaxInvoice(MemberEntity memberEntity, String issueId) {
+        TaxInvoice taxInvoice = taxInvoiceJpaRepository.findByIssueId(issueId);
+        return taxInvoice.isYourTaxInvoice(memberEntity);
+    }
+
+    @Override
     public Page<TaxInvoice> searchConsumerOrProvider(String poc, String employeeId, ProcessStatus processStatus, MemberEntity member, Pageable pageable) {
         QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
         QMemberEntity memberEntity = QMemberEntity.memberEntity;

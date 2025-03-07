@@ -6,6 +6,7 @@ import Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import jakarta.persistence.*;
+import java.util.Objects;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedDate;
@@ -180,5 +181,9 @@ public class TaxInvoice {
     /** 임시 저장 여부 변경 **/
     public void updateIsTemp(TempStatus isTemporary) {
         this.isTemporary = isTemporary;
+    }
+
+    public boolean isYourTaxInvoice(MemberEntity memberEntity){
+        return Objects.equals(this.getMember().getId(), memberEntity.getId());
     }
 }
