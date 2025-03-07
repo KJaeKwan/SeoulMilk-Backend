@@ -34,5 +34,6 @@ public interface TaxInvoiceRepository {
 
     //임시저장 상태를 모두 TEMP로 바꾸기
     void updateIsTemporaryToTemp(List<Long> taxInvoiceIds);
+    boolean existsByIssueId(String issueId);
 }
 

@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -79,25 +80,21 @@ public class TaxInvoiceController {
             throw new CustomException(ErrorCode.UPLOAD_FAILED);
         }
 
-        // 비동기 OCR 요청 실행
+        // 비동기 OCR 요청 실행 (예외 처리 추가)
         List<CompletableFuture<TaxInvoiceResponseDTO.Create>> futureLocalResults = localFiles.stream()
-                .map(file -> taxInvoiceService.processTemplateOcrAsync(file, member))
+                .map(file -> taxInvoiceService.processTemplateOcrAsync(file, member)
+                        .exceptionally(e -> TaxInvoiceResponseDTO.Create.error(file.getOriginalFilename(), "OCR 처리 실패: " + e.getMessage())))
                 .toList();
+
         List<CompletableFuture<TaxInvoiceResponseDTO.Create>> futureTempResults = tempImages.stream()
-                .map(image -> {
-                    System.out.println("[DEBUG] OCR 요청: 임시 저장 이미지 ID -> " + image.getId());
-                    return taxInvoiceService.processTemplateOcrSync(image.getImageUrl(), member, image.getId())
-                            .thenApply(result -> {
-                                System.out.println("[DEBUG] OCR 완료: " + image.getId());
-                                return result;
-                            });
-                })
+                .map(image -> taxInvoiceService.processTemplateOcrSync(image.getImageUrl(), member, image.getId())
+                        .exceptionally(e -> TaxInvoiceResponseDTO.Create.error(image.getImageUrl(), "OCR 처리 실패: " + e.getMessage())))
                 .toList();
 
         // allOf로 실행 후 한 번에 처리
         List<TaxInvoiceResponseDTO.Create> result = Stream.concat(futureLocalResults.stream(), futureTempResults.stream())
                 .map(CompletableFuture::join)
-                .filter(response -> response != null && response.extractedData() != null && !response.extractedData().isEmpty()) // OCR 실패한 데이터 제거
+                .filter(Objects::nonNull)
                 .toList();
 
         long totalEndTime = System.nanoTime();

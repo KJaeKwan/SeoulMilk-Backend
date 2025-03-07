@@ -123,6 +123,10 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
             ProcessStatus status = ProcessStatus.PENDING;
 
+            if (taxInvoiceRepository.existsByIssueId(issueId)) {
+                throw new CustomException(ErrorCode.TAX_INVOICE_ALREADY_EXIST);
+            }
+
             // 필수값 검증 및 오류 메시지 추가
             validateRequiredField("승인번호", issueId, requiredFieldErrors);
             validateRequiredField("공급자 등록번호", ipId, requiredFieldErrors);
@@ -212,6 +216,10 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 String suEmail = getOrDefault(extractedData, "recipient_email", "UNKNOWN");
 
                 ProcessStatus status = ProcessStatus.PENDING;
+
+                if (taxInvoiceRepository.existsByIssueId(issueId)) {
+                    throw new CustomException(ErrorCode.TAX_INVOICE_ALREADY_EXIST);
+                }
 
                 // 필수값 검증 및 오류 메시지 추가
                 validateRequiredField("승인번호", issueId, requiredFieldErrors);
