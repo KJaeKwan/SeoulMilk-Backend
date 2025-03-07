@@ -5,6 +5,7 @@ import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.login.constant.Role;
 import Seoul_Milk.sm_server.login.dto.VerifyPwDTO;
 import Seoul_Milk.sm_server.login.dto.request.RegisterDTO;
+import Seoul_Milk.sm_server.login.dto.request.ResetPwDTO;
 import Seoul_Milk.sm_server.login.dto.request.UpdatePwDTO;
 import Seoul_Milk.sm_server.login.dto.request.UpdateRoleDTO;
 import Seoul_Milk.sm_server.login.dto.response.MemberResponse;
@@ -39,12 +40,9 @@ public class MemberServiceImpl implements MemberService {
         return memberRepository.getByEmployeeId(employeeId);
     }
 
-    /**
-     * 비밀번호 변경
-     */
     @Override
     @Transactional
-    public void updatePw(Long memberId, UpdatePwDTO request) {
+    public void resetPw(Long memberId, ResetPwDTO request) {
         MemberEntity member = memberRepository.getById(memberId);
 
         // 입력 비밀번호 2개 일치 여부 검증
@@ -62,6 +60,32 @@ public class MemberServiceImpl implements MemberService {
     }
 
     /**
+     * 비밀번호 변경
+     */
+    @Override
+    @Transactional
+    public void updatePw(Long memberId, UpdatePwDTO request) {
+        MemberEntity member = memberRepository.getById(memberId);
+
+        if (!passwordEncoder.matches(request.currentPassword(), member.getPassword())) {
+            throw new CustomException(ErrorCode.USER_WRONG_PASSWORD);
+        }
+
+        // 입력 비밀번호 2개 일치 여부 검증
+        if (!request.newPassword1().equals(request.newPassword2())) {
+            throw new CustomException(ErrorCode.PASSWORDS_NOT_MATCH);
+        }
+
+        // 동일한 비밀번호로 변경 불가
+        if (passwordEncoder.matches(request.newPassword1(), member.getPassword())) {
+            throw new CustomException(ErrorCode.USER_SAME_PASSWORD);
+        }
+
+        String newPassword = passwordEncoder.encode(request.newPassword1());
+        member.updatePassword(newPassword);
+    }
+
+    /**
      * 비밀번호 확인
      */
     @Override
@@ -71,24 +95,6 @@ public class MemberServiceImpl implements MemberService {
             throw new CustomException(ErrorCode.USER_WRONG_PASSWORD);
         }
         return true;
-    }
-
-    /**
-     * [임시] 권한 변경
-     */
-    @Override
-    @Transactional
-    public MemberResponse testUpdateRole(UpdateRoleDTO request) {
-        MemberEntity member = memberRepository.getById(request.memberId());
-
-        try {
-            Role role = Role.valueOf(request.role());
-            member.updateRole(role);
-        } catch (IllegalArgumentException e) {
-            throw new CustomException(ErrorCode.INVALID_ROLE);
-        }
-
-        return MemberResponse.from(member);
     }
 
     /**
