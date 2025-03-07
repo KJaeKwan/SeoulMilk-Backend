@@ -26,6 +26,7 @@ import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.THREAD_
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.TWO_WAY_TIMESTAMP;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_INTERANL_SERVER_ERROR;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_NEED_AUTHENTICATION;
+import static Seoul_Milk.sm_server.global.exception.ErrorCode.DO_NOT_ACCESS_OTHER_TAX_INVOICE;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
@@ -89,8 +90,18 @@ public class TaxValidationServiceImpl implements TaxValidationService {
         List<TaxInvoiceInfo> taxInvoiceInfoList = nonVerifiedTaxValidationRequestDTO.getTaxInvoiceInfoList();
         String id = memberEntity.makeUniqueId();
         int iter = taxInvoiceInfoList.size();
+
+        //codef api의 요청 전 요청 값 검사(진위여부 확인하려는 세금계산서가 본인 것이 맞는지)
+        if (taxInvoiceInfoList.stream()
+                .anyMatch(taxInvoiceInfo ->
+                        !taxInvoiceRepository.isAccessYourTaxInvoice(memberEntity, taxInvoiceInfo.getApprovalNo()))) {
+            throw new CustomException(DO_NOT_ACCESS_OTHER_TAX_INVOICE);
+        }
+
+
         for(int i=0; i<iter; i++) {
             TaxInvoiceInfo taxInvoiceInfo = taxInvoiceInfoList.get(i);
+
             // 공통 파라미터 설정
             HashMap<String, Object> requestData = populateParameters(id, Map.of(
                     LOGIN_TYPE_LEVEL.getKey(), nonVerifiedTaxValidationRequestDTO.getLoginTypeLevel(),
