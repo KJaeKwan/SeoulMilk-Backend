@@ -3,8 +3,8 @@ package Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.controller;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSearchResult;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.ChangeTaxInvoiceRequest;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.TaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryRequestDTO.ChangeTaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryRequestDTO.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.service.TaxInvoiceValidationService;
 import Seoul_Milk.sm_server.global.annotation.CurrentMember;
 import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
@@ -70,7 +70,7 @@ public class TaxInvoiceValidationHistoryController {
 
     @Operation(summary = "<RE_03> 필수컬럼 수정 api")
     @PostMapping("/change")
-    public SuccessResponse<ChangeTaxInvoiceRequest> changeColunm(
+    public SuccessResponse<Void> changeColunm(
             @CurrentMember MemberEntity memberEntity,
             @RequestBody ChangeTaxInvoiceRequest changeTaxInvoiceRequest
     ){

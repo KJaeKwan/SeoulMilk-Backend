@@ -13,8 +13,8 @@ import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSea
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO.GetHistoryData;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO.GetModalResponse;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.ChangeTaxInvoiceRequest;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.TaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryRequestDTO.ChangeTaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryRequestDTO.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.validator.TaxInvoiceValidator;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
@@ -59,7 +59,7 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
     @Transactional
     @Override
     public Void deleteValidationTaxInvoice(MemberEntity memberEntity, TaxInvoiceRequest taxInvoiceRequest) {
-        List<Long> taxInvoiceIdList = taxInvoiceRequest.getTaxInvoiceIdList();
+        List<Long> taxInvoiceIdList = taxInvoiceRequest.taxInvoiceIdList();
         List<TaxInvoice> taxInvoices = taxInvoiceRepository.findAllById(taxInvoiceIdList);
 
         // 검증 수행 (Validator에서 처리)
@@ -80,7 +80,7 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
     @Transactional
     @Override
     public Void tempSave(MemberEntity memberEntity, TaxInvoiceRequest taxInvoiceRequest) {
-        List<Long> taxInvoiceIdList = taxInvoiceRequest.getTaxInvoiceIdList();
+        List<Long> taxInvoiceIdList = taxInvoiceRequest.taxInvoiceIdList();
         List<TaxInvoice> taxInvoices = taxInvoiceRepository.findAllById(taxInvoiceIdList);
 
         // 검증 수행 (Validator에서 처리)
@@ -110,18 +110,18 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
      * @return
      */
     @Override
-    public ChangeTaxInvoiceRequest changeColunm(MemberEntity memberEntity,
+    public Void changeColunm(MemberEntity memberEntity,
             ChangeTaxInvoiceRequest changeTaxInvoiceRequest) {
-        if(!taxInvoiceRepository.isAccessYourTaxInvoice(memberEntity, changeTaxInvoiceRequest.getTaxInvoiceId())){
+        if(!taxInvoiceRepository.isAccessYourTaxInvoice(memberEntity, changeTaxInvoiceRequest.taxInvoiceId())){
             throw new CustomException(DO_NOT_ACCESS_OTHER_TAX_INVOICE);
         }
         taxInvoiceRepository.updateMandatoryColumns(
-                changeTaxInvoiceRequest.getTaxInvoiceId(),
-                changeTaxInvoiceRequest.getIssueId(),
-                changeTaxInvoiceRequest.getErDat(),
-                changeTaxInvoiceRequest.getIpId(),
-                changeTaxInvoiceRequest.getSuId(),
-                changeTaxInvoiceRequest.getChargeTotal()
+                changeTaxInvoiceRequest.taxInvoiceId(),
+                changeTaxInvoiceRequest.issueId(),
+                changeTaxInvoiceRequest.erDat(),
+                changeTaxInvoiceRequest.ipId(),
+                changeTaxInvoiceRequest.suId(),
+                changeTaxInvoiceRequest.chargeTotal()
         );
         return null;
     }
