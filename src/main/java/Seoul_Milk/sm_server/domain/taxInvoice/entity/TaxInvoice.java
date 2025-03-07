@@ -130,12 +130,13 @@ public class TaxInvoice {
             String ipEmail,
             String suEmail,
             MemberEntity member,
-            List<String> errorDetails
+            List<String> errorDetails,
+            ProcessStatus processStatus
     ) {
         return TaxInvoice.builder()
                 .issueId(issueId)
                 .arap(SALES)
-                .processStatus(UNAPPROVED) // default 값 unapproved(미승인)
+                .processStatus(processStatus)
                 .ipId(ipId)
                 .suId(suId)
                 .chargeTotal(chargeTotal)

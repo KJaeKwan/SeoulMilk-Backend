@@ -90,6 +90,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
     public TaxInvoiceResponseDTO.Create processTemplateOcrSync(MultipartFile image, MemberEntity member) {
         long startTime = System.nanoTime();
         List<String> errorDetails = new ArrayList<>();
+        List<String> requiredFieldErrors = new ArrayList<>();
         Map<String, Object> extractedData;
 
         try {
@@ -120,16 +121,27 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             String ipEmail = getOrDefault(extractedData, "supplier_email", "UNKNOWN");
             String suEmail = getOrDefault(extractedData, "recipient_email", "UNKNOWN");
 
+            ProcessStatus status = ProcessStatus.PENDING;
+
             // 필수값 검증 및 오류 메시지 추가
-            validateRequiredField("승인번호", issueId, errorDetails);
-            validateRequiredField("공급자 등록번호", ipId, errorDetails);
-            validateRequiredField("공급받는자 등록번호", suId, errorDetails);
-            validateRequiredField("발행일", erDat, errorDetails);
+            validateRequiredField("승인번호", issueId, requiredFieldErrors);
+            validateRequiredField("공급자 등록번호", ipId, requiredFieldErrors);
+            validateRequiredField("공급받는자 등록번호", suId, requiredFieldErrors);
+            validateRequiredField("발행일", erDat, requiredFieldErrors);
 
             // 가격 변환
-            int chargeTotal = parseAmount(extractedData, "chargeTotal", errorDetails);
+            int chargeTotal = parseAmount(extractedData, "chargeTotal", requiredFieldErrors);
             int taxTotal = parseAmount(extractedData, "total_amount", errorDetails);
             int grandTotal = parseAmount(extractedData, "grandTotal", errorDetails);
+
+            // 이메일 검증
+            validateEmail("공급자 이메일", ipEmail, errorDetails);
+            validateEmail("공급받는자 이메일", suEmail, errorDetails);
+
+            if (!requiredFieldErrors.isEmpty()) {
+                status = ProcessStatus.UNAPPROVED;
+                errorDetails.addAll(requiredFieldErrors);
+            }
 
             // OCR 성공 후 S3 파일 저장
             String fileUrl = awsS3Service.uploadFile("tax_invoices", image, true);
@@ -138,7 +150,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             TaxInvoice taxInvoice = TaxInvoice.create(
                     issueId, ipId, suId, chargeTotal, taxTotal, grandTotal,
                     erDat, ipBusinessName, suBusinessName, ipName, suName, ipAddress, suAddress,
-                    ipEmail, suEmail, member, errorDetails
+                    ipEmail, suEmail, member, errorDetails, status
             );
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
@@ -165,6 +177,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
         return CompletableFuture.supplyAsync(() -> {
             long startTime = System.nanoTime();
             List<String> errorDetails = new ArrayList<>();
+            List<String> requiredFieldErrors = new ArrayList<>();
             Map<String, Object> extractedData;
 
             try {
@@ -198,20 +211,27 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 String ipEmail = getOrDefault(extractedData, "supplier_email", "UNKNOWN");
                 String suEmail = getOrDefault(extractedData, "recipient_email", "UNKNOWN");
 
+                ProcessStatus status = ProcessStatus.PENDING;
+
                 // 필수값 검증 및 오류 메시지 추가
-                if ("UNKNOWN".equals(issueId)) errorDetails.add("승인번호 인식 오류");
-                if ("UNKNOWN".equals(ipId)) errorDetails.add("공급자 등록번호 인식 오류");
-                if ("UNKNOWN".equals(suId)) errorDetails.add("공급받는자 등록번호 인식 오류");
-                if ("UNKNOWN".equals(erDat)) errorDetails.add("발행일 인식 오류");
+                validateRequiredField("승인번호", issueId, requiredFieldErrors);
+                validateRequiredField("공급자 등록번호", ipId, requiredFieldErrors);
+                validateRequiredField("공급받는자 등록번호", suId, requiredFieldErrors);
+                validateRequiredField("발행일", erDat, requiredFieldErrors);
 
                 // 가격 변환
-                int chargeTotal = parseAmount(extractedData, "chargeTotal", errorDetails);
+                int chargeTotal = parseAmount(extractedData, "chargeTotal", requiredFieldErrors);
                 int taxTotal = parseAmount(extractedData, "total_amount", errorDetails);
                 int grandTotal = parseAmount(extractedData, "grandTotal", errorDetails);
 
                 // 이메일 검증
                 validateEmail("공급자 이메일", ipEmail, errorDetails);
                 validateEmail("공급받는자 이메일", suEmail, errorDetails);
+
+                if (!requiredFieldErrors.isEmpty()) {
+                    status = ProcessStatus.UNAPPROVED;
+                    errorDetails.addAll(requiredFieldErrors);
+                }
 
                 // OCR 성공 후 S3 파일 이동
                 String movedFileUrl = awsS3Service.moveFileToFinalFolder(imageUrl, "tax_invoices");
@@ -220,7 +240,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 TaxInvoice taxInvoice = TaxInvoice.create(
                         issueId, ipId, suId, chargeTotal, taxTotal, grandTotal,
                         erDat, ipBusinessName, suBusinessName, ipName, suName, ipAddress, suAddress,
-                        ipEmail, suEmail, member, errorDetails
+                        ipEmail, suEmail, member, errorDetails, status
                 );
                 TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
@@ -397,7 +417,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             // TaxInvoice 생성 및 저장
             TaxInvoice taxInvoice = TaxInvoice.create(issueId, ipId, suId, chargeTotal, taxTotal, grandTotal,
                     issueDate, ipName, suName, ipRepres, suRepres, ipAddr, suAddr,
-                    ipEmail, suEmail, member, errorDetails);
+                    ipEmail, suEmail, member, errorDetails, ProcessStatus.PENDING);
 
             System.out.println("Before saving: " + taxInvoice);
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
@@ -531,7 +551,8 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
             // TaxInvoice 생성 및 저장
             TaxInvoice taxInvoice = TaxInvoice.create(issueId, supplierId, recipientId, chargeTotal, totalAmount, grandTotal,
-                    issueDate, supplierBusinessName, recipientBusinessName, supplierName, recipientName, supplierAddress, recipientAddress, supplierEmail, recipientEmail, member, errorDetails);
+                    issueDate, supplierBusinessName, recipientBusinessName, supplierName, recipientName, supplierAddress, recipientAddress,
+                    supplierEmail, recipientEmail, member, errorDetails, ProcessStatus.PENDING);
             TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
             // TaxInvoiceFile 생성하여 TaxInvoice 에 연결
