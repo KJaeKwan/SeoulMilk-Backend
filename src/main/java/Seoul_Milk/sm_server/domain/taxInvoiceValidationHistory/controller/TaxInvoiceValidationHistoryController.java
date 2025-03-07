@@ -1,8 +1,7 @@
 package Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.controller;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSearchResult;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryRequestDTO.ChangeTaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryRequestDTO.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.service.TaxInvoiceValidationService;
@@ -31,7 +30,7 @@ public class TaxInvoiceValidationHistoryController {
 
     @Operation(summary = "<RE_01> 공급자 또는 공급받는자 검색 기능 + 승인, 반려, 검증실패별 조회 api")
     @GetMapping("/search")
-    public SuccessResponse<TaxInvoiceSearchResult.GetData> searchAndShowByFilter(
+    public SuccessResponse<TaxInvoiceValidationHistoryResponseDTO.TaxInvoiceSearchResult> searchAndShowByFilter(
             @CurrentMember MemberEntity memberEntity,
             @RequestParam(value = "poc") String poc,
             @RequestParam(value = "status") @Nullable ProcessStatus processStatus,
@@ -62,7 +61,7 @@ public class TaxInvoiceValidationHistoryController {
 
     @Operation(summary = "<RE_02> 승인/반려/수정된 결과 조회 모달 띄우기 api")
     @GetMapping("/modal/{taxInvoiceId}")
-    public SuccessResponse<TaxInvoiceValidationHistoryDTO.GetModalResponse> showModal(
+    public SuccessResponse<TaxInvoiceValidationHistoryResponseDTO.GetModalResponse> showModal(
             @PathVariable(name = "taxInvoiceId") Long taxInvoiceId
     ){
         return SuccessResponse.ok(taxInvoiceValidationService.showModal(taxInvoiceId));

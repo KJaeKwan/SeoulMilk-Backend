@@ -5,9 +5,10 @@ import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+import org.springframework.data.domain.Page;
 
 @Schema(description = "RE 관련 DTO")
-public class TaxInvoiceValidationHistoryDTO {
+public class TaxInvoiceValidationHistoryResponseDTO {
 
     @Schema(description = "검증 내역 조회 결과 단일 DTO")
     public record GetHistoryData(
@@ -60,6 +61,31 @@ public class TaxInvoiceValidationHistoryDTO {
                     String.valueOf(taxInvoice.getGrandTotal()),
                     taxInvoice.getProcessStatus(),
                     taxInvoice.getFile().getFileUrl()
+            );
+        }
+    }
+
+    @Schema(description = "검색 결과 통계 DTO")
+    public record TaxInvoiceSearchResult (
+            @Schema(description = "검증된 세금계산서 페이징 결과") Page<GetHistoryData> page,
+            @Schema(description = "전체 데이터 수") Long total,
+            @Schema(description = "승인 데이터 수") Long approved,
+            @Schema(description = "반려 데이터 수") Long rejected,
+            @Schema(description = "검증실패 데이터 수") Long unapproved
+    ) {
+        public static TaxInvoiceSearchResult from(
+                Page<GetHistoryData> page,
+                Long total,
+                Long approved,
+                Long rejected,
+                Long unapproved
+        ){
+            return new TaxInvoiceSearchResult(
+                    page,
+                    total,
+                    approved,
+                    rejected,
+                    unapproved
             );
         }
     }
