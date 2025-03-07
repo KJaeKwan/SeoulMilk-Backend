@@ -96,7 +96,7 @@ public class SecurityConfig {
                                 "http://localhost:8080",
                                 "https://jk-project.site"
                         ));
-                        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                        configuration.setAllowedMethods(List.of("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
                         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Access-Control-Allow-Origin"));
                         configuration.setExposedHeaders(List.of("Set-Cookie", "access")); // 추가 가능
                         configuration.setAllowCredentials(true);
