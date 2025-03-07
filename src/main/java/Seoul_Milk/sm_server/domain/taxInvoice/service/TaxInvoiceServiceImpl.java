@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -98,8 +99,6 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 throw new CustomException(ErrorCode.OCR_NO_RESULT);
             }
 
-            System.out.println("[DEBUG] Clova OCR 응답 JSON: " + jsonResponse);
-
             // OCR 데이터 변환
             List<TemplateOcrField> ocrFields = convertToTemplateOcrFields(jsonResponse);
             extractedData = ocrDataExtractor.extractDataFromTemplateOcrFields(ocrFields);
@@ -107,15 +106,11 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 throw new CustomException(ErrorCode.OCR_EMPTY_JSON);
             }
 
-            System.out.println("[DEBUG] OCR 필드 데이터: " + extractedData);
-
-
             // OCR 데이터 검증 및 기본값 설정
             String issueId = getOrDefault(extractedData, "approval_number", "UNKNOWN");
             String ipId = getOrDefault(extractedData, "supplier_registration_number", "UNKNOWN");
             String suId = getOrDefault(extractedData, "recipient_registration_number", "UNKNOWN");
             String erDat = getOrDefault(extractedData, "issue_date", "UNKNOWN");
-            System.out.println("최종 erDat 값: " + erDat);
             String ipBusinessName = getOrDefault(extractedData, "supplier_business_name", "UNKNOWN");
             String suBusinessName = getOrDefault(extractedData, "recipient_business_name", "UNKNOWN");
             String ipName = getOrDefault(extractedData, "supplier_name", "UNKNOWN");
@@ -124,6 +119,12 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             String suAddress = getOrDefault(extractedData, "recipient_address", "UNKNOWN");
             String ipEmail = getOrDefault(extractedData, "supplier_email", "UNKNOWN");
             String suEmail = getOrDefault(extractedData, "recipient_email", "UNKNOWN");
+
+            // 필수값 검증 및 오류 메시지 추가
+            validateRequiredField("승인번호", issueId, errorDetails);
+            validateRequiredField("공급자 등록번호", ipId, errorDetails);
+            validateRequiredField("공급받는자 등록번호", suId, errorDetails);
+            validateRequiredField("발행일", erDat, errorDetails);
 
             // 가격 변환
             int chargeTotal = parseAmount(extractedData, "chargeTotal", errorDetails);
@@ -167,19 +168,14 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             Map<String, Object> extractedData;
 
             try {
-                System.out.println("[DEBUG] S3에서 파일 다운로드 시작: " + imageUrl);
-
                 // S3에서 파일 다운로드하여 MultipartFile 변환
                 MultipartFile file = awsS3Service.downloadFileFromS3(imageUrl);
-                System.out.println("[DEBUG] 파일 다운로드 완료: " + file.getOriginalFilename());
 
                 // CLOVA OCR API 요청
                 String jsonResponse = clovaOcrApi.callApi("POST", file, clovaSecretKey, file.getContentType());
                 if (jsonResponse == null || jsonResponse.trim().isEmpty()) {
                     throw new CustomException(ErrorCode.OCR_NO_RESULT);
                 }
-
-                System.out.println("[DEBUG] Clova OCR 응답 JSON: " + jsonResponse);
 
                 // OCR 데이터 변환
                 List<TemplateOcrField> ocrFields = convertToTemplateOcrFields(jsonResponse);
@@ -190,31 +186,42 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
                 // OCR 데이터 검증 및 기본값 설정
                 String issueId = getOrDefault(extractedData, "approval_number", "UNKNOWN");
-                String supplierId = getOrDefault(extractedData, "supplier_registration_number", "UNKNOWN");
-                String recipientId = getOrDefault(extractedData, "recipient_registration_number", "UNKNOWN");
-                String issueDate = getOrDefault(extractedData, "issue_date", "UNKNOWN");
-                String supplierBusinessName = getOrDefault(extractedData, "supplier_business_name", "UNKNOWN");
-                String recipientBusinessName = getOrDefault(extractedData, "recipient_business_name", "UNKNOWN");
-                String supplierName = getOrDefault(extractedData, "supplier_name", "UNKNOWN");
-                String recipientName = getOrDefault(extractedData, "recipient_name", "UNKNOWN");
-                String supplierAddress = getOrDefault(extractedData, "supplier_address", "UNKNOWN");
-                String recipientAddress = getOrDefault(extractedData, "recipient_address", "UNKNOWN");
-                String supplierEmail = getOrDefault(extractedData, "supplier_email", "UNKNOWN");
-                String recipientEmail = getOrDefault(extractedData, "recipient_email", "UNKNOWN");
+                String ipId = getOrDefault(extractedData, "supplier_registration_number", "UNKNOWN");
+                String suId = getOrDefault(extractedData, "recipient_registration_number", "UNKNOWN");
+                String erDat = getOrDefault(extractedData, "issue_date", "UNKNOWN");
+                String ipBusinessName = getOrDefault(extractedData, "supplier_business_name", "UNKNOWN");
+                String suBusinessName = getOrDefault(extractedData, "recipient_business_name", "UNKNOWN");
+                String ipName = getOrDefault(extractedData, "supplier_name", "UNKNOWN");
+                String suName = getOrDefault(extractedData, "recipient_name", "UNKNOWN");
+                String ipAddress = getOrDefault(extractedData, "supplier_address", "UNKNOWN");
+                String suAddress = getOrDefault(extractedData, "recipient_address", "UNKNOWN");
+                String ipEmail = getOrDefault(extractedData, "supplier_email", "UNKNOWN");
+                String suEmail = getOrDefault(extractedData, "recipient_email", "UNKNOWN");
+
+                // 필수값 검증 및 오류 메시지 추가
+                if ("UNKNOWN".equals(issueId)) errorDetails.add("승인번호 인식 오류");
+                if ("UNKNOWN".equals(ipId)) errorDetails.add("공급자 등록번호 인식 오류");
+                if ("UNKNOWN".equals(suId)) errorDetails.add("공급받는자 등록번호 인식 오류");
+                if ("UNKNOWN".equals(erDat)) errorDetails.add("발행일 인식 오류");
 
                 // 가격 변환
                 int chargeTotal = parseAmount(extractedData, "chargeTotal", errorDetails);
-                int totalAmount = parseAmount(extractedData, "total_amount", errorDetails);
+                int taxTotal = parseAmount(extractedData, "total_amount", errorDetails);
                 int grandTotal = parseAmount(extractedData, "grandTotal", errorDetails);
 
+                // 이메일 검증
+                validateEmail("공급자 이메일", ipEmail, errorDetails);
+                validateEmail("공급받는자 이메일", suEmail, errorDetails);
+
                 // OCR 성공 후 S3 파일 이동
-                System.out.println("[DEBUG] OCR 성공 후 파일 이동: " + imageUrl);
                 String movedFileUrl = awsS3Service.moveFileToFinalFolder(imageUrl, "tax_invoices");
 
                 // TaxInvoice 생성 및 저장
-                TaxInvoice taxInvoice = TaxInvoice.create(issueId, supplierId, recipientId, chargeTotal, totalAmount, grandTotal,
-                        issueDate, supplierBusinessName, recipientBusinessName, supplierName, recipientName, supplierAddress,
-                        recipientAddress, supplierEmail, recipientEmail, member, errorDetails);
+                TaxInvoice taxInvoice = TaxInvoice.create(
+                        issueId, ipId, suId, chargeTotal, taxTotal, grandTotal,
+                        erDat, ipBusinessName, suBusinessName, ipName, suName, ipAddress, suAddress,
+                        ipEmail, suEmail, member, errorDetails
+                );
                 TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
 
                 // TaxInvoiceFile 생성 및 저장
@@ -227,7 +234,6 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 // OCR 처리 후 해당 이미지의 임시 저장 해제
                 if (imageId != null) {
                     imageService.removeFromTemporary(member, List.of(imageId));
-                    System.out.println("[INFO] OCR 완료 후 이미지 삭제됨: " + imageId);
                 }
 
                 long endTime = System.nanoTime();
@@ -244,13 +250,61 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
     private int parseAmount(Map<String, Object> extractedData, String key, List<String> errorDetails) {
         String amountStr = getOrDefault(extractedData, key, "0");
+
+        // 숫자 값 검증
+        if (!amountStr.matches("^[0-9,]+$")) {
+            errorDetails.add(key + " 숫자 변환 오류: '" + amountStr + "' 값이 숫자가 아닙니다.");
+            return -1;
+        }
+
         try {
             return Integer.parseInt(amountStr.replaceAll(",", ""));
         } catch (NumberFormatException e) {
-            errorDetails.add(key + " 숫자 변환 오류");
+            errorDetails.add(key + " 숫자 변환 오류: " + amountStr);
             return -1;
         }
     }
+
+    /**
+     * 필수값 검증 메서드 - 값이 UNKNOWN 또는 빈 문자열이면 오류 메시지를 추가
+     */
+    private void validateRequiredField(String fieldLabel, String fieldValue, List<String> errorDetails) {
+        if ("UNKNOWN".equals(fieldValue) || fieldValue.trim().isEmpty()) {
+            errorDetails.add("승인번호 인식 오류");
+            return;
+        }
+
+        // 승인번호 형식 검증 (8-8-8)
+        if ("승인번호".equals(fieldLabel)) {
+            String approvalPattern = "^\\d{8}-\\d{8}-\\d{8}$";
+            if (!Pattern.matches(approvalPattern, fieldValue)) {
+                errorDetails.add("승인번호 형식이 올바르지 않습니다: " + fieldValue);
+            }
+        }
+
+        // 등록번호 형식 검증 (3-2-5)
+        if ("공급자 등록번호".equals(fieldLabel) || "공급받는자 등록번호".equals(fieldLabel)) {
+            String registrationPattern = "^\\d{3}-\\d{2}-\\d{5}$";
+            if (!Pattern.matches(registrationPattern, fieldValue)) {
+                errorDetails.add(fieldLabel + " 형식이 올바르지 않습니다.: " + fieldValue);
+            }
+        }
+    }
+
+    /**
+     * 이메일 형식 검증 메서드
+     */
+    private void validateEmail(String fieldLabel, String email, List<String> errorDetails) {
+        if ("UNKNOWN".equals(email) || email.trim().isEmpty()) {
+            return;
+        }
+
+        String emailPattern = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        if (!Pattern.matches(emailPattern, email)) {
+            errorDetails.add(fieldLabel + " 형식이 올바르지 않습니다.: " + email);
+        }
+    }
+
 
 
     @Async("ocrTaskExecutor")
@@ -291,8 +345,6 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             String jsonResponse = clovaOcrApi.callApi("POST", image, clovaSecretKey, image.getContentType());
             List<OcrField> ocrFields = convertToOcrFields(jsonResponse);
             extractedData = ocrDataExtractor.extractDataFromOcrFields(ocrFields);
-
-            System.out.println("99997");
 
             // 데이터 추출
             String issueId = (String) extractedData.get("approval_number");
