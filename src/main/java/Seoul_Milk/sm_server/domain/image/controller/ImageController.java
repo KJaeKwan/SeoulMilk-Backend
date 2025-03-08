@@ -7,8 +7,6 @@ import Seoul_Milk.sm_server.global.annotation.CurrentMember;
 import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -56,16 +54,7 @@ public class ImageController {
             @RequestPart(value = "files") List<MultipartFile> files,
             @CurrentMember MemberEntity member) throws JsonProcessingException {
 
-        if (requestsJson == null || requestsJson.trim().isEmpty()) {
-            requestsJson = "[]";
-        }
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        List<ImageRequestDTO.SaveImage> requests = objectMapper.readValue(
-                requestsJson, new TypeReference<List<ImageRequestDTO.SaveImage>>() {}
-        );
-
-        imageService.markAsTemporary(requests, files, member);
+        imageService.markAsTemporary(requestsJson, files, member);
         return SuccessResponse.ok("선택한 이미지들이 임시 저장으로 설정되었습니다.");
     }
 
