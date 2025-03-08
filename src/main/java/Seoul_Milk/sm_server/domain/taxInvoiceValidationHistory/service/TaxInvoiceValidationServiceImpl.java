@@ -9,12 +9,11 @@ import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_NOT_EX
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceSearchResult;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO.GetHistoryData;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryDTO.GetModalResponse;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.ChangeTaxInvoiceRequest;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.request.TaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryResponseDTO;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryResponseDTO.GetHistoryData;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryResponseDTO.GetModalResponse;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryRequestDTO.ChangeTaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryRequestDTO.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.validator.TaxInvoiceValidator;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
@@ -34,7 +33,7 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
     private final TaxInvoiceValidator taxInvoiceValidator;
 
     @Override
-    public TaxInvoiceSearchResult.GetData searchByProviderOrConsumer(MemberEntity memberEntity, ProcessStatus processStatus, String poc, int page, int size) {
+    public TaxInvoiceValidationHistoryResponseDTO.TaxInvoiceSearchResult searchByProviderOrConsumer(MemberEntity memberEntity, ProcessStatus processStatus, String poc, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<TaxInvoice> taxInvoicePage = taxInvoiceRepository.searchConsumerOrProvider(poc, memberEntity.getEmployeeId(), processStatus, memberEntity, pageable);
         Long total = taxInvoiceRepository.getProcessStatusCount(null, memberEntity);
@@ -49,17 +48,17 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
         taxInvoiceRepository.updateInitialToUntemp(taxInvoiceIds);
 
         List<GetHistoryData> historyDataList = taxInvoicePage.stream()
-                .map(taxInvoice -> TaxInvoiceValidationHistoryDTO.GetHistoryData.from(taxInvoice, taxInvoice.getFile()))
+                .map(taxInvoice -> TaxInvoiceValidationHistoryResponseDTO.GetHistoryData.from(taxInvoice, taxInvoice.getFile()))
                 .toList();
 
         Page<GetHistoryData> pageGetHistoryData = new PageImpl<>(historyDataList, pageable, taxInvoicePage.getTotalElements());
-        return TaxInvoiceSearchResult.GetData.from(pageGetHistoryData, total, approved, rejected, unapproved);
+        return TaxInvoiceValidationHistoryResponseDTO.TaxInvoiceSearchResult.from(pageGetHistoryData, total, approved, rejected, unapproved);
     }
 
     @Transactional
     @Override
     public Void deleteValidationTaxInvoice(MemberEntity memberEntity, TaxInvoiceRequest taxInvoiceRequest) {
-        List<Long> taxInvoiceIdList = taxInvoiceRequest.getTaxInvoiceIdList();
+        List<Long> taxInvoiceIdList = taxInvoiceRequest.taxInvoiceIdList();
         List<TaxInvoice> taxInvoices = taxInvoiceRepository.findAllById(taxInvoiceIdList);
 
         // 검증 수행 (Validator에서 처리)
@@ -80,7 +79,7 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
     @Transactional
     @Override
     public Void tempSave(MemberEntity memberEntity, TaxInvoiceRequest taxInvoiceRequest) {
-        List<Long> taxInvoiceIdList = taxInvoiceRequest.getTaxInvoiceIdList();
+        List<Long> taxInvoiceIdList = taxInvoiceRequest.taxInvoiceIdList();
         List<TaxInvoice> taxInvoices = taxInvoiceRepository.findAllById(taxInvoiceIdList);
 
         // 검증 수행 (Validator에서 처리)
@@ -100,7 +99,7 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
     public GetModalResponse showModal(Long taxInvoiceId) {
         TaxInvoice taxInvoice = taxInvoiceRepository.findById(taxInvoiceId)
                 .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
-        return TaxInvoiceValidationHistoryDTO.GetModalResponse.from(taxInvoice);
+        return TaxInvoiceValidationHistoryResponseDTO.GetModalResponse.from(taxInvoice);
     }
 
     /**
@@ -110,18 +109,18 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
      * @return
      */
     @Override
-    public ChangeTaxInvoiceRequest changeColunm(MemberEntity memberEntity,
+    public Void changeColunm(MemberEntity memberEntity,
             ChangeTaxInvoiceRequest changeTaxInvoiceRequest) {
-        if(!taxInvoiceRepository.isAccessYourTaxInvoice(memberEntity, changeTaxInvoiceRequest.getTaxInvoiceId())){
+        if(!taxInvoiceRepository.isAccessYourTaxInvoice(memberEntity, changeTaxInvoiceRequest.taxInvoiceId())){
             throw new CustomException(DO_NOT_ACCESS_OTHER_TAX_INVOICE);
         }
         taxInvoiceRepository.updateMandatoryColumns(
-                changeTaxInvoiceRequest.getTaxInvoiceId(),
-                changeTaxInvoiceRequest.getIssueId(),
-                changeTaxInvoiceRequest.getErDat(),
-                changeTaxInvoiceRequest.getIpId(),
-                changeTaxInvoiceRequest.getSuId(),
-                changeTaxInvoiceRequest.getChargeTotal()
+                changeTaxInvoiceRequest.taxInvoiceId(),
+                changeTaxInvoiceRequest.issueId(),
+                changeTaxInvoiceRequest.erDat(),
+                changeTaxInvoiceRequest.ipId(),
+                changeTaxInvoiceRequest.suId(),
+                changeTaxInvoiceRequest.chargeTotal()
         );
         return null;
     }
