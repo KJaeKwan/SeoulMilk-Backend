@@ -6,7 +6,11 @@ import Seoul_Milk.sm_server.domain.image.service.ImageService;
 import Seoul_Milk.sm_server.global.annotation.CurrentMember;
 import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -45,13 +49,24 @@ public class ImageController {
      * @param member 로그인 유저
      * @return 성공 메시지
      */
-    @Operation(summary = "이미지를 임시 저장 상태로 등록")
+    @Operation(summary = "여러 개의 이미지를 임시 저장 상태로 등록")
     @PostMapping(value = "/mark", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public SuccessResponse<String> markAsTemporary(
-            @RequestParam("files") List<MultipartFile> files,
-            @CurrentMember MemberEntity member) {
-        imageService.markAsTemporary(files, member);
-        return SuccessResponse.ok("선택한 이미지가 임시 저장으로 설정되었습니다.");
+            @RequestPart(value = "requests", required = false) String requestsJson,
+            @RequestPart(value = "files") List<MultipartFile> files,
+            @CurrentMember MemberEntity member) throws JsonProcessingException {
+
+        if (requestsJson == null || requestsJson.trim().isEmpty()) {
+            requestsJson = "[]";
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<ImageRequestDTO.SaveImage> requests = objectMapper.readValue(
+                requestsJson, new TypeReference<List<ImageRequestDTO.SaveImage>>() {}
+        );
+
+        imageService.markAsTemporary(requests, files, member);
+        return SuccessResponse.ok("선택한 이미지들이 임시 저장으로 설정되었습니다.");
     }
 
     /**

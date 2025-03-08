@@ -1,5 +1,6 @@
 package Seoul_Milk.sm_server.domain.image.service;
 
+import Seoul_Milk.sm_server.domain.image.dto.ImageRequestDTO;
 import Seoul_Milk.sm_server.domain.image.dto.ImageResponseDTO;
 import Seoul_Milk.sm_server.domain.image.entity.Image;
 import Seoul_Milk.sm_server.domain.image.repository.ImageRepository;
@@ -15,8 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Transactional(readOnly = true)
@@ -43,17 +45,28 @@ public class ImageServiceImpl implements ImageService {
      */
     @Override
     @Transactional
-    public void markAsTemporary(List<MultipartFile> files, MemberEntity member) {
+    public void markAsTemporary(List<ImageRequestDTO.SaveImage> requests, List<MultipartFile> files, MemberEntity member) {
         List<String> imageUrls = awsS3Service.uploadFiles("temporary-images", files, true);
 
+        boolean hasRequests = requests != null && !requests.isEmpty();
+
         // 이미지 엔티티 생성
-        List<Image> images = imageUrls.stream()
-                .map(url -> {
-                    Image image = Image.create(url, member);
-                    image.markAsTemporary(); // 임시 저장 상태로 변경
-                    return image;
+        List<Image> images = IntStream.range(0, files.size())
+                .mapToObj(i -> {
+                    ImageRequestDTO.SaveImage dto = hasRequests && i < requests.size() ? requests.get(i) : null;
+                    return Image.builder()
+                            .imageUrl(imageUrls.get(i))
+                            .temporary(true)
+                            .uploadDate(LocalDate.now())
+                            .issueId(dto != null ? dto.getIssueId() : null)
+                            .ipId(dto != null ? dto.getIpId() : null)
+                            .suId(dto != null ? dto.getSuId() : null)
+                            .chargeTotal(dto != null ? dto.getChargeTotal() : 0)
+                            .erDat(dto != null ? dto.getErDat() : null)
+                            .member(member)
+                            .build();
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         // DB 저장
         imageRepository.saveAll(images);
