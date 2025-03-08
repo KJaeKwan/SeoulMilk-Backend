@@ -16,4 +16,5 @@ public interface MemberService {
     MemberResponse updateRole(UpdateRoleDTO request);
     boolean verifyPassword(Long memberId, VerifyPwDTO request);
     MemberResponse register(RegisterDTO request);
+    Boolean existsByEmployeeId(String employeeId);
 }

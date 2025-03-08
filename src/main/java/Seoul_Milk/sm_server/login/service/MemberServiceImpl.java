@@ -133,4 +133,11 @@ public class MemberServiceImpl implements MemberService {
 
         return MemberResponse.from(savedMember);
     }
+
+    /**
+     * 사원 존재 여부 검증
+     */
+    public Boolean existsByEmployeeId(String employeeId) {
+        return memberRepository.existsByEmployeeId(employeeId);
+    }
 }
