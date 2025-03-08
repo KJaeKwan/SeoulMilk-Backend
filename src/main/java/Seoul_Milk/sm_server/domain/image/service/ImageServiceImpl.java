@@ -1,5 +1,6 @@
 package Seoul_Milk.sm_server.domain.image.service;
 
+import Seoul_Milk.sm_server.domain.image.dto.ImageRequestDTO;
 import Seoul_Milk.sm_server.domain.image.dto.ImageResponseDTO;
 import Seoul_Milk.sm_server.domain.image.entity.Image;
 import Seoul_Milk.sm_server.domain.image.repository.ImageRepository;
@@ -7,6 +8,9 @@ import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.global.upload.service.AwsS3Service;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,8 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Transactional(readOnly = true)
@@ -25,6 +31,7 @@ public class ImageServiceImpl implements ImageService {
 
     private final ImageRepository imageRepository;
     private final AwsS3Service awsS3Service;
+    private final ObjectMapper objectMapper;
 
     /**
      * 임시 저장된 이미지 전체 조회
@@ -43,19 +50,14 @@ public class ImageServiceImpl implements ImageService {
      */
     @Override
     @Transactional
-    public void markAsTemporary(List<MultipartFile> files, MemberEntity member) {
+    public void markAsTemporary(String requestsJson, List<MultipartFile> files, MemberEntity member) throws JsonProcessingException {
+        List<ImageRequestDTO.SaveImage> requests = parseRequests(requestsJson);
         List<String> imageUrls = awsS3Service.uploadFiles("temporary-images", files, true);
 
-        // 이미지 엔티티 생성
-        List<Image> images = imageUrls.stream()
-                .map(url -> {
-                    Image image = Image.create(url, member);
-                    image.markAsTemporary(); // 임시 저장 상태로 변경
-                    return image;
-                })
-                .collect(Collectors.toList());
+        List<Image> images = IntStream.range(0, files.size())
+                .mapToObj(i -> createImage(imageUrls.get(i), getDtoAt(requests, i), member))
+                .toList();
 
-        // DB 저장
         imageRepository.saveAll(images);
     }
 
@@ -95,4 +97,32 @@ public class ImageServiceImpl implements ImageService {
         return images;
     }
 
+
+    // String으로 받은 요청을 SaveImage 리스트로 변환
+    private List<ImageRequestDTO.SaveImage> parseRequests(String requestsJson) throws JsonProcessingException {
+        if (requestsJson == null || requestsJson.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        return objectMapper.readValue(requestsJson, new TypeReference<List<ImageRequestDTO.SaveImage>>() {});
+    }
+
+    // 요청 리스트에서 지정된 index에 해당하는 DTO를 반환
+    private ImageRequestDTO.SaveImage getDtoAt(List<ImageRequestDTO.SaveImage> requests, int index) {
+        return (requests != null && index < requests.size()) ? requests.get(index) : null;
+    }
+
+    // Image 객체를 생성
+    private Image createImage(String imageUrl, ImageRequestDTO.SaveImage dto, MemberEntity member) {
+        return Image.builder()
+                .imageUrl(imageUrl)
+                .temporary(true)
+                .uploadDate(LocalDate.now())
+                .issueId(dto != null ? dto.getIssueId() : null)
+                .ipId(dto != null ? dto.getIpId() : null)
+                .suId(dto != null ? dto.getSuId() : null)
+                .chargeTotal(dto != null ? dto.getChargeTotal() : 0)
+                .erDat(dto != null ? dto.getErDat() : null)
+                .member(member)
+                .build();
+    }
 }
