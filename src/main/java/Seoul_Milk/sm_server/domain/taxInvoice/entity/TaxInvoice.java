@@ -158,6 +158,46 @@ public class TaxInvoice {
                 .build();
     }
 
+    public void update(
+            String issueId,
+            String ipId,
+            String suId,
+            int chargeTotal,
+            int taxTotal,
+            int grandTotal,
+            String erDat,
+            String ipBusinessName,
+            String suBusinessName,
+            String ipName,
+            String suName,
+            String ipAddress,
+            String suAddress,
+            String ipEmail,
+            String suEmail,
+            MemberEntity member,
+            List<String> errorDetails,
+            ProcessStatus processStatus
+    ){
+        this.issueId = issueId;
+        this.ipId = ipId;
+        this.suId = suId;
+        this.chargeTotal = chargeTotal;
+        this.taxTotal = taxTotal;
+        this.grandTotal = grandTotal;
+        this.erDat = erDat;
+        this.ipBusinessName = ipBusinessName;
+        this.suBusinessName = suBusinessName;
+        this.ipName = ipName;
+        this.suName = suName;
+        this.ipAddress = ipAddress;
+        this.suAddress = suAddress;
+        this.ipEmail = ipEmail;
+        this.suEmail = suEmail;
+        this.member = member;
+        this.errorDetails = errorDetails;
+        this.processStatus = processStatus;
+    }
+
     /** 연관관계 편의 메서드 */
     public void attachFile(TaxInvoiceFile file) {
         file.attachTaxInvoice(this);
