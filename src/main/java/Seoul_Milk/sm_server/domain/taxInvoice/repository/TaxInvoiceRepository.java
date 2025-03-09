@@ -16,7 +16,7 @@ public interface TaxInvoiceRepository {
     TaxInvoice save(TaxInvoice taxInvoice);
     void delete(Long id);
     Page<TaxInvoice> searchWithFilters(String provider, String consumer, String employeeId, MemberEntity member, LocalDate startDate, LocalDate endDate, ProcessStatus processStatus, Pageable pageable);
-    TaxInvoice findByIssueId(String issueId);
+    Optional<TaxInvoice> findByIssueId(String issueId);
 
     // 임시 저장 관련
     List<TaxInvoice> findTempInvoicesByMember(MemberEntity member);

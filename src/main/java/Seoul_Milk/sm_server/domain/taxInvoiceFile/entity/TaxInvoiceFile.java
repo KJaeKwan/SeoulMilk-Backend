@@ -55,6 +55,22 @@ public class TaxInvoiceFile {
                 .build();
     }
 
+    public void update(
+            TaxInvoice taxInvoice,
+            String fileUrl,
+            String fileType,
+            String originalFileName,
+            Long fileSize,
+            LocalDateTime uploadDate
+    ){
+        this.taxInvoice = taxInvoice;
+        this.fileUrl = fileUrl;
+        this.fileType = fileType;
+        this.originalFileName = originalFileName;
+        this.fileSize = fileSize;
+        this.uploadDate = uploadDate;
+    }
+
 
     /** 연관관계 편의 메서드 */
     public void attachTaxInvoice(TaxInvoice taxInvoice) {
