@@ -109,7 +109,6 @@ public class TaxInvoiceController {
      * 내 업무 조회 - 세금계산서 리스트 반환 (검색 조건에 따라)
      * @param provider 공급자 상호명
      * @param consumer 공급받는자 상호명
-     * @param date 특정 날짜
      * @param period 기간
      * @param status 승인 상태
      * @param page 페이지 정보
@@ -129,13 +128,13 @@ public class TaxInvoiceController {
     @GetMapping("/search")
     public SuccessResponse<Page<TaxInvoiceResponseDTO.GetOne>> getAllBySearch(
             @CurrentMember MemberEntity member,
-            @RequestParam(required = false) String provider,
-            @RequestParam(required = false) String consumer,
-            @RequestParam(required = false) String employeeId,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
-            @RequestParam(required = false) Integer period,
-            @RequestParam(required = false) String status,
+            @RequestParam(value = "provider", required = false) String provider,
+            @RequestParam(value = "consumer", required = false) String consumer,
+            @RequestParam(value = "employeeId", required = false) String employeeId,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam(value = "endDate",required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+            @RequestParam(value = "period", required = false) Integer period,
+            @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
         Page<TaxInvoiceResponseDTO.GetOne> result = taxInvoiceService.search(member, provider, consumer, employeeId, startDate, endDate, period, status, page-1, size);
