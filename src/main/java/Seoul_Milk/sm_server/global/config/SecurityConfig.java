@@ -10,13 +10,10 @@ import Seoul_Milk.sm_server.global.redis.RedisUtils;
 import Seoul_Milk.sm_server.global.refresh.RefreshToken;
 import Seoul_Milk.sm_server.login.service.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Collections;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,6 +25,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -51,7 +50,8 @@ public class SecurityConfig {
             "/login",
             "/reissue",
             "/api/emails/**",
-            "/valid/create"
+            "/valid/create",
+            "/api/members/exists/**"
     };
 
     // 관리자 권한이 필요한 URL 목록

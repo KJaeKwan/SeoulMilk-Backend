@@ -43,14 +43,4 @@ public class AdminMemberController {
         return SuccessResponse.ok(result);
     }
 
-    /**
-     * 사번 존재 검증 API
-     */
-    @GetMapping("/exists/{employeeId}")
-    @Operation(summary = "사번 존재 여부 확인", description = "해당 사번이 존재하는지 여부를 반환합니다.")
-    public SuccessResponse<Boolean> checkEmployeeNumberExists(@PathVariable String employeeId) {
-        Boolean exists = memberService.existsByEmployeeId(employeeId);
-        return SuccessResponse.ok(exists);
-    }
-
 }
