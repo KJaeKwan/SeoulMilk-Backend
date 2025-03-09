@@ -132,12 +132,13 @@ public class TaxInvoiceController {
             @RequestParam(required = false) String provider,
             @RequestParam(required = false) String consumer,
             @RequestParam(required = false) String employeeId,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
             @RequestParam(required = false) Integer period,
             @RequestParam(required = false) String status,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
-        Page<TaxInvoiceResponseDTO.GetOne> result = taxInvoiceService.search(member, provider, consumer, employeeId, date, period, status, page-1, size);
+        Page<TaxInvoiceResponseDTO.GetOne> result = taxInvoiceService.search(member, provider, consumer, employeeId, startDate, endDate, period, status, page-1, size);
         return SuccessResponse.ok(result);
     }
 

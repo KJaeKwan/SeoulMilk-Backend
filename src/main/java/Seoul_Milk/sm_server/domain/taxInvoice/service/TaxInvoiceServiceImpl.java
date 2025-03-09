@@ -593,23 +593,18 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
      * @param provider 공급자
      * @param consumer 공급받는자
      * @param employeeId 관리자는 사번으로 검색 가능
-     * @param date 특정 날짜
+     * @param startDate 시작날짜
+     * @param endDate 끝날짜
      * @param period 기간
      * @param status 승인 상태
      * @return 검색 결과
      */
     @Override
     public Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String employeeId,
-                                                     LocalDate date, Integer period, String status, int page, int size) {
+                                                     LocalDate startDate, LocalDate endDate, Integer period, String status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        LocalDate startDate = null;
-        LocalDate endDate = null;
-
-        if (date != null) {
-            startDate = date;
-            endDate = date;
-        } else if (period != null) {
+        if (period != null) {
             endDate = LocalDate.now();
             startDate = endDate.minusMonths(period);
         }
