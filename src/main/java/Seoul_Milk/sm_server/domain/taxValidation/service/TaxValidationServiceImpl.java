@@ -27,6 +27,7 @@ import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.TWO_WAY
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_INTERANL_SERVER_ERROR;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_NEED_AUTHENTICATION;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.DO_NOT_ACCESS_OTHER_TAX_INVOICE;
+import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
@@ -156,7 +157,8 @@ public class TaxValidationServiceImpl implements TaxValidationService {
         // 추가인증 요청 시에는 이지코드에프.requestCertification 으로 호출
         result = easyCodef.requestCertification(PRODUCT_URL, EasyCodefServiceType.DEMO, parameterMap);
 
-        TaxInvoice taxInvoice = taxInvoiceRepository.findByIssueId(originalApproveNo);
+        TaxInvoice taxInvoice = taxInvoiceRepository.findByIssueId(originalApproveNo)
+                .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
         ObjectMapper objectMapper = new ObjectMapper();
 
         JsonNode rootNode = null;

@@ -306,8 +306,8 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     }
 
     @Override
-    public TaxInvoice findByIssueId(String issueId) {
-        return taxInvoiceJpaRepository.findByIssueId(issueId);
+    public Optional<TaxInvoice> findByIssueId(String issueId) {
+        return Optional.ofNullable(taxInvoiceJpaRepository.findByIssueId(issueId));
     }
 
     @Override
