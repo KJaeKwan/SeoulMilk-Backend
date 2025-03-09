@@ -39,16 +39,14 @@ public class MemberController {
 
     /**
      * 비밀번호 초기화 API
-     * @param member 현재 로그인 중인 사용자
-     * @param request 새 비밀번호, 비밀번호 검증을 입력
+     * @param request 변경할 사번, 새 비밀번호, 비밀번호 검증을 입력
      * @return 응답 메세지
      */
     @PatchMapping("/users/password/reset")
     @Operation(summary = "<LO_01> 비밀번호 초기화 (이메일 인증 후)")
     public SuccessResponse<String> resetPassword(
-            @CurrentMember MemberEntity member,
             @Valid @RequestBody ResetPwDTO request) {
-        memberService.resetPw(member.getId(), request);
+        memberService.resetPw(request);
         return SuccessResponse.ok("비밀번호가 초기화되었습니다.");
     }
 

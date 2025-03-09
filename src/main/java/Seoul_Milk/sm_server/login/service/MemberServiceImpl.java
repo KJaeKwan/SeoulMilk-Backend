@@ -42,8 +42,9 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public void resetPw(Long memberId, ResetPwDTO request) {
-        MemberEntity member = memberRepository.getById(memberId);
+    public void resetPw(ResetPwDTO request) {
+        MemberEntity member = memberRepository.findByEmployeeId(request.employeeId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXIST));
 
         // 입력 비밀번호 2개 일치 여부 검증
         if (!request.password1().equals(request.password2())) {

@@ -11,7 +11,7 @@ import Seoul_Milk.sm_server.login.entity.MemberEntity;
 public interface MemberService {
     MemberResponse getMember(String employeeId);
     MemberEntity getMemberEntity(String employeeId);
-    void resetPw(Long memberId, ResetPwDTO request);
+    void resetPw(ResetPwDTO request);
     void updatePw(Long memberId, UpdatePwDTO request);
     MemberResponse updateRole(UpdateRoleDTO request);
     boolean verifyPassword(Long memberId, VerifyPwDTO request);
