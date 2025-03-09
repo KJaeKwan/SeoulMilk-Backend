@@ -262,9 +262,6 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
             whereClause.and(taxInvoice.processStatus.eq(processStatus));
         }
 
-        //임시저장 여부 조건 추가
-        whereClause.and(taxInvoice.isTemporary.eq(UNTEMP).not());
-
         int maxLimit = MAX_SEARCH_LIMIT.getNum();
         int pageSize = Math.min(pageable.getPageSize(), maxLimit);
 
