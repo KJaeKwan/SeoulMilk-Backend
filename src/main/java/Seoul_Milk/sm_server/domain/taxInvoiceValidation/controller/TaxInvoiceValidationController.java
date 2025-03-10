@@ -1,6 +1,5 @@
 package Seoul_Milk.sm_server.domain.taxInvoiceValidation.controller;
 
-import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.TestDTO;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.request.NonVerifiedTaxValidationRequestDTO;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.response.NonVerifiedTaxValidationResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.request.VerifiedTaxValidationRequestDTO;
@@ -12,10 +11,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.UnsupportedEncodingException;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,9 +39,4 @@ public class TaxInvoiceValidationController {
         return SuccessResponse.ok(taxInvoiceValidationService.verifiedTaxValidation(validationResponseDTO.getKey()));
     }
 
-    @Operation(summary = "테스트용 api (진위여부 api 생성)")
-    @GetMapping("/create")
-    public SuccessResponse<List<TestDTO>> createRequest(){
-        return SuccessResponse.ok(taxInvoiceValidationService.create());
-    }
 }

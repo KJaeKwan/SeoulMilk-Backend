@@ -1,40 +1,10 @@
 package Seoul_Milk.sm_server.domain.taxInvoiceValidation.service;
 
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.APPROVAL_NO;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.CONTRACTOR_REG_NUMBER;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.ID;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.IDENTITY;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.LOGIN_TYPE;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.LOGIN_TYPE_LEVEL;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.ORGANIZATION;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.ORIGINAL_APPROVAL_NO;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.PHONE_NO;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.REPORTING_DATE;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.SUPPLIER_REG_NUMBER;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.SUPPLY_VALUE;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.TELECOM;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.TWO_WAY_INFO;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.USER_NAME;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefResponseCode.ERROR_APPROVE_NUM;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefResponseCode.INVALID_APPROVE_NUM;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefResponseCode.NEED_SIMPLE_AUTHENTICATION;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefResponseCode.SUCCESS_RESPONSE;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.ThreadTerm.THREAD_TERM;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.TwoWayInfo.JOB_INDEX;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.TwoWayInfo.JTI;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.TwoWayInfo.THREAD_INDEX;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.TwoWayInfo.TWO_WAY_TIMESTAMP;
-import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_INTERANL_SERVER_ERROR;
-import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_NEED_AUTHENTICATION;
-import static Seoul_Milk.sm_server.global.exception.ErrorCode.DO_NOT_ACCESS_OTHER_TAX_INVOICE;
-import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
-
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.TestDTO;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.request.NonVerifiedTaxValidationRequestDTO;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.request.TaxInvoiceInfo;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.response.NonVerifiedTaxValidationResponseDTO;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.TaxInvoiceInfo;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidation.thread.RequestThread;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidation.thread.RequestThreadManager;
 import Seoul_Milk.sm_server.global.exception.CustomException;
@@ -45,14 +15,20 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.codef.api.EasyCodef;
 import io.codef.api.EasyCodefServiceType;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.*;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefResponseCode.*;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.ThreadTerm.THREAD_TERM;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.TwoWayInfo.*;
+import static Seoul_Milk.sm_server.global.exception.ErrorCode.*;
 
 @Service
 public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationService {
@@ -178,23 +154,6 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
         taxInvoiceRepository.save(taxInvoice);
         RequestThreadManager.waitForThreads(key);
         return "성공";
-    }
-
-    @Override
-    public List<TestDTO> create() {
-        List<TaxInvoice> taxInvoiceList = taxInvoiceRepository.findAll();
-        List<TestDTO> testDTOList = new ArrayList<>();
-        for(TaxInvoice taxInvoice : taxInvoiceList){
-            TestDTO testDTO = new TestDTO(
-                    taxInvoice.getSuId(),
-                    taxInvoice.getIpId(),
-                    taxInvoice.getIssueId(),
-                    taxInvoice.getErDat(),
-                    String.valueOf(taxInvoice.getTaxTotal())
-            );
-            testDTOList.add(testDTO);
-        }
-        return testDTOList;
     }
 
     /**
