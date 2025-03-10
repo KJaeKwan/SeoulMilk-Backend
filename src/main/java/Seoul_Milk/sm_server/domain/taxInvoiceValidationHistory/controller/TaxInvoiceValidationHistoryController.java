@@ -4,7 +4,7 @@ import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryRequestDTO.ChangeTaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryRequestDTO.TaxInvoiceRequest;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.service.TaxInvoiceValidationService;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.service.TaxInvoiceValidationHistoryService;
 import Seoul_Milk.sm_server.global.annotation.CurrentMember;
 import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @Tag(name = "검증내역 화면 부분<RE_01>")
 public class TaxInvoiceValidationHistoryController {
-    private final TaxInvoiceValidationService taxInvoiceValidationService;
+    private final TaxInvoiceValidationHistoryService taxInvoiceValidationHistoryService;
 
     @Operation(summary = "<RE_01> 공급자 또는 공급받는자 검색 기능 + 승인, 반려, 검증실패별 조회 api")
     @GetMapping("/search")
@@ -37,7 +37,7 @@ public class TaxInvoiceValidationHistoryController {
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size
     ){
-        return SuccessResponse.ok(taxInvoiceValidationService.searchByProviderOrConsumer(memberEntity,processStatus, poc, page-1, size));
+        return SuccessResponse.ok(taxInvoiceValidationHistoryService.searchByProviderOrConsumer(memberEntity,processStatus, poc, page-1, size));
     }
 
     @Operation(summary = "<RE_01> 검증 내역 삭제 api")
@@ -46,7 +46,7 @@ public class TaxInvoiceValidationHistoryController {
             @CurrentMember MemberEntity memberEntity,
             @RequestBody TaxInvoiceRequest taxInvoiceRequest
     ){
-        return SuccessResponse.ok(taxInvoiceValidationService.deleteValidationTaxInvoice(memberEntity,
+        return SuccessResponse.ok(taxInvoiceValidationHistoryService.deleteValidationTaxInvoice(memberEntity,
                 taxInvoiceRequest));
     }
 
@@ -56,7 +56,7 @@ public class TaxInvoiceValidationHistoryController {
             @CurrentMember MemberEntity memberEntity,
             @RequestBody TaxInvoiceRequest taxInvoiceRequest
     ){
-        return SuccessResponse.ok(taxInvoiceValidationService.tempSave(memberEntity, taxInvoiceRequest));
+        return SuccessResponse.ok(taxInvoiceValidationHistoryService.tempSave(memberEntity, taxInvoiceRequest));
     }
 
     @Operation(summary = "<RE_02> 승인/반려/수정된 결과 조회 모달 띄우기 api")
@@ -64,7 +64,7 @@ public class TaxInvoiceValidationHistoryController {
     public SuccessResponse<TaxInvoiceValidationHistoryResponseDTO.GetModalResponse> showModal(
             @PathVariable(name = "taxInvoiceId") Long taxInvoiceId
     ){
-        return SuccessResponse.ok(taxInvoiceValidationService.showModal(taxInvoiceId));
+        return SuccessResponse.ok(taxInvoiceValidationHistoryService.showModal(taxInvoiceId));
     }
 
     @Operation(summary = "<RE_03> 필수컬럼 수정 api")
@@ -73,7 +73,7 @@ public class TaxInvoiceValidationHistoryController {
             @CurrentMember MemberEntity memberEntity,
             @RequestBody ChangeTaxInvoiceRequest changeTaxInvoiceRequest
     ){
-        return SuccessResponse.ok(taxInvoiceValidationService.changeColunm(memberEntity, changeTaxInvoiceRequest));
+        return SuccessResponse.ok(taxInvoiceValidationHistoryService.changeColunm(memberEntity, changeTaxInvoiceRequest));
     }
 
 }

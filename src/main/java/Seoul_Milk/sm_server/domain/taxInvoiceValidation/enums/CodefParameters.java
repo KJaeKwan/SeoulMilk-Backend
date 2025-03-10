@@ -1,4 +1,4 @@
-package Seoul_Milk.sm_server.domain.taxValidation.enums;
+package Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums;
 
 public enum CodefParameters {
     ORGANIZATION("organization"),

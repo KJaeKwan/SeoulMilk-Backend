@@ -1,4 +1,4 @@
-package Seoul_Milk.sm_server.domain.taxValidation.thread;
+package Seoul_Milk.sm_server.domain.taxInvoiceValidation.thread;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
@@ -15,9 +15,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.*;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.NEED_SIMPLE_AUTHENTICATION;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.*;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.*;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefResponseCode.NEED_SIMPLE_AUTHENTICATION;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.TwoWayInfo.*;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
 
 public class RequestThread extends Thread {

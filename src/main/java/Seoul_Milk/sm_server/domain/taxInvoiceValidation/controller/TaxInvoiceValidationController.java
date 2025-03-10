@@ -1,10 +1,10 @@
-package Seoul_Milk.sm_server.domain.taxValidation.controller;
+package Seoul_Milk.sm_server.domain.taxInvoiceValidation.controller;
 
-import Seoul_Milk.sm_server.domain.taxValidation.dto.TestDTO;
-import Seoul_Milk.sm_server.domain.taxValidation.dto.request.NonVerifiedTaxValidationRequestDTO;
-import Seoul_Milk.sm_server.domain.taxValidation.dto.response.NonVerifiedTaxValidationResponseDTO;
-import Seoul_Milk.sm_server.domain.taxValidation.dto.request.VerifiedTaxValidationRequestDTO;
-import Seoul_Milk.sm_server.domain.taxValidation.service.TaxValidationService;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.TestDTO;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.request.NonVerifiedTaxValidationRequestDTO;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.response.NonVerifiedTaxValidationResponseDTO;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.request.VerifiedTaxValidationRequestDTO;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidation.service.TaxInvoiceValidationService;
 import Seoul_Milk.sm_server.global.annotation.CurrentMember;
 import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
@@ -25,26 +25,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/valid")
 @Tag(name = "진위여부 검사 API")
-public class TaxValidationController {
-    private final TaxValidationService taxValidationService;
+public class TaxInvoiceValidationController {
+    private final TaxInvoiceValidationService taxInvoiceValidationService;
 
     @Operation(summary = "간편인증 안한 상태에서의 진위여부 검사 api")
     @PostMapping("/non-verified")
     public SuccessResponse<NonVerifiedTaxValidationResponseDTO> nonVerifiedTaxValidation
             (@RequestBody NonVerifiedTaxValidationRequestDTO nvtv, @CurrentMember MemberEntity memberEntity) throws ExecutionException, InterruptedException {
-        return SuccessResponse.ok(taxValidationService.nonVerifiedTaxValidation(nvtv, memberEntity));
+        return SuccessResponse.ok(taxInvoiceValidationService.nonVerifiedTaxValidation(nvtv, memberEntity));
     }
 
     @Operation(summary = "간편인증을 한 상태에서의 진위여부 검사 api")
     @PostMapping("/verified")
     public SuccessResponse<String> verifiedTaxvalidation(@RequestBody VerifiedTaxValidationRequestDTO validationResponseDTO)
             throws UnsupportedEncodingException, JsonProcessingException, InterruptedException {
-        return SuccessResponse.ok(taxValidationService.verifiedTaxValidation(validationResponseDTO.getKey()));
+        return SuccessResponse.ok(taxInvoiceValidationService.verifiedTaxValidation(validationResponseDTO.getKey()));
     }
 
     @Operation(summary = "테스트용 api (진위여부 api 생성)")
     @GetMapping("/create")
     public SuccessResponse<List<TestDTO>> createRequest(){
-        return SuccessResponse.ok(taxValidationService.create());
+        return SuccessResponse.ok(taxInvoiceValidationService.create());
     }
 }

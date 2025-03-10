@@ -7,7 +7,7 @@ import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceVal
 import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryRequestDTO.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 
-public interface TaxInvoiceValidationService {
+public interface TaxInvoiceValidationHistoryService {
     TaxInvoiceValidationHistoryResponseDTO.TaxInvoiceSearchResult searchByProviderOrConsumer(MemberEntity memberEntity, ProcessStatus processStatus, String poc, int page, int size);
 
     Void deleteValidationTaxInvoice(MemberEntity memberEntity, TaxInvoiceRequest taxInvoiceRequest);

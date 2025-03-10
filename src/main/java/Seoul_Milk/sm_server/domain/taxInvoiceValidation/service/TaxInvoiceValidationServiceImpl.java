@@ -1,29 +1,29 @@
-package Seoul_Milk.sm_server.domain.taxValidation.service;
+package Seoul_Milk.sm_server.domain.taxInvoiceValidation.service;
 
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.APPROVAL_NO;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.CONTRACTOR_REG_NUMBER;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.ID;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.IDENTITY;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.LOGIN_TYPE;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.LOGIN_TYPE_LEVEL;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.ORGANIZATION;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.ORIGINAL_APPROVAL_NO;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.PHONE_NO;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.REPORTING_DATE;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.SUPPLIER_REG_NUMBER;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.SUPPLY_VALUE;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.TELECOM;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.TWO_WAY_INFO;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.USER_NAME;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.ERROR_APPROVE_NUM;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.INVALID_APPROVE_NUM;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.NEED_SIMPLE_AUTHENTICATION;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.SUCCESS_RESPONSE;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.ThreadTerm.THREAD_TERM;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.JOB_INDEX;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.JTI;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.THREAD_INDEX;
-import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.TWO_WAY_TIMESTAMP;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.APPROVAL_NO;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.CONTRACTOR_REG_NUMBER;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.ID;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.IDENTITY;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.LOGIN_TYPE;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.LOGIN_TYPE_LEVEL;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.ORGANIZATION;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.ORIGINAL_APPROVAL_NO;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.PHONE_NO;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.REPORTING_DATE;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.SUPPLIER_REG_NUMBER;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.SUPPLY_VALUE;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.TELECOM;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.TWO_WAY_INFO;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.USER_NAME;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefResponseCode.ERROR_APPROVE_NUM;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefResponseCode.INVALID_APPROVE_NUM;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefResponseCode.NEED_SIMPLE_AUTHENTICATION;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefResponseCode.SUCCESS_RESPONSE;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.ThreadTerm.THREAD_TERM;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.TwoWayInfo.JOB_INDEX;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.TwoWayInfo.JTI;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.TwoWayInfo.THREAD_INDEX;
+import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.TwoWayInfo.TWO_WAY_TIMESTAMP;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_INTERANL_SERVER_ERROR;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.CODEF_NEED_AUTHENTICATION;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.DO_NOT_ACCESS_OTHER_TAX_INVOICE;
@@ -31,12 +31,12 @@ import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_NOT_EX
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
-import Seoul_Milk.sm_server.domain.taxValidation.dto.TestDTO;
-import Seoul_Milk.sm_server.domain.taxValidation.dto.request.NonVerifiedTaxValidationRequestDTO;
-import Seoul_Milk.sm_server.domain.taxValidation.dto.response.NonVerifiedTaxValidationResponseDTO;
-import Seoul_Milk.sm_server.domain.taxValidation.dto.TaxInvoiceInfo;
-import Seoul_Milk.sm_server.domain.taxValidation.thread.RequestThread;
-import Seoul_Milk.sm_server.domain.taxValidation.thread.RequestThreadManager;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.TestDTO;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.request.NonVerifiedTaxValidationRequestDTO;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.response.NonVerifiedTaxValidationResponseDTO;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.TaxInvoiceInfo;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidation.thread.RequestThread;
+import Seoul_Milk.sm_server.domain.taxInvoiceValidation.thread.RequestThreadManager;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.redis.RedisUtils;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
@@ -55,14 +55,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TaxValidationServiceImpl implements TaxValidationService {
+public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationService {
     private final String PUBLIC_KEY;
     private final String CLIENT_ID;
     private final String CLIENT_SECRET;
     private final String PRODUCT_URL;
     private final RedisUtils redisUtils;
     private final TaxInvoiceRepository taxInvoiceRepository;
-    public TaxValidationServiceImpl(
+    public TaxInvoiceValidationServiceImpl(
             @Value("${codef.public.key}") String PUBLIC_KEY,
             @Value("${codef.client.id}") String CLIENT_ID,
             @Value("${codef.client.secret}") String CLIENT_SECRET,

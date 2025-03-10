@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationService{
+public class TaxInvoiceValidationHistoryServiceImpl implements TaxInvoiceValidationHistoryService {
     private final TaxInvoiceRepository taxInvoiceRepository;
     private final TaxInvoiceValidator taxInvoiceValidator;
 

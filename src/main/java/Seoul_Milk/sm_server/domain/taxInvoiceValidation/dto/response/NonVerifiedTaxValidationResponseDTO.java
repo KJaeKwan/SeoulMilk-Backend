@@ -1,4 +1,4 @@
-package Seoul_Milk.sm_server.domain.taxValidation.dto.response;
+package Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

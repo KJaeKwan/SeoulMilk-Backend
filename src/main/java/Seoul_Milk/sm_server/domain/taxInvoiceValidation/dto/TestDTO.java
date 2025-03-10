@@ -1,4 +1,4 @@
-package Seoul_Milk.sm_server.domain.taxValidation.dto;
+package Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
