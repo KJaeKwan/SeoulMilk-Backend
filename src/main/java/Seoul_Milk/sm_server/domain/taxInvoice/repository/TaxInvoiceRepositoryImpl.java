@@ -57,7 +57,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     }
 
     @Override
-    public Page<TaxInvoice> searchWithFilters(String provider, String consumer, String employeeId, MemberEntity member,
+    public Page<TaxInvoice> searchWithFilters(String provider, String consumer, String name, MemberEntity member,
                                               LocalDate startDate, LocalDate endDate, ProcessStatus status, Pageable pageable) {
         QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
         QMemberEntity memberEntity = QMemberEntity.memberEntity;
@@ -69,8 +69,8 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         if (member.getRole() == Role.ROLE_NORMAL) {
             whereClause.and(taxInvoice.member.employeeId.eq(member.getEmployeeId()));
         }
-        if (member.getRole() == Role.ROLE_ADMIN && employeeId != null && !employeeId.isEmpty()) {
-            whereClause.and(taxInvoice.member.employeeId.eq(employeeId));
+        if (member.getRole() == Role.ROLE_ADMIN &&  name!= null && !name.isEmpty()) {
+            whereClause.and(taxInvoice.member.name.eq(name));
         }
 
         // 공급자 검색 조건

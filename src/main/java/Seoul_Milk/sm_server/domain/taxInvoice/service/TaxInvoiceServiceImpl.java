@@ -615,7 +615,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
      * 세금계산서 검색 - provider, consumer 입력 값이 없으면 전체 조회
      * @param provider 공급자
      * @param consumer 공급받는자
-     * @param employeeId 관리자는 사번으로 검색 가능
+     * @param name 관리자는 이름으로 검색 가능
      * @param startDate 시작날짜
      * @param endDate 끝날짜
      * @param period 기간
@@ -623,7 +623,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
      * @return 검색 결과
      */
     @Override
-    public Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String employeeId,
+    public Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String name,
                                                      LocalDate startDate, LocalDate endDate, Integer period, String status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
@@ -631,9 +631,8 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             endDate = LocalDate.now();
             startDate = endDate.minusMonths(period);
         }
-
         ProcessStatus processStatus = null;
-        if (status != null) {
+        if (status != null && !status.isEmpty()) {
             try {
                 processStatus = ProcessStatus.valueOf(status.toUpperCase());
             } catch (IllegalArgumentException e) {
@@ -642,7 +641,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
         }
 
         Page<TaxInvoice> taxInvoicePage = taxInvoiceRepository.searchWithFilters(
-                provider, consumer, employeeId, member, startDate, endDate, processStatus, pageable);
+                provider, consumer, name, member, startDate, endDate, processStatus, pageable);
 
         return taxInvoicePage.map(TaxInvoiceResponseDTO.GetOne::from);
     }
