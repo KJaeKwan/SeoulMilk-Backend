@@ -1,9 +1,12 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.service;
 
+import static Seoul_Milk.sm_server.global.exception.ErrorCode.MAKE_EXCEL_FILE_ERROR;
+
 import Seoul_Milk.sm_server.domain.image.service.ImageService;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
+import Seoul_Milk.sm_server.domain.taxInvoice.util.ExcelMaker;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.repository.TaxInvoiceFileRepository;
@@ -19,6 +22,8 @@ import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -57,6 +62,9 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
     private static final int MAX_REQUESTS_PER_SECOND = 5;  // 초당 최대 5개 요청
     private final Semaphore semaphore = new Semaphore(MAX_REQUESTS_PER_SECOND, true);
+
+    //excelMaker 주입
+    private final ExcelMaker excelMaker;
 
 
     /**
@@ -660,6 +668,23 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
         }
 
         taxInvoiceRepository.delete(taxInvoiceId);
+    }
+
+    /**
+     * 세금계산서 정보 엑셀파일로 추출
+     * @param taxInvoiceIds
+     * @return
+     */
+    @Override
+    public ByteArrayInputStream extractToExcel(List<Long> taxInvoiceIds) {
+        List<TaxInvoice> taxInvoiceList = taxInvoiceRepository.findAllById(taxInvoiceIds);
+        ByteArrayInputStream result;
+        try{
+            result = excelMaker.getTaxInvoiceToExcel(taxInvoiceList);
+        } catch (IOException e) {
+            throw new CustomException(MAKE_EXCEL_FILE_ERROR);
+        }
+        return result;
     }
 
 

@@ -14,11 +14,15 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.io.ByteArrayInputStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -152,6 +156,26 @@ public class TaxInvoiceController {
     public SuccessResponse<String> delete(@PathVariable("taxInvoiceId") Long id) {
         taxInvoiceService.delete(id);
         return SuccessResponse.ok("세금계산서 정보 삭제에 성공했습니다.");
+    }
+
+    /**
+     * 검증된 세금계산서 엑셀파일로 추출
+     */
+    @Operation(summary = "검증된 세금계산서 엑셀파일로 추출")
+    @GetMapping("/excel-file")
+    public ResponseEntity<InputStreamResource> toExcel(
+            @RequestParam(value = "taxInvoiceIds") List<Long> taxInvoiceIds
+    ){
+        ByteArrayInputStream result = taxInvoiceService.extractToExcel(taxInvoiceIds);
+        String fileName = "taxInvoice_file" + ".xlsx";
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/vnd.ms-excel");
+        headers.add("Content-Disposition", "attachment; filename=" + fileName);
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .body(new InputStreamResource(result));
     }
 
 }
