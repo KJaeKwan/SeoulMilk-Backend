@@ -2,7 +2,8 @@ package Seoul_Milk.sm_server.domain.taxInvoice.service;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
-import org.springframework.cglib.core.Local;
+import java.io.ByteArrayInputStream;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,4 +18,6 @@ public interface TaxInvoiceService {
     Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String employeeId,
                                               LocalDate startDate, LocalDate endDate, Integer period, String status, int page, int size);
     void delete(Long taxInvoiceId);
+
+    ByteArrayInputStream extractToExcel(List<Long> taxInvoiceIds);
 }
