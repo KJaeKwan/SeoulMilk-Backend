@@ -24,6 +24,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.PENDING;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.*;
 import static Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.enums.MaxSearchLimit.MAX_SEARCH_LIMIT;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_ALREADY_EXIST;
@@ -64,6 +65,9 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         QTaxInvoiceFile taxInvoiceFile = QTaxInvoiceFile.taxInvoiceFile;
 
         BooleanBuilder whereClause = new BooleanBuilder();
+
+        //PENDING 데이터 조회x
+        whereClause.and(taxInvoice.processStatus.eq(PENDING).not());
 
         // 권한 조건
         if (member.getRole() == Role.ROLE_NORMAL) {
