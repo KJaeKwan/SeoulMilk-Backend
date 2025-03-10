@@ -14,7 +14,7 @@ public interface TaxInvoiceService {
     CompletableFuture<TaxInvoiceResponseDTO.Create> processTemplateOcrSync(String imageUrl, MemberEntity member, Long imageId);
     CompletableFuture<TaxInvoiceResponseDTO.Create> processOcrAsync(MultipartFile image, MemberEntity member);
     CompletableFuture<TaxInvoiceResponseDTO.Create> processOcrAsync(String imageUrl, MemberEntity member, Long imageId);
-    Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String employeeId,
+    Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String name,
                                               LocalDate startDate, LocalDate endDate, Integer period, String status, int page, int size);
     void delete(Long taxInvoiceId);
 }
