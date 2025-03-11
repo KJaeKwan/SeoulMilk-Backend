@@ -161,7 +161,6 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         if(processStatus != null){
             whereClause.and(taxInvoice.processStatus.eq(processStatus));
         }
-        whereClause.and(taxInvoice.isTemporary.eq(UNTEMP).not());
         //최신 100개 데이터만 고려
         List<Long> latestIds = queryFactory
                 .select(taxInvoice.taxInvoiceId)
