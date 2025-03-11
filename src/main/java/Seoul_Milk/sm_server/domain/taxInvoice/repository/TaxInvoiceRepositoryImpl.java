@@ -79,12 +79,12 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
 
         // 공급자 검색 조건
         if (provider != null && !provider.isEmpty()) {
-            whereClause.and(taxInvoice.ipName.eq(provider));
+            whereClause.and(taxInvoice.ipBusinessName.eq(provider));
         }
 
         // 공급받는자 검색 조건
         if (consumer != null && !consumer.isEmpty()) {
-            whereClause.and(taxInvoice.suName.eq(consumer));
+            whereClause.and(taxInvoice.suBusinessName.eq(consumer));
         }
 
         // 날짜 검색 (특정 날짜 or 최근 N개월 내)
