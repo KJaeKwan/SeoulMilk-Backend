@@ -24,6 +24,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.PENDING;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.*;
 import static Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.enums.MaxSearchLimit.MAX_SEARCH_LIMIT;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_ALREADY_EXIST;
@@ -57,7 +58,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     }
 
     @Override
-    public Page<TaxInvoice> searchWithFilters(String provider, String consumer, String employeeId, MemberEntity member,
+    public Page<TaxInvoice> searchWithFilters(String provider, String consumer, String name, MemberEntity member,
                                               LocalDate startDate, LocalDate endDate, ProcessStatus status, Pageable pageable) {
         QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
         QMemberEntity memberEntity = QMemberEntity.memberEntity;
@@ -65,22 +66,25 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
 
         BooleanBuilder whereClause = new BooleanBuilder();
 
+        //PENDING 데이터 조회x
+        whereClause.and(taxInvoice.processStatus.eq(PENDING).not());
+
         // 권한 조건
         if (member.getRole() == Role.ROLE_NORMAL) {
             whereClause.and(taxInvoice.member.employeeId.eq(member.getEmployeeId()));
         }
-        if (member.getRole() == Role.ROLE_ADMIN && employeeId != null && !employeeId.isEmpty()) {
-            whereClause.and(taxInvoice.member.employeeId.eq(employeeId));
+        if (member.getRole() == Role.ROLE_ADMIN &&  name!= null && !name.isEmpty()) {
+            whereClause.and(taxInvoice.member.name.eq(name));
         }
 
         // 공급자 검색 조건
         if (provider != null && !provider.isEmpty()) {
-            whereClause.and(taxInvoice.ipName.eq(provider));
+            whereClause.and(taxInvoice.ipBusinessName.eq(provider));
         }
 
         // 공급받는자 검색 조건
         if (consumer != null && !consumer.isEmpty()) {
-            whereClause.and(taxInvoice.suName.eq(consumer));
+            whereClause.and(taxInvoice.suBusinessName.eq(consumer));
         }
 
         // 날짜 검색 (특정 날짜 or 최근 N개월 내)
@@ -157,7 +161,6 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         if(processStatus != null){
             whereClause.and(taxInvoice.processStatus.eq(processStatus));
         }
-        whereClause.and(taxInvoice.isTemporary.eq(UNTEMP).not());
         //최신 100개 데이터만 고려
         List<Long> latestIds = queryFactory
                 .select(taxInvoice.taxInvoiceId)
@@ -174,21 +177,6 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
                         .where(whereClause.and(taxInvoice.taxInvoiceId.in(latestIds))) // 최신 100개 내에서 필터링
                         .fetchOne()
         ).orElse(0L);
-    }
-
-    //임시저장 상태가 INITIAL인건 모두 Untemp로 바꾸기
-    @Override
-    @Transactional
-    public void updateInitialToUntemp(List<Long> taxInvoiceIds) {
-        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
-        queryFactory
-                .update(taxInvoice)
-                .set(taxInvoice.isTemporary, UNTEMP) // UNTEMP로 변경
-                .where(
-                        taxInvoice.taxInvoiceId.in(taxInvoiceIds)
-                                .and(taxInvoice.isTemporary.eq(INITIAL)) // INITIAL인 것만 변경
-                )
-                .execute();
     }
 
     @Override
@@ -250,9 +238,9 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         if (poc != null && !poc.isEmpty()) {
             BooleanBuilder supplierCondition = new BooleanBuilder();
 
-            supplierCondition.or(taxInvoice.ipName.contains(poc).and(taxInvoice.suName.contains(poc))); // 둘 다 같은 경우
-            supplierCondition.or(taxInvoice.ipName.contains(poc));
-            supplierCondition.or(taxInvoice.suName.contains(poc));
+            supplierCondition.or(taxInvoice.ipBusinessName.contains(poc).and(taxInvoice.suBusinessName.contains(poc))); // 둘 다 같은 경우
+            supplierCondition.or(taxInvoice.ipBusinessName.contains(poc));
+            supplierCondition.or(taxInvoice.suBusinessName.contains(poc));
 
             whereClause.and(supplierCondition);
         }
@@ -261,9 +249,6 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         if(processStatus != null){
             whereClause.and(taxInvoice.processStatus.eq(processStatus));
         }
-
-        //임시저장 여부 조건 추가
-        whereClause.and(taxInvoice.isTemporary.eq(UNTEMP).not());
 
         int maxLimit = MAX_SEARCH_LIMIT.getNum();
         int pageSize = Math.min(pageable.getPageSize(), maxLimit);
@@ -307,8 +292,8 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     }
 
     @Override
-    public TaxInvoice findByIssueId(String issueId) {
-        return taxInvoiceJpaRepository.findByIssueId(issueId);
+    public Optional<TaxInvoice> findByIssueId(String issueId) {
+        return Optional.ofNullable(taxInvoiceJpaRepository.findByIssueId(issueId));
     }
 
     @Override

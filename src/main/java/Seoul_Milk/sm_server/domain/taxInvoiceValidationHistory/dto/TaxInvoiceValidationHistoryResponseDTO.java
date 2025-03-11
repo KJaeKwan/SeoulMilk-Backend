@@ -13,8 +13,8 @@ public class TaxInvoiceValidationHistoryResponseDTO {
     @Schema(description = "검증 내역 조회 결과 단일 DTO")
     public record GetHistoryData(
             @Schema(description = "검증된 세금계산서 pk값") Long id,
-            @Schema(description = "공급자명") String suName,
-            @Schema(description = "공급받는자명") String ipName,
+            @Schema(description = "공급자명") String suBusinessName,
+            @Schema(description = "공급받는자명") String ipBusinessName,
             @Schema(description = "생성날짜") LocalDateTime createdAt,
             @Schema(description = "파일url") String url,
             @Schema(description = "승인여부") ProcessStatus processStatus
@@ -23,8 +23,8 @@ public class TaxInvoiceValidationHistoryResponseDTO {
                 TaxInvoice taxInvoice, TaxInvoiceFile taxInvoiceFile) {
             return new GetHistoryData(
                 taxInvoice.getTaxInvoiceId(),
-                taxInvoice.getSuName(),
-                taxInvoice.getIpName(),
+                taxInvoice.getSuBusinessName(),
+                taxInvoice.getIpBusinessName(),
                 taxInvoice.getCreateAt(),
                 taxInvoiceFile.getFileUrl(),
                 taxInvoice.getProcessStatus()

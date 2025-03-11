@@ -2,6 +2,7 @@ package Seoul_Milk.sm_server.domain.taxValidation.thread;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
+import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.redis.RedisUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,6 +18,7 @@ import java.util.Objects;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.*;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefResponseCode.NEED_SIMPLE_AUTHENTICATION;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.TwoWayInfo.*;
+import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
 
 public class RequestThread extends Thread {
     private final EasyCodef codef;
@@ -101,7 +103,8 @@ public class RequestThread extends Thread {
             ));
         }
         if(threadNo > 0){
-            TaxInvoice taxInvoice = taxInvoiceRepository.findByIssueId(originalApproveNo);
+            TaxInvoice taxInvoice = taxInvoiceRepository.findByIssueId(originalApproveNo)
+                    .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = null;
             try {

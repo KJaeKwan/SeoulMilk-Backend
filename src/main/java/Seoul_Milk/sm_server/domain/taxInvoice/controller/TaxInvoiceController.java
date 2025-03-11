@@ -14,11 +14,15 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.io.ByteArrayInputStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -109,7 +113,6 @@ public class TaxInvoiceController {
      * 내 업무 조회 - 세금계산서 리스트 반환 (검색 조건에 따라)
      * @param provider 공급자 상호명
      * @param consumer 공급받는자 상호명
-     * @param date 특정 날짜
      * @param period 기간
      * @param status 승인 상태
      * @param page 페이지 정보
@@ -129,15 +132,16 @@ public class TaxInvoiceController {
     @GetMapping("/search")
     public SuccessResponse<Page<TaxInvoiceResponseDTO.GetOne>> getAllBySearch(
             @CurrentMember MemberEntity member,
-            @RequestParam(required = false) String provider,
-            @RequestParam(required = false) String consumer,
-            @RequestParam(required = false) String employeeId,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date,
-            @RequestParam(required = false) Integer period,
-            @RequestParam(required = false) String status,
+            @RequestParam(value = "provider", required = false) String provider,
+            @RequestParam(value = "consumer", required = false) String consumer,
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam(value = "endDate",required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate,
+            @RequestParam(value = "period", required = false) Integer period,
+            @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
-        Page<TaxInvoiceResponseDTO.GetOne> result = taxInvoiceService.search(member, provider, consumer, employeeId, date, period, status, page-1, size);
+        Page<TaxInvoiceResponseDTO.GetOne> result = taxInvoiceService.search(member, provider, consumer, name, startDate, endDate, period, status, page-1, size);
         return SuccessResponse.ok(result);
     }
 
@@ -152,6 +156,26 @@ public class TaxInvoiceController {
     public SuccessResponse<String> delete(@PathVariable("taxInvoiceId") Long id) {
         taxInvoiceService.delete(id);
         return SuccessResponse.ok("세금계산서 정보 삭제에 성공했습니다.");
+    }
+
+    /**
+     * 검증된 세금계산서 엑셀파일로 추출
+     */
+    @Operation(summary = "검증된 세금계산서 엑셀파일로 추출")
+    @GetMapping("/excel-file")
+    public ResponseEntity<InputStreamResource> toExcel(
+            @RequestParam(value = "taxInvoiceIds") List<Long> taxInvoiceIds
+    ){
+        ByteArrayInputStream result = taxInvoiceService.extractToExcel(taxInvoiceIds);
+        String fileName = "taxInvoice_file" + ".xlsx";
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Type", "application/vnd.ms-excel");
+        headers.add("Content-Disposition", "attachment; filename=" + fileName);
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .body(new InputStreamResource(result));
     }
 
 }

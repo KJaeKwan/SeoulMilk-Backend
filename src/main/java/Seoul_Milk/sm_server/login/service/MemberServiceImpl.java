@@ -1,5 +1,7 @@
 package Seoul_Milk.sm_server.login.service;
 
+import static Seoul_Milk.sm_server.global.exception.ErrorCode.USER_EMPLOYEE_ID_NOT_EXIST;
+
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.login.constant.Role;
@@ -104,7 +106,8 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public MemberResponse updateRole(UpdateRoleDTO request) {
-        MemberEntity member = memberRepository.getById(request.memberId());
+        MemberEntity member = memberRepository.findByEmployeeId(request.employeeId().toString())
+                .orElseThrow(() -> new CustomException(USER_EMPLOYEE_ID_NOT_EXIST));
 
         try {
             Role role = Role.valueOf(request.role());

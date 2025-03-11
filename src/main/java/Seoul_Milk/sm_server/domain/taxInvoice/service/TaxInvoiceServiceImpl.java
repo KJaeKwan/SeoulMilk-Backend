@@ -1,9 +1,12 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.service;
 
+import static Seoul_Milk.sm_server.global.exception.ErrorCode.MAKE_EXCEL_FILE_ERROR;
+
 import Seoul_Milk.sm_server.domain.image.service.ImageService;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
+import Seoul_Milk.sm_server.domain.taxInvoice.util.ExcelMaker;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.repository.TaxInvoiceFileRepository;
@@ -19,6 +22,8 @@ import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -57,6 +62,9 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
     private static final int MAX_REQUESTS_PER_SECOND = 5;  // 초당 최대 5개 요청
     private final Semaphore semaphore = new Semaphore(MAX_REQUESTS_PER_SECOND, true);
+
+    //excelMaker 주입
+    private final ExcelMaker excelMaker;
 
 
     /**
@@ -123,10 +131,6 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
             ProcessStatus status = ProcessStatus.PENDING;
 
-            if (taxInvoiceRepository.existsByIssueId(issueId)) {
-                throw new CustomException(ErrorCode.TAX_INVOICE_ALREADY_EXIST);
-            }
-
             // 필수값 검증 및 오류 메시지 추가
             validateRequiredField("승인번호", issueId, requiredFieldErrors);
             validateRequiredField("공급자 등록번호", ipId, requiredFieldErrors);
@@ -150,20 +154,35 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             // OCR 성공 후 S3 파일 저장
             String fileUrl = awsS3Service.uploadFile("tax_invoices", image, true);
 
-            // TaxInvoice 생성 및 저장
-            TaxInvoice taxInvoice = TaxInvoice.create(
-                    issueId, ipId, suId, chargeTotal, taxTotal, grandTotal,
-                    erDat, ipBusinessName, suBusinessName, ipName, suName, ipAddress, suAddress,
-                    ipEmail, suEmail, member, errorDetails, status
-            );
-            TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
+            TaxInvoice taxInvoice;
+            TaxInvoiceFile taxFile;
 
-            // TaxInvoiceFile 생성 및 저장
-            TaxInvoiceFile taxFile = TaxInvoiceFile.create(savedTaxInvoice, fileUrl, image.getContentType(),
-                    image.getOriginalFilename(), image.getSize(), LocalDateTime.now());
-            taxInvoiceFileRepository.save(taxFile);
-            savedTaxInvoice.attachFile(taxFile);
-            taxInvoiceRepository.save(savedTaxInvoice);
+            // TaxInvoice 생성 및 저장
+            if (taxInvoiceRepository.findByIssueId(issueId).isEmpty()) {
+                taxInvoice = TaxInvoice.create(
+                        issueId, ipId, suId, chargeTotal, taxTotal, grandTotal,
+                        erDat, ipBusinessName, suBusinessName, ipName, suName, ipAddress, suAddress,
+                        ipEmail, suEmail, member, errorDetails, status
+                );
+                TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
+                // TaxInvoiceFile 생성 및 저장
+                taxFile = TaxInvoiceFile.create(savedTaxInvoice, fileUrl, image.getContentType(),
+                        image.getOriginalFilename(), image.getSize(), LocalDateTime.now());
+                taxInvoiceFileRepository.save(taxFile);
+                savedTaxInvoice.attachFile(taxFile);
+                taxInvoiceRepository.save(savedTaxInvoice);
+            }
+            else{
+                taxInvoice = taxInvoiceRepository.findByIssueId(issueId).get();
+                taxInvoice.update(
+                        issueId, ipId, suId, chargeTotal, taxTotal, grandTotal,
+                        erDat, ipBusinessName, suBusinessName, ipName, suName, ipAddress, suAddress,
+                        ipEmail, suEmail, member, errorDetails, status
+                );
+                taxFile = taxInvoice.getFile();
+                taxFile.update(taxInvoice, fileUrl, image.getContentType(), image.getOriginalFilename(), image.getSize(), LocalDateTime.now());
+                taxInvoice.attachFile(taxFile);
+            }
 
             long endTime = System.nanoTime();
             long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
@@ -217,10 +236,6 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
                 ProcessStatus status = ProcessStatus.PENDING;
 
-                if (taxInvoiceRepository.existsByIssueId(issueId)) {
-                    throw new CustomException(ErrorCode.TAX_INVOICE_ALREADY_EXIST);
-                }
-
                 // 필수값 검증 및 오류 메시지 추가
                 validateRequiredField("승인번호", issueId, requiredFieldErrors);
                 validateRequiredField("공급자 등록번호", ipId, requiredFieldErrors);
@@ -244,20 +259,36 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 // OCR 성공 후 S3 파일 이동
                 String movedFileUrl = awsS3Service.moveFileToFinalFolder(imageUrl, "tax_invoices");
 
-                // TaxInvoice 생성 및 저장
-                TaxInvoice taxInvoice = TaxInvoice.create(
-                        issueId, ipId, suId, chargeTotal, taxTotal, grandTotal,
-                        erDat, ipBusinessName, suBusinessName, ipName, suName, ipAddress, suAddress,
-                        ipEmail, suEmail, member, errorDetails, status
-                );
-                TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
+                TaxInvoice taxInvoice;
+                TaxInvoiceFile taxFile;
 
-                // TaxInvoiceFile 생성 및 저장
-                TaxInvoiceFile taxFile = TaxInvoiceFile.create(savedTaxInvoice, movedFileUrl, file.getContentType(),
-                        file.getOriginalFilename(), file.getSize(), LocalDateTime.now());
-                taxInvoiceFileRepository.save(taxFile);
-                savedTaxInvoice.attachFile(taxFile);
-                taxInvoiceRepository.save(savedTaxInvoice);
+                // TaxInvoice 생성 및 저장
+                if (taxInvoiceRepository.findByIssueId(issueId).isEmpty()) {
+                    taxInvoice = TaxInvoice.create(
+                            issueId, ipId, suId, chargeTotal, taxTotal, grandTotal,
+                            erDat, ipBusinessName, suBusinessName, ipName, suName, ipAddress, suAddress,
+                            ipEmail, suEmail, member, errorDetails, status
+                    );
+                    TaxInvoice savedTaxInvoice = taxInvoiceRepository.save(taxInvoice);
+                    // TaxInvoiceFile 생성 및 저장
+                    taxFile = TaxInvoiceFile.create(savedTaxInvoice, movedFileUrl, file.getContentType(),
+                            file.getOriginalFilename(), file.getSize(), LocalDateTime.now());
+                    taxInvoiceFileRepository.save(taxFile);
+                    savedTaxInvoice.attachFile(taxFile);
+                    taxInvoiceRepository.save(savedTaxInvoice);
+                }
+                else{
+                    taxInvoice = taxInvoiceRepository.findByIssueId(issueId).get();
+                    taxInvoice.update(
+                            issueId, ipId, suId, chargeTotal, taxTotal, grandTotal,
+                            erDat, ipBusinessName, suBusinessName, ipName, suName, ipAddress, suAddress,
+                            ipEmail, suEmail, member, errorDetails, status
+                    );
+                    taxFile = taxInvoice.getFile();
+                    taxFile.update(taxInvoice, movedFileUrl, file.getContentType(),
+                            file.getOriginalFilename(), file.getSize(), LocalDateTime.now());
+                    taxInvoice.attachFile(taxFile);
+                }
 
                 // OCR 처리 후 해당 이미지의 임시 저장 해제
                 if (imageId != null) {
@@ -592,30 +623,24 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
      * 세금계산서 검색 - provider, consumer 입력 값이 없으면 전체 조회
      * @param provider 공급자
      * @param consumer 공급받는자
-     * @param employeeId 관리자는 사번으로 검색 가능
-     * @param date 특정 날짜
+     * @param name 관리자는 이름으로 검색 가능
+     * @param startDate 시작날짜
+     * @param endDate 끝날짜
      * @param period 기간
      * @param status 승인 상태
      * @return 검색 결과
      */
     @Override
-    public Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String employeeId,
-                                                     LocalDate date, Integer period, String status, int page, int size) {
+    public Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String name,
+                                                     LocalDate startDate, LocalDate endDate, Integer period, String status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        LocalDate startDate = null;
-        LocalDate endDate = null;
-
-        if (date != null) {
-            startDate = date;
-            endDate = date;
-        } else if (period != null) {
+        if (period != null) {
             endDate = LocalDate.now();
             startDate = endDate.minusMonths(period);
         }
-
         ProcessStatus processStatus = null;
-        if (status != null) {
+        if (status != null && !status.isEmpty()) {
             try {
                 processStatus = ProcessStatus.valueOf(status.toUpperCase());
             } catch (IllegalArgumentException e) {
@@ -624,7 +649,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
         }
 
         Page<TaxInvoice> taxInvoicePage = taxInvoiceRepository.searchWithFilters(
-                provider, consumer, employeeId, member, startDate, endDate, processStatus, pageable);
+                provider, consumer, name, member, startDate, endDate, processStatus, pageable);
 
         return taxInvoicePage.map(TaxInvoiceResponseDTO.GetOne::from);
     }
@@ -643,6 +668,23 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
         }
 
         taxInvoiceRepository.delete(taxInvoiceId);
+    }
+
+    /**
+     * 세금계산서 정보 엑셀파일로 추출
+     * @param taxInvoiceIds
+     * @return
+     */
+    @Override
+    public ByteArrayInputStream extractToExcel(List<Long> taxInvoiceIds) {
+        List<TaxInvoice> taxInvoiceList = taxInvoiceRepository.findAllById(taxInvoiceIds);
+        ByteArrayInputStream result;
+        try{
+            result = excelMaker.getTaxInvoiceToExcel(taxInvoiceList);
+        } catch (IOException e) {
+            throw new CustomException(MAKE_EXCEL_FILE_ERROR);
+        }
+        return result;
     }
 
 
