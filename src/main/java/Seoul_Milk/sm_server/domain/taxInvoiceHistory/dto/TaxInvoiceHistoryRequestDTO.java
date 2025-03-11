@@ -1,10 +1,10 @@
-package Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto;
+package Seoul_Milk.sm_server.domain.taxInvoiceHistory.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 @Schema(description = "RE 관련 DTO")
-public class TaxInvoiceValidationHistoryRequestDTO {
+public class TaxInvoiceHistoryRequestDTO {
     public record ChangeTaxInvoiceRequest(
             @Schema(description = "수정하고 싶은 taxInvoiceId") Long taxInvoiceId,
             @Schema(description = "수정된 승인번호") String issueId,

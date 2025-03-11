@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.*;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.enums.MaxSearchLimit.MAX_SEARCH_LIMIT;
+import static Seoul_Milk.sm_server.domain.taxInvoiceHistory.enums.MaxSearchLimit.MAX_SEARCH_LIMIT;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_ALREADY_EXIST;
 
 @Repository

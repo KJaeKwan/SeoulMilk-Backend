@@ -1,4 +1,4 @@
-package Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.service;
+package Seoul_Milk.sm_server.domain.taxInvoiceHistory.service;
 
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.APPROVED;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.REJECTED;
@@ -9,12 +9,12 @@ import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_NOT_EX
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryResponseDTO;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryResponseDTO.GetHistoryData;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryResponseDTO.GetModalResponse;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryRequestDTO.ChangeTaxInvoiceRequest;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto.TaxInvoiceValidationHistoryRequestDTO.TaxInvoiceRequest;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.validator.TaxInvoiceValidator;
+import Seoul_Milk.sm_server.domain.taxInvoiceHistory.dto.TaxInvoiceHistoryResponseDTO;
+import Seoul_Milk.sm_server.domain.taxInvoiceHistory.dto.TaxInvoiceHistoryResponseDTO.GetHistoryData;
+import Seoul_Milk.sm_server.domain.taxInvoiceHistory.dto.TaxInvoiceHistoryResponseDTO.GetModalResponse;
+import Seoul_Milk.sm_server.domain.taxInvoiceHistory.dto.TaxInvoiceHistoryRequestDTO.ChangeTaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoiceHistory.dto.TaxInvoiceHistoryRequestDTO.TaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoiceHistory.validator.TaxInvoiceValidator;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import jakarta.transaction.Transactional;
@@ -28,12 +28,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class TaxInvoiceValidationHistoryServiceImpl implements TaxInvoiceValidationHistoryService {
+public class TaxInvoiceHistoryServiceImpl implements TaxInvoiceHistoryService {
     private final TaxInvoiceRepository taxInvoiceRepository;
     private final TaxInvoiceValidator taxInvoiceValidator;
 
     @Override
-    public TaxInvoiceValidationHistoryResponseDTO.TaxInvoiceSearchResult searchByProviderOrConsumer(MemberEntity memberEntity, ProcessStatus processStatus, String poc, int page, int size) {
+    public TaxInvoiceHistoryResponseDTO.TaxInvoiceSearchResult searchByProviderOrConsumer(MemberEntity memberEntity, ProcessStatus processStatus, String poc, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<TaxInvoice> taxInvoicePage = taxInvoiceRepository.searchConsumerOrProvider(poc, memberEntity.getEmployeeId(), processStatus, memberEntity, pageable);
         Long total = taxInvoiceRepository.getProcessStatusCount(null, memberEntity);
@@ -48,11 +48,11 @@ public class TaxInvoiceValidationHistoryServiceImpl implements TaxInvoiceValidat
         taxInvoiceRepository.updateInitialToUntemp(taxInvoiceIds);
 
         List<GetHistoryData> historyDataList = taxInvoicePage.stream()
-                .map(taxInvoice -> TaxInvoiceValidationHistoryResponseDTO.GetHistoryData.from(taxInvoice, taxInvoice.getFile()))
+                .map(taxInvoice -> TaxInvoiceHistoryResponseDTO.GetHistoryData.from(taxInvoice, taxInvoice.getFile()))
                 .toList();
 
         Page<GetHistoryData> pageGetHistoryData = new PageImpl<>(historyDataList, pageable, taxInvoicePage.getTotalElements());
-        return TaxInvoiceValidationHistoryResponseDTO.TaxInvoiceSearchResult.from(pageGetHistoryData, total, approved, rejected, unapproved);
+        return TaxInvoiceHistoryResponseDTO.TaxInvoiceSearchResult.from(pageGetHistoryData, total, approved, rejected, unapproved);
     }
 
     @Transactional
@@ -99,7 +99,7 @@ public class TaxInvoiceValidationHistoryServiceImpl implements TaxInvoiceValidat
     public GetModalResponse showModal(Long taxInvoiceId) {
         TaxInvoice taxInvoice = taxInvoiceRepository.findById(taxInvoiceId)
                 .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
-        return TaxInvoiceValidationHistoryResponseDTO.GetModalResponse.from(taxInvoice);
+        return TaxInvoiceHistoryResponseDTO.GetModalResponse.from(taxInvoice);
     }
 
     /**

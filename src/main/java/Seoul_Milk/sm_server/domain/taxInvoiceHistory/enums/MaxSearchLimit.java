@@ -1,4 +1,4 @@
-package Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.enums;
+package Seoul_Milk.sm_server.domain.taxInvoiceHistory.enums;
 
 /**
  * RE_01 조회 api에서 최대로 조회할 수 있는 개수

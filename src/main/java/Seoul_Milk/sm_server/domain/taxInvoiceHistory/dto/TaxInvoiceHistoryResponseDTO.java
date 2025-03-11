@@ -1,4 +1,4 @@
-package Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.dto;
+package Seoul_Milk.sm_server.domain.taxInvoiceHistory.dto;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 
 @Schema(description = "RE 관련 DTO")
-public class TaxInvoiceValidationHistoryResponseDTO {
+public class TaxInvoiceHistoryResponseDTO {
 
     @Schema(description = "검증 내역 조회 결과 단일 DTO")
     public record GetHistoryData(
