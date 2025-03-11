@@ -179,21 +179,6 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         ).orElse(0L);
     }
 
-    //임시저장 상태가 INITIAL인건 모두 Untemp로 바꾸기
-    @Override
-    @Transactional
-    public void updateInitialToUntemp(List<Long> taxInvoiceIds) {
-        QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
-        queryFactory
-                .update(taxInvoice)
-                .set(taxInvoice.isTemporary, UNTEMP) // UNTEMP로 변경
-                .where(
-                        taxInvoice.taxInvoiceId.in(taxInvoiceIds)
-                                .and(taxInvoice.isTemporary.eq(INITIAL)) // INITIAL인 것만 변경
-                )
-                .execute();
-    }
-
     @Override
     public void updateIsTemporaryToTemp(List<Long> taxInvoiceIds) {
         QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
