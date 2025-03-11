@@ -253,9 +253,9 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         if (poc != null && !poc.isEmpty()) {
             BooleanBuilder supplierCondition = new BooleanBuilder();
 
-            supplierCondition.or(taxInvoice.ipName.contains(poc).and(taxInvoice.suName.contains(poc))); // 둘 다 같은 경우
-            supplierCondition.or(taxInvoice.ipName.contains(poc));
-            supplierCondition.or(taxInvoice.suName.contains(poc));
+            supplierCondition.or(taxInvoice.ipBusinessName.contains(poc).and(taxInvoice.suBusinessName.contains(poc))); // 둘 다 같은 경우
+            supplierCondition.or(taxInvoice.ipBusinessName.contains(poc));
+            supplierCondition.or(taxInvoice.suBusinessName.contains(poc));
 
             whereClause.and(supplierCondition);
         }
