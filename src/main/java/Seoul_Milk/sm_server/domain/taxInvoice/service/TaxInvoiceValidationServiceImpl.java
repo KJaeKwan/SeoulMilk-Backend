@@ -1,12 +1,12 @@
-package Seoul_Milk.sm_server.domain.taxInvoiceValidation.service;
+package Seoul_Milk.sm_server.domain.taxInvoice.service;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.request.NonVerifiedTaxValidationRequestDTO;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.request.TaxInvoiceInfo;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.response.NonVerifiedTaxValidationResponseDTO;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidation.thread.RequestThread;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidation.thread.RequestThreadManager;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.request.NonVerifiedTaxValidationRequestDTO;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.request.TaxInvoiceInfo;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.response.NonVerifiedTaxValidationResponseDTO;
+import Seoul_Milk.sm_server.domain.taxInvoice.thread.RequestThread;
+import Seoul_Milk.sm_server.domain.taxInvoice.thread.RequestThreadManager;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.redis.RedisUtils;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
@@ -24,10 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefParameters.*;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.CodefResponseCode.*;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.ThreadTerm.THREAD_TERM;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums.TwoWayInfo.*;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.CodefParameters.*;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.CodefResponseCode.*;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ThreadTerm.THREAD_TERM;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TwoWayInfo.*;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.*;
 
 @Service

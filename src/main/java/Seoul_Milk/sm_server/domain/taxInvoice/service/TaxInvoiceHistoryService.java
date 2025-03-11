@@ -1,10 +1,10 @@
-package Seoul_Milk.sm_server.domain.taxInvoiceHistory.service;
+package Seoul_Milk.sm_server.domain.taxInvoice.service;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
-import Seoul_Milk.sm_server.domain.taxInvoiceHistory.dto.TaxInvoiceHistoryResponseDTO;
-import Seoul_Milk.sm_server.domain.taxInvoiceHistory.dto.TaxInvoiceHistoryResponseDTO.GetModalResponse;
-import Seoul_Milk.sm_server.domain.taxInvoiceHistory.dto.TaxInvoiceHistoryRequestDTO.ChangeTaxInvoiceRequest;
-import Seoul_Milk.sm_server.domain.taxInvoiceHistory.dto.TaxInvoiceHistoryRequestDTO.TaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceHistoryResponseDTO;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceHistoryResponseDTO.GetModalResponse;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceHistoryRequestDTO.ChangeTaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceHistoryRequestDTO.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 
 public interface TaxInvoiceHistoryService {

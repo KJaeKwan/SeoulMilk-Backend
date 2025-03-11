@@ -1,4 +1,4 @@
-package Seoul_Milk.sm_server.domain.taxInvoiceHistory.dto;
+package Seoul_Milk.sm_server.domain.taxInvoice.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;

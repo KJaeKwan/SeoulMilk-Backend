@@ -1,4 +1,4 @@
-package Seoul_Milk.sm_server.domain.taxInvoiceHistory.validator;
+package Seoul_Milk.sm_server.domain.taxInvoice.validator;
 
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.DO_NOT_ACCESS_OTHER_TAX_INVOICE;
 import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;

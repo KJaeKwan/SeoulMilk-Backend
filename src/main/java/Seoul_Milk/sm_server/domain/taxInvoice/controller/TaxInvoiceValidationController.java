@@ -1,9 +1,9 @@
-package Seoul_Milk.sm_server.domain.taxInvoiceValidation.controller;
+package Seoul_Milk.sm_server.domain.taxInvoice.controller;
 
-import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.request.NonVerifiedTaxValidationRequestDTO;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.response.NonVerifiedTaxValidationResponseDTO;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.request.VerifiedTaxValidationRequestDTO;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidation.service.TaxInvoiceValidationService;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.request.NonVerifiedTaxValidationRequestDTO;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.response.NonVerifiedTaxValidationResponseDTO;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.request.VerifiedTaxValidationRequestDTO;
+import Seoul_Milk.sm_server.domain.taxInvoice.service.TaxInvoiceValidationService;
 import Seoul_Milk.sm_server.global.annotation.CurrentMember;
 import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;

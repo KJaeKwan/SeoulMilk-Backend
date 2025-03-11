@@ -1,4 +1,4 @@
-package Seoul_Milk.sm_server.domain.taxInvoiceValidation.thread;
+package Seoul_Milk.sm_server.domain.taxInvoice.thread;
 
 import java.util.ArrayList;
 import java.util.HashMap;

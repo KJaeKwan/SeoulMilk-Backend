@@ -1,4 +1,4 @@
-package Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums;
+package Seoul_Milk.sm_server.domain.taxInvoice.enums;
 
 public enum TwoWayInfo {
     JOB_INDEX("JOB_INDEX"),
@@ -14,7 +14,6 @@ public enum TwoWayInfo {
 
     /**
      * 대문자 형식인 enum내용 카멜표기식으로 바꾸기
-     * @return
      */
     public String setCarmelCase(){
         String[] parts = this.parameter.toLowerCase().split("_");

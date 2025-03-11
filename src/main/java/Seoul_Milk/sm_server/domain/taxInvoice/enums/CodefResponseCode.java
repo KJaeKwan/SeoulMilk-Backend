@@ -1,4 +1,4 @@
-package Seoul_Milk.sm_server.domain.taxInvoiceValidation.enums;
+package Seoul_Milk.sm_server.domain.taxInvoice.enums;
 
 import java.util.Objects;
 

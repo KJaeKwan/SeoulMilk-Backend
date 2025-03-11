@@ -1,7 +1,7 @@
-package Seoul_Milk.sm_server.domain.taxInvoiceValidation.service;
+package Seoul_Milk.sm_server.domain.taxInvoice.service;
 
-import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.request.NonVerifiedTaxValidationRequestDTO;
-import Seoul_Milk.sm_server.domain.taxInvoiceValidation.dto.response.NonVerifiedTaxValidationResponseDTO;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.request.NonVerifiedTaxValidationRequestDTO;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.response.NonVerifiedTaxValidationResponseDTO;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
