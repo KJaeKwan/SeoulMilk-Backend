@@ -13,8 +13,8 @@ public class TaxInvoiceValidationHistoryResponseDTO {
     @Schema(description = "검증 내역 조회 결과 단일 DTO")
     public record GetHistoryData(
             @Schema(description = "검증된 세금계산서 pk값") Long id,
-            @Schema(description = "공급자명") String suName, // 이거 변수명 바꾸면 프론트에서도 매핑 새로 해야하니 그대로 둘게요
-            @Schema(description = "공급받는자명") String ipName, // 이거 변수명 바꾸면 프론트에서도 매핑 새로 해야하니 그대로 둘게요
+            @Schema(description = "공급자명") String suBusinessName,
+            @Schema(description = "공급받는자명") String ipBusinessName,
             @Schema(description = "생성날짜") LocalDateTime createdAt,
             @Schema(description = "파일url") String url,
             @Schema(description = "승인여부") ProcessStatus processStatus
