@@ -1,5 +1,6 @@
 package Seoul_Milk.sm_server.domain.taxValidation.service;
 
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.UNAPPROVED;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.APPROVAL_NO;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.CONTRACTOR_REG_NUMBER;
 import static Seoul_Milk.sm_server.domain.taxValidation.enums.CodefParameters.ID;
@@ -102,6 +103,11 @@ public class TaxValidationServiceImpl implements TaxValidationService {
 
         for(int i=0; i<iter; i++) {
             TaxInvoiceInfo taxInvoiceInfo = taxInvoiceInfoList.get(i);
+
+            //처리상태가 UNAPPROVED일 때 무시
+            if(taxInvoiceRepository.findByIssueId(taxInvoiceInfo.getApprovalNo()).get().getProcessStatus().equals(UNAPPROVED)){
+                continue;
+            }
 
             // 공통 파라미터 설정
             HashMap<String, Object> requestData = populateParameters(id, Map.of(
