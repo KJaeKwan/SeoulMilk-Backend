@@ -72,9 +72,8 @@ public class TaxInvoiceHistoryServiceImpl implements TaxInvoiceHistoryService {
 
     /**
      * 임시저장 로직
-     * @param memberEntity
-     * @param taxInvoiceRequest
-     * @return
+     * @param memberEntity 로그인 유저 정보
+     * @param taxInvoiceRequest 임시저장 할 세금계산서 ID 값 리스트
      */
     @Transactional
     @Override
@@ -92,8 +91,8 @@ public class TaxInvoiceHistoryServiceImpl implements TaxInvoiceHistoryService {
 
     /**
      * 모달 띄우는 api
-     * @param taxInvoiceId
-     * @return
+     * @param taxInvoiceId 조회할 세금계산서 ID
+     * @return 해당 세금계산서에 대한 상세 정보 반환
      */
     @Override
     public GetModalResponse showModal(Long taxInvoiceId) {
@@ -104,9 +103,8 @@ public class TaxInvoiceHistoryServiceImpl implements TaxInvoiceHistoryService {
 
     /**
      * 수정 api
-     * @param memberEntity
-     * @param changeTaxInvoiceRequest
-     * @return
+     * @param memberEntity 로그인 유저 정보
+     * @param changeTaxInvoiceRequest 수정할 세금계산서 ID와 수정할 데이터(승인번호, 작성일자, 공급자 등록번호, 공급받는자 등록번호, 공급가액) 입력
      */
     @Override
     public Void changeColunm(MemberEntity memberEntity,
