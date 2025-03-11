@@ -9,11 +9,11 @@ import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_NOT_EX
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
-import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceHistoryResponseDTO;
-import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceHistoryResponseDTO.GetHistoryData;
-import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceHistoryResponseDTO.GetModalResponse;
-import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceHistoryRequestDTO.ChangeTaxInvoiceRequest;
-import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceHistoryRequestDTO.TaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryResponseDTO;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryResponseDTO.GetHistoryData;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryResponseDTO.GetModalResponse;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryRequestDTO.ChangeTaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryRequestDTO.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoice.validator.TaxInvoiceValidator;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.login.entity.MemberEntity;

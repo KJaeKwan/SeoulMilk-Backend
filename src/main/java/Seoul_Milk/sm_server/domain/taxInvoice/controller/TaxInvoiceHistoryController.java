@@ -1,9 +1,9 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.controller;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
-import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceHistoryResponseDTO;
-import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceHistoryRequestDTO.ChangeTaxInvoiceRequest;
-import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceHistoryRequestDTO.TaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryResponseDTO;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryRequestDTO.ChangeTaxInvoiceRequest;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryRequestDTO.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoice.service.TaxInvoiceHistoryService;
 import Seoul_Milk.sm_server.global.annotation.CurrentMember;
 import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;

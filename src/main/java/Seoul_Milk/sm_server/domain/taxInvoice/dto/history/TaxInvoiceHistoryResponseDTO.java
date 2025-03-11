@@ -1,4 +1,4 @@
-package Seoul_Milk.sm_server.domain.taxInvoice.dto;
+package Seoul_Milk.sm_server.domain.taxInvoice.dto.history;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
