@@ -13,8 +13,8 @@ public class TaxInvoiceHistoryResponseDTO {
     @Schema(description = "검증 내역 조회 결과 단일 DTO")
     public record GetHistoryData(
             @Schema(description = "검증된 세금계산서 pk값") Long id,
-            @Schema(description = "공급자명") String suName,
-            @Schema(description = "공급받는자명") String ipName,
+            @Schema(description = "공급자명") String suBusinessName,
+            @Schema(description = "공급받는자명") String ipBusinessName,
             @Schema(description = "생성날짜") LocalDateTime createdAt,
             @Schema(description = "파일url") String url,
             @Schema(description = "승인여부") ProcessStatus processStatus
@@ -23,8 +23,8 @@ public class TaxInvoiceHistoryResponseDTO {
                 TaxInvoice taxInvoice, TaxInvoiceFile taxInvoiceFile) {
             return new GetHistoryData(
                 taxInvoice.getTaxInvoiceId(),
-                taxInvoice.getSuName(),
-                taxInvoice.getIpName(),
+                taxInvoice.getIpBusinessName(),
+                taxInvoice.getSuBusinessName(),
                 taxInvoice.getCreateAt(),
                 taxInvoiceFile.getFileUrl(),
                 taxInvoice.getProcessStatus()
@@ -44,7 +44,7 @@ public class TaxInvoiceHistoryResponseDTO {
             @Schema(description = "공급가액") String chargeTotal,
             @Schema(description = "총액") String grandTotal,
             @Schema(description = "처리현황") ProcessStatus processStatus,
-            @Schema(description = "파일url") String url
+            @Schema(description = "파일 url") String url
     ){
         public static GetModalResponse from(
                 TaxInvoice taxInvoice
@@ -52,9 +52,9 @@ public class TaxInvoiceHistoryResponseDTO {
             return new GetModalResponse(
                     taxInvoice.getIssueId(),
                     taxInvoice.getErDat(),
-                    taxInvoice.getSuName(),
+                    taxInvoice.getIpBusinessName(),
                     taxInvoice.getSuId(),
-                    taxInvoice.getIpName(),
+                    taxInvoice.getSuBusinessName(),
                     taxInvoice.getIpId(),
                     String.valueOf(taxInvoice.getTaxTotal()),
                     String.valueOf(taxInvoice.getChargeTotal()),

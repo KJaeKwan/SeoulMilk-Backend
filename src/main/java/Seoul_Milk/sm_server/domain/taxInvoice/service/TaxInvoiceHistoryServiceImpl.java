@@ -41,12 +41,6 @@ public class TaxInvoiceHistoryServiceImpl implements TaxInvoiceHistoryService {
         Long rejected = taxInvoiceRepository.getProcessStatusCount(REJECTED, memberEntity);
         Long unapproved = taxInvoiceRepository.getProcessStatusCount(UNAPPROVED, memberEntity);
 
-        List<Long> taxInvoiceIds = taxInvoicePage.getContent().stream()
-                .map(TaxInvoice::getTaxInvoiceId)
-                .toList();
-        //임시저장 상태가 INITIAL인건 모두 Untemp로 바꾸기
-        taxInvoiceRepository.updateInitialToUntemp(taxInvoiceIds);
-
         List<GetHistoryData> historyDataList = taxInvoicePage.stream()
                 .map(taxInvoice -> TaxInvoiceHistoryResponseDTO.GetHistoryData.from(taxInvoice, taxInvoice.getFile()))
                 .toList();

@@ -74,6 +74,10 @@ dependencies {
 	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
 	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
+	//excel
+	implementation 'org.apache.poi:poi-ooxml:3.16' // .xlsx
+	implementation 'org.apache.poi:poi:3.16' // .xls
 }
 
 tasks.named('test') {

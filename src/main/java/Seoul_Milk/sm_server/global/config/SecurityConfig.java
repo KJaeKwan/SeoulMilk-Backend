@@ -51,7 +51,8 @@ public class SecurityConfig {
             "/reissue",
             "/api/emails/**",
             "/valid/create",
-            "/api/members/exists/**"
+            "/api/members/exists/**",
+            "/api/members/users/password/reset"
     };
 
     // 관리자 권한이 필요한 URL 목록

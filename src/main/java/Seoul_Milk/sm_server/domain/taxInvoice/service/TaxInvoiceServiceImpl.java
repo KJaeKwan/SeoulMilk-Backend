@@ -4,6 +4,7 @@ import Seoul_Milk.sm_server.domain.image.service.ImageService;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
+import Seoul_Milk.sm_server.domain.taxInvoice.util.ExcelMaker;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.repository.TaxInvoiceFileRepository;
@@ -18,6 +19,8 @@ import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -39,6 +42,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.MAKE_EXCEL_FILE_ERROR;
+
 @Service
 @RequiredArgsConstructor
 public class TaxInvoiceServiceImpl implements TaxInvoiceService {
@@ -55,6 +60,9 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
     private static final int MAX_REQUESTS_PER_SECOND = 5;  // 초당 최대 5개 요청
     private final Semaphore semaphore = new Semaphore(MAX_REQUESTS_PER_SECOND, true);
+
+    //excelMaker 주입
+    private final ExcelMaker excelMaker;
 
 
     /**
@@ -300,7 +308,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
      * 세금계산서 검색 - provider, consumer 입력 값이 없으면 전체 조회
      * @param provider 공급자
      * @param consumer 공급받는자
-     * @param employeeId 관리자는 사번으로 검색 가능
+     * @param name 관리자는 이름으로 검색 가능
      * @param startDate 시작날짜
      * @param endDate 끝날짜
      * @param period 기간
@@ -308,7 +316,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
      * @return 검색 결과
      */
     @Override
-    public Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String employeeId,
+    public Page<TaxInvoiceResponseDTO.GetOne> search(MemberEntity member, String provider, String consumer, String name,
                                                      LocalDate startDate, LocalDate endDate, Integer period, String status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
@@ -316,9 +324,8 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
             endDate = LocalDate.now();
             startDate = endDate.minusMonths(period);
         }
-
         ProcessStatus processStatus = null;
-        if (status != null) {
+        if (status != null && !status.isEmpty()) {
             try {
                 processStatus = ProcessStatus.valueOf(status.toUpperCase());
             } catch (IllegalArgumentException e) {
@@ -327,7 +334,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
         }
 
         Page<TaxInvoice> taxInvoicePage = taxInvoiceRepository.searchWithFilters(
-                provider, consumer, employeeId, member, startDate, endDate, processStatus, pageable);
+                provider, consumer, name, member, startDate, endDate, processStatus, pageable);
 
         return taxInvoicePage.map(TaxInvoiceResponseDTO.GetOne::from);
     }
@@ -346,6 +353,23 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
         }
 
         taxInvoiceRepository.delete(taxInvoiceId);
+    }
+
+    /**
+     * 세금계산서 정보 엑셀파일로 추출
+     * @param taxInvoiceIds
+     * @return
+     */
+    @Override
+    public ByteArrayInputStream extractToExcel(List<Long> taxInvoiceIds) {
+        List<TaxInvoice> taxInvoiceList = taxInvoiceRepository.findAllById(taxInvoiceIds);
+        ByteArrayInputStream result;
+        try{
+            result = excelMaker.getTaxInvoiceToExcel(taxInvoiceList);
+        } catch (IOException e) {
+            throw new CustomException(MAKE_EXCEL_FILE_ERROR);
+        }
+        return result;
     }
 
 

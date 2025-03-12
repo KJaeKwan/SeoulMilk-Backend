@@ -16,6 +16,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.USER_EMPLOYEE_ID_NOT_EXIST;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -42,8 +44,9 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional
-    public void resetPw(Long memberId, ResetPwDTO request) {
-        MemberEntity member = memberRepository.getById(memberId);
+    public void resetPw(ResetPwDTO request) {
+        MemberEntity member = memberRepository.findByEmployeeId(request.employeeId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_EXIST));
 
         // 입력 비밀번호 2개 일치 여부 검증
         if (!request.password1().equals(request.password2())) {
@@ -103,7 +106,8 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public MemberResponse updateRole(UpdateRoleDTO request) {
-        MemberEntity member = memberRepository.getById(request.memberId());
+        MemberEntity member = memberRepository.findByEmployeeId(request.employeeId().toString())
+                .orElseThrow(() -> new CustomException(USER_EMPLOYEE_ID_NOT_EXIST));
 
         try {
             Role role = Role.valueOf(request.role());

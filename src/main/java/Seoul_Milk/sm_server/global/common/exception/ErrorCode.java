@@ -109,7 +109,10 @@ public enum ErrorCode {
 
     // IMAGE (임시저장 이미지)
     TMP_IMAGE_NOT_EXIST("TMP_IMAGE404", "해당 임시저장 이미지를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    UNAUTHORIZED_ACCESS("TMP_IMAGE401", "본인의 임시저장 이미지만 삭제할 수 있습니다.", HttpStatus.UNAUTHORIZED);
+    UNAUTHORIZED_ACCESS("TMP_IMAGE401", "본인의 임시저장 이미지만 삭제할 수 있습니다.", HttpStatus.UNAUTHORIZED),
+
+    //excel (엑셀파일)
+    MAKE_EXCEL_FILE_ERROR("EXTRACT_EXCEL001", "엑셀파일로 추출하던중 오류가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final String errorCode;
     private final String message;
