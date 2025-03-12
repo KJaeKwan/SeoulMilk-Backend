@@ -111,7 +111,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
                 .leftJoin(taxInvoice.file, taxInvoiceFile).fetchJoin()
                 .where(whereClause.and(taxInvoice.file.isNotNull()))
                 .where(whereClause)
-                .orderBy(taxInvoice.erDat.desc())
+                .orderBy(taxInvoice.createAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
