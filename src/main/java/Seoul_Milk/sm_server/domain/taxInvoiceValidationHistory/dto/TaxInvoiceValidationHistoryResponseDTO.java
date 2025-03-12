@@ -52,9 +52,9 @@ public class TaxInvoiceValidationHistoryResponseDTO {
             return new GetModalResponse(
                     taxInvoice.getIssueId(),
                     taxInvoice.getErDat(),
-                    taxInvoice.getSuName(),
+                    taxInvoice.getIpBusinessName(),
                     taxInvoice.getSuId(),
-                    taxInvoice.getIpName(),
+                    taxInvoice.getSuBusinessName(),
                     taxInvoice.getIpId(),
                     String.valueOf(taxInvoice.getTaxTotal()),
                     String.valueOf(taxInvoice.getChargeTotal()),
