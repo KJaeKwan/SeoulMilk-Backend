@@ -180,6 +180,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 taxFile = taxInvoice.getFile();
                 taxFile.update(taxInvoice, fileUrl, image.getContentType(), image.getOriginalFilename(), image.getSize(), LocalDateTime.now());
                 taxInvoice.attachFile(taxFile);
+                taxInvoice.attachMember(member);
             }
 
             long endTime = System.nanoTime();
