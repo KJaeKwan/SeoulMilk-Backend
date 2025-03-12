@@ -158,17 +158,25 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
         QTaxInvoice taxInvoice = QTaxInvoice.taxInvoice;
         BooleanBuilder whereClause = new BooleanBuilder();
         whereClause.and(taxInvoice.member.id.eq(member.getId()));
+
         if (processStatus != null) {
             whereClause.and(taxInvoice.processStatus.eq(processStatus));
         }
+
+        //최신 100개 데이터만 고려
+        List<Long> latestIds = queryFactory
+                .select(taxInvoice.taxInvoiceId)
+                .from(taxInvoice)
+                .where(taxInvoice.member.id.eq(member.getId())) // 사용자 기준으로 필터링
+                .orderBy(taxInvoice.erDat.desc()) // 최신순 정렬
+                .limit(MAX_SEARCH_LIMIT.getNum()) // 최신 100개만 선택
+                .fetch();
 
         return Optional.ofNullable(
                 queryFactory
                         .select(Wildcard.count)
                         .from(taxInvoice)
-                        .where(whereClause)
-                        .orderBy(taxInvoice.erDat.desc()) // 최신순 정렬
-                        .limit(MAX_SEARCH_LIMIT.getNum()) // 최신 100개만 고려
+                        .where(whereClause.and(taxInvoice.taxInvoiceId.in(latestIds))) // 최신 100개 내에서 필터링
                         .fetchOne()
         ).orElse(0L);
     }
@@ -266,7 +274,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
                 .leftJoin(taxInvoice.member, memberEntity).fetchJoin()
                 .leftJoin(taxInvoice.file, taxInvoiceFile).fetchJoin()
                 .where(whereClause)
-                .orderBy(taxInvoice.erDat.desc())
+                .orderBy(taxInvoice.createAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageSize)
                 .fetch();
