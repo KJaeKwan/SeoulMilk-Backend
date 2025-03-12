@@ -1,14 +1,14 @@
 package Seoul_Milk.sm_server.global.config;
 
-import Seoul_Milk.sm_server.global.exception.custom.CustomAccessDeniedHandler;
-import Seoul_Milk.sm_server.global.exception.custom.CustomAuthenticationEntryPoint;
-import Seoul_Milk.sm_server.global.jwt.JWTFilter;
-import Seoul_Milk.sm_server.global.jwt.JWTUtil;
-import Seoul_Milk.sm_server.global.jwt.LoginFilter;
-import Seoul_Milk.sm_server.global.provider.CustomDaoAuthenticationProvider;
-import Seoul_Milk.sm_server.global.redis.RedisUtils;
-import Seoul_Milk.sm_server.global.refresh.RefreshToken;
-import Seoul_Milk.sm_server.global.auth.service.CustomUserDetailsService;
+import Seoul_Milk.sm_server.global.common.exception.custom.CustomAccessDeniedHandler;
+import Seoul_Milk.sm_server.global.common.exception.custom.CustomAuthenticationEntryPoint;
+import Seoul_Milk.sm_server.global.security.jwt.JWTFilter;
+import Seoul_Milk.sm_server.global.security.jwt.JWTUtil;
+import Seoul_Milk.sm_server.global.security.jwt.LoginFilter;
+import Seoul_Milk.sm_server.global.security.provider.CustomDaoAuthenticationProvider;
+import Seoul_Milk.sm_server.global.infrastructure.redis.RedisUtils;
+import Seoul_Milk.sm_server.global.security.refresh.RefreshToken;
+import Seoul_Milk.sm_server.global.security.auth.service.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

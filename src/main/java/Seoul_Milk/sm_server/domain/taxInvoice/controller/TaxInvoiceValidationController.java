@@ -4,8 +4,8 @@ import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.request.NonVerified
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.response.NonVerifiedTaxValidationResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.request.VerifiedTaxValidationRequestDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.service.TaxInvoiceValidationService;
-import Seoul_Milk.sm_server.global.annotation.CurrentMember;
-import Seoul_Milk.sm_server.global.response.SuccessResponse;
+import Seoul_Milk.sm_server.global.common.annotation.CurrentMember;
+import Seoul_Milk.sm_server.global.common.response.SuccessResponse;
 import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;

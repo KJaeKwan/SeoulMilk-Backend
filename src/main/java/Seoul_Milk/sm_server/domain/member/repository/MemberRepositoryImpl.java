@@ -1,7 +1,7 @@
 package Seoul_Milk.sm_server.domain.member.repository;
 
-import Seoul_Milk.sm_server.global.exception.CustomException;
-import Seoul_Milk.sm_server.global.exception.ErrorCode;
+import Seoul_Milk.sm_server.global.common.exception.CustomException;
+import Seoul_Milk.sm_server.global.common.exception.ErrorCode;
 import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;

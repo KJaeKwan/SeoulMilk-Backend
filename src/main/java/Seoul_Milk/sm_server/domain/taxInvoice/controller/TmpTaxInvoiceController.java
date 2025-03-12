@@ -2,8 +2,8 @@ package Seoul_Milk.sm_server.domain.taxInvoice.controller;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.service.TmpTaxInvoiceService;
-import Seoul_Milk.sm_server.global.annotation.CurrentMember;
-import Seoul_Milk.sm_server.global.response.SuccessResponse;
+import Seoul_Milk.sm_server.global.common.annotation.CurrentMember;
+import Seoul_Milk.sm_server.global.common.response.SuccessResponse;
 import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

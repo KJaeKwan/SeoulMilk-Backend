@@ -2,8 +2,8 @@ package Seoul_Milk.sm_server.domain.taxInvoice.thread;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
-import Seoul_Milk.sm_server.global.exception.CustomException;
-import Seoul_Milk.sm_server.global.redis.RedisUtils;
+import Seoul_Milk.sm_server.global.common.exception.CustomException;
+import Seoul_Milk.sm_server.global.infrastructure.redis.RedisUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,7 +18,7 @@ import java.util.Objects;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.CodefParameters.*;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.CodefResponseCode.NEED_SIMPLE_AUTHENTICATION;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TwoWayInfo.*;
-import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
+import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
 
 public class RequestThread extends Thread {
     private final EasyCodef codef;

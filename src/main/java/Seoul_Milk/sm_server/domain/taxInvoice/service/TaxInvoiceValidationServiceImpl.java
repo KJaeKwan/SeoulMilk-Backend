@@ -7,8 +7,8 @@ import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.request.TaxInvoiceI
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.response.NonVerifiedTaxValidationResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.thread.RequestThread;
 import Seoul_Milk.sm_server.domain.taxInvoice.thread.RequestThreadManager;
-import Seoul_Milk.sm_server.global.exception.CustomException;
-import Seoul_Milk.sm_server.global.redis.RedisUtils;
+import Seoul_Milk.sm_server.global.common.exception.CustomException;
+import Seoul_Milk.sm_server.global.infrastructure.redis.RedisUtils;
 import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -28,7 +28,7 @@ import static Seoul_Milk.sm_server.domain.taxInvoice.enums.CodefParameters.*;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.CodefResponseCode.*;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ThreadTerm.THREAD_TERM;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TwoWayInfo.*;
-import static Seoul_Milk.sm_server.global.exception.ErrorCode.*;
+import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.*;
 
 @Service
 public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationService {

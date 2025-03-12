@@ -1,7 +1,7 @@
 package Seoul_Milk.sm_server.domain.member.controller;
 
-import Seoul_Milk.sm_server.global.annotation.CurrentMember;
-import Seoul_Milk.sm_server.global.response.SuccessResponse;
+import Seoul_Milk.sm_server.global.common.annotation.CurrentMember;
+import Seoul_Milk.sm_server.global.common.response.SuccessResponse;
 import Seoul_Milk.sm_server.domain.member.dto.request.VerifyPwDTO;
 import Seoul_Milk.sm_server.domain.member.dto.request.ResetPwDTO;
 import Seoul_Milk.sm_server.domain.member.dto.request.UpdatePwDTO;

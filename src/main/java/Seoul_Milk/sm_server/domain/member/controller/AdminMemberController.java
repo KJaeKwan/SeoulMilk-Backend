@@ -1,6 +1,6 @@
 package Seoul_Milk.sm_server.domain.member.controller;
 
-import Seoul_Milk.sm_server.global.response.SuccessResponse;
+import Seoul_Milk.sm_server.global.common.response.SuccessResponse;
 import Seoul_Milk.sm_server.domain.member.dto.request.RegisterDTO;
 import Seoul_Milk.sm_server.domain.member.dto.request.UpdateRoleDTO;
 import Seoul_Milk.sm_server.domain.member.dto.response.MemberResponse;

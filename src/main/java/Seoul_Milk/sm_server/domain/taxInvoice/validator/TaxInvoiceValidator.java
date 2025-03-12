@@ -1,10 +1,10 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.validator;
 
-import static Seoul_Milk.sm_server.global.exception.ErrorCode.DO_NOT_ACCESS_OTHER_TAX_INVOICE;
-import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
+import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.DO_NOT_ACCESS_OTHER_TAX_INVOICE;
+import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
-import Seoul_Milk.sm_server.global.exception.CustomException;
+import Seoul_Milk.sm_server.global.common.exception.CustomException;
 import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

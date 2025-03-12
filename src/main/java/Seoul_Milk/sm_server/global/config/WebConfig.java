@@ -1,6 +1,6 @@
 package Seoul_Milk.sm_server.global.config;
 
-import Seoul_Milk.sm_server.global.annotation.resolver.AuthenticatedMemberResolver;
+import Seoul_Milk.sm_server.global.common.annotation.resolver.AuthenticatedMemberResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
