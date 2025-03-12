@@ -36,9 +36,9 @@ public class TaxInvoiceValidationHistoryResponseDTO {
     public record GetModalResponse(
             @Schema(description = "승인번호") String issueId,
             @Schema(description = "작성일자") String erDat,
-            @Schema(description = "공급자명") String ipName,
+            @Schema(description = "공급자명") String ipBusinessName,
             @Schema(description = "공급자 등록번호") String ipId,
-            @Schema(description = "공급받는자명") String suName,
+            @Schema(description = "공급받는자명") String suBusinessName,
             @Schema(description = "공급받는자 등록번호") String suId,
             @Schema(description = "세액") String taxTotal,
             @Schema(description = "공급가액") String chargeTotal,
@@ -52,9 +52,9 @@ public class TaxInvoiceValidationHistoryResponseDTO {
             return new GetModalResponse(
                     taxInvoice.getIssueId(),
                     taxInvoice.getErDat(),
-                    taxInvoice.getIpName(),
+                    taxInvoice.getIpBusinessName(),
                     taxInvoice.getIpId(),
-                    taxInvoice.getSuName(),
+                    taxInvoice.getSuBusinessName(),
                     taxInvoice.getSuId(),
                     String.valueOf(taxInvoice.getTaxTotal()),
                     String.valueOf(taxInvoice.getChargeTotal()),
