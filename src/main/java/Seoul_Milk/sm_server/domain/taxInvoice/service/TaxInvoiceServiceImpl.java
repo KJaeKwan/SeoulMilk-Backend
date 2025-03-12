@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.MAKE_EXCEL_FILE_ERROR;
+import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
 
 @Service
 @RequiredArgsConstructor
@@ -171,7 +172,8 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 taxInvoiceRepository.save(savedTaxInvoice);
             }
             else{
-                taxInvoice = taxInvoiceRepository.findByIssueId(issueId).get();
+                taxInvoice = taxInvoiceRepository.findByIssueId(issueId)
+                        .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
                 taxInvoice.update(
                         issueId, ipId, suId, chargeTotal, taxTotal, grandTotal,
                         erDat, ipBusinessName, suBusinessName, ipName, suName, ipAddress, suAddress,
@@ -277,7 +279,8 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                     taxInvoiceRepository.save(savedTaxInvoice);
                 }
                 else{
-                    taxInvoice = taxInvoiceRepository.findByIssueId(issueId).get();
+                    taxInvoice = taxInvoiceRepository.findByIssueId(issueId)
+                            .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
                     taxInvoice.update(
                             issueId, ipId, suId, chargeTotal, taxTotal, grandTotal,
                             erDat, ipBusinessName, suBusinessName, ipName, suName, ipAddress, suAddress,
