@@ -55,22 +55,6 @@ public class ImageRepositoryImpl implements ImageRepository {
         imageJpaRepository.saveAll(images);
     }
 
-    /** 특정 멤버의 임시 저장된 이미지 조회 */
-    @Override
-    public List<Image> findTmpAllByMember(MemberEntity member) {
-        QImage image = QImage.image;
-        BooleanBuilder whereClause = new BooleanBuilder();
-
-        whereClause.and(image.member.eq(member))
-                .and(image.temporary.isTrue());
-
-        return queryFactory
-                .selectFrom(image)
-                .where(whereClause)
-                .orderBy(image.uploadDate.desc())
-                .fetch();
-    }
-
     @Override
     public List<Image> findByMemberAndIds(MemberEntity member, List<Long> imageIds) {
         QImage image = QImage.image;

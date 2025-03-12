@@ -62,11 +62,6 @@ public class Image {
         return image;
     }
 
-    /** 임시 저장 상태로 변경 */
-    public void markAsTemporary() {
-        this.temporary = true;
-    }
-
     /** 임시 저장 해제 (최종 저장) */
     public void removeFromTemporary() {
         this.temporary = false;
