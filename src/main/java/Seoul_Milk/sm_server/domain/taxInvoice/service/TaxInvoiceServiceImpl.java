@@ -172,6 +172,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 taxInvoiceRepository.save(savedTaxInvoice);
             }
             else{
+                System.out.println("else문 실행");
                 taxInvoice = taxInvoiceRepository.findByIssueId(issueId)
                         .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
                 taxInvoice.update(
@@ -183,6 +184,8 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 taxFile.update(taxInvoice, fileUrl, image.getContentType(), image.getOriginalFilename(), image.getSize(), LocalDateTime.now());
                 taxInvoice.attachFile(taxFile);
                 taxInvoice.attachMember(member);
+                taxInvoiceRepository.save(taxInvoice);
+                System.out.println("member PK = " + taxInvoice.getMember().getId());
             }
 
             long endTime = System.nanoTime();
@@ -290,6 +293,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                     taxFile.update(taxInvoice, movedFileUrl, file.getContentType(),
                             file.getOriginalFilename(), file.getSize(), LocalDateTime.now());
                     taxInvoice.attachFile(taxFile);
+                    taxInvoiceRepository.save(taxInvoice);
                 }
 
                 // OCR 처리 후 해당 이미지의 임시 저장 해제
