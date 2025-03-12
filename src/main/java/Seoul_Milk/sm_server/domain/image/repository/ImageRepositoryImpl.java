@@ -2,7 +2,7 @@ package Seoul_Milk.sm_server.domain.image.repository;
 
 import Seoul_Milk.sm_server.domain.image.entity.Image;
 import Seoul_Milk.sm_server.domain.image.entity.QImage;
-import Seoul_Milk.sm_server.login.entity.MemberEntity;
+import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -53,22 +53,6 @@ public class ImageRepositoryImpl implements ImageRepository {
     @Override
     public void saveAll(List<Image> images) {
         imageJpaRepository.saveAll(images);
-    }
-
-    /** 특정 멤버의 임시 저장된 이미지 조회 */
-    @Override
-    public List<Image> findTmpAllByMember(MemberEntity member) {
-        QImage image = QImage.image;
-        BooleanBuilder whereClause = new BooleanBuilder();
-
-        whereClause.and(image.member.eq(member))
-                .and(image.temporary.isTrue());
-
-        return queryFactory
-                .selectFrom(image)
-                .where(whereClause)
-                .orderBy(image.uploadDate.desc())
-                .fetch();
     }
 
     @Override

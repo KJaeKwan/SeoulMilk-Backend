@@ -2,7 +2,7 @@ package Seoul_Milk.sm_server.domain.taxInvoice.repository;
 
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
-import Seoul_Milk.sm_server.login.entity.MemberEntity;
+import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

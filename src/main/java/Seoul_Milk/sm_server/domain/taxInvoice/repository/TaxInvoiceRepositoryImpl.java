@@ -4,11 +4,11 @@ import Seoul_Milk.sm_server.domain.taxInvoice.entity.QTaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.QTaxInvoiceFile;
-import Seoul_Milk.sm_server.global.exception.CustomException;
-import Seoul_Milk.sm_server.global.exception.ErrorCode;
-import Seoul_Milk.sm_server.login.constant.Role;
-import Seoul_Milk.sm_server.login.entity.MemberEntity;
-import Seoul_Milk.sm_server.login.entity.QMemberEntity;
+import Seoul_Milk.sm_server.global.common.exception.CustomException;
+import Seoul_Milk.sm_server.global.common.exception.ErrorCode;
+import Seoul_Milk.sm_server.domain.member.enums.Role;
+import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
+import Seoul_Milk.sm_server.domain.member.entity.QMemberEntity;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -26,8 +26,8 @@ import java.util.Optional;
 
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.PENDING;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.*;
-import static Seoul_Milk.sm_server.domain.taxInvoiceValidationHistory.enums.MaxSearchLimit.MAX_SEARCH_LIMIT;
-import static Seoul_Milk.sm_server.global.exception.ErrorCode.TAX_INVOICE_ALREADY_EXIST;
+import static Seoul_Milk.sm_server.domain.taxInvoice.enums.MaxSearchLimit.MAX_SEARCH_LIMIT;
+import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.TAX_INVOICE_ALREADY_EXIST;
 
 @Repository
 @RequiredArgsConstructor

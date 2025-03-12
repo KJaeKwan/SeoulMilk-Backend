@@ -1,6 +1,6 @@
 package Seoul_Milk.sm_server.domain.image.entity;
 
-import Seoul_Milk.sm_server.login.entity.MemberEntity;
+import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -60,11 +60,6 @@ public class Image {
                 .build();
         image.attachMember(member);
         return image;
-    }
-
-    /** 임시 저장 상태로 변경 */
-    public void markAsTemporary() {
-        this.temporary = true;
     }
 
     /** 임시 저장 해제 (최종 저장) */
