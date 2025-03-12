@@ -60,7 +60,7 @@ public class TmpTaxInvoiceController {
     @Operation(summary = "특정 세금계산서를 임시 저장 해제")
     @PatchMapping("/unmark")
     public SuccessResponse<String> removeFromTemporary(
-            @RequestBody List<Long> taxInvoiceIds,
+            @RequestParam(value = "taxInvoiceIds") List<Long> taxInvoiceIds,
             @CurrentMember MemberEntity member) {
         tmpTaxInvoiceService.removeFromTemporary(taxInvoiceIds, member);
         return SuccessResponse.ok("선택한 세금계산서의 임시 저장 상태가 해제되었습니다.");
