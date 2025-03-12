@@ -44,7 +44,7 @@ public class TaxInvoiceValidationHistoryResponseDTO {
             @Schema(description = "공급가액") String chargeTotal,
             @Schema(description = "총액") String grandTotal,
             @Schema(description = "처리현황") ProcessStatus processStatus,
-            @Schema(description = "파일url") String url
+            @Schema(description = "파일 url") String url
     ){
         public static GetModalResponse from(
                 TaxInvoice taxInvoice
