@@ -8,7 +8,7 @@ import Seoul_Milk.sm_server.global.jwt.LoginFilter;
 import Seoul_Milk.sm_server.global.provider.CustomDaoAuthenticationProvider;
 import Seoul_Milk.sm_server.global.redis.RedisUtils;
 import Seoul_Milk.sm_server.global.refresh.RefreshToken;
-import Seoul_Milk.sm_server.login.service.CustomUserDetailsService;
+import Seoul_Milk.sm_server.global.auth.service.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

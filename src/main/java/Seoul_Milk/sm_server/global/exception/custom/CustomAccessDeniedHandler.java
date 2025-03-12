@@ -1,6 +1,6 @@
 package Seoul_Milk.sm_server.global.exception.custom;
 
-import Seoul_Milk.sm_server.global.dto.response.ErrorResponse;
+import Seoul_Milk.sm_server.global.response.ErrorResponse;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;

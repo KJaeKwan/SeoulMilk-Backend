@@ -2,7 +2,7 @@ package Seoul_Milk.sm_server.global.jwt;
 
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
-import Seoul_Milk.sm_server.login.constant.Role;
+import Seoul_Milk.sm_server.domain.member.enums.Role;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.SignatureException;
 import java.nio.charset.StandardCharsets;

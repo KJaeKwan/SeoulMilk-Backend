@@ -1,6 +1,6 @@
 package Seoul_Milk.sm_server.domain.image.entity;
 
-import Seoul_Milk.sm_server.login.entity.MemberEntity;
+import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -4,7 +4,7 @@ import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.exception.ErrorCode;
 import Seoul_Milk.sm_server.global.mail.dto.VerifyEmailResponseDTO;
 import Seoul_Milk.sm_server.global.redis.RedisUtils;
-import Seoul_Milk.sm_server.login.repository.MemberRepository;
+import Seoul_Milk.sm_server.domain.member.repository.MemberRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

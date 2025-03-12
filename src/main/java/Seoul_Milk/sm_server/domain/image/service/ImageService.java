@@ -2,7 +2,7 @@ package Seoul_Milk.sm_server.domain.image.service;
 
 import Seoul_Milk.sm_server.domain.image.dto.ImageResponseDTO;
 import Seoul_Milk.sm_server.domain.image.entity.Image;
-import Seoul_Milk.sm_server.login.entity.MemberEntity;
+import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;

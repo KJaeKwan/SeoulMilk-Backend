@@ -1,7 +1,7 @@
 package Seoul_Milk.sm_server.global.exception;
 
-import Seoul_Milk.sm_server.global.dto.response.ErrorResponse;
-import Seoul_Milk.sm_server.global.dto.response.result.ExceptionResult;
+import Seoul_Milk.sm_server.global.response.ErrorResponse;
+import Seoul_Milk.sm_server.global.response.result.ExceptionResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

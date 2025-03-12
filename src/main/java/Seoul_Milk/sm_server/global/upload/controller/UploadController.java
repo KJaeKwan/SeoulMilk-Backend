@@ -1,6 +1,6 @@
 package Seoul_Milk.sm_server.global.upload.controller;
 
-import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
+import Seoul_Milk.sm_server.global.response.SuccessResponse;
 import Seoul_Milk.sm_server.global.upload.service.AwsS3Service;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

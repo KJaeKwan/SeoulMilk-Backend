@@ -6,8 +6,8 @@ import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryReque
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryRequestDTO.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoice.service.TaxInvoiceHistoryService;
 import Seoul_Milk.sm_server.global.annotation.CurrentMember;
-import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
-import Seoul_Milk.sm_server.login.entity.MemberEntity;
+import Seoul_Milk.sm_server.global.response.SuccessResponse;
+import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

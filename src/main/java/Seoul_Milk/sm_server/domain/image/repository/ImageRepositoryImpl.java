@@ -2,7 +2,7 @@ package Seoul_Milk.sm_server.domain.image.repository;
 
 import Seoul_Milk.sm_server.domain.image.entity.Image;
 import Seoul_Milk.sm_server.domain.image.entity.QImage;
-import Seoul_Milk.sm_server.login.entity.MemberEntity;
+import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;

@@ -1,8 +1,8 @@
 package Seoul_Milk.sm_server.global.jwt;
 
-import Seoul_Milk.sm_server.login.constant.Role;
-import Seoul_Milk.sm_server.login.dto.CustomUserDetails;
-import Seoul_Milk.sm_server.login.entity.MemberEntity;
+import Seoul_Milk.sm_server.domain.member.enums.Role;
+import Seoul_Milk.sm_server.global.auth.dto.CustomUserDetails;
+import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -2,8 +2,8 @@ package Seoul_Milk.sm_server.global.annotation.resolver;
 
 import Seoul_Milk.sm_server.global.annotation.CurrentMember;
 import Seoul_Milk.sm_server.global.jwt.JWTUtil;
-import Seoul_Milk.sm_server.login.entity.MemberEntity;
-import Seoul_Milk.sm_server.login.service.MemberService;
+import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
+import Seoul_Milk.sm_server.domain.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;

@@ -9,7 +9,7 @@ import Seoul_Milk.sm_server.domain.taxInvoice.thread.RequestThread;
 import Seoul_Milk.sm_server.domain.taxInvoice.thread.RequestThreadManager;
 import Seoul_Milk.sm_server.global.exception.CustomException;
 import Seoul_Milk.sm_server.global.redis.RedisUtils;
-import Seoul_Milk.sm_server.login.entity.MemberEntity;
+import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

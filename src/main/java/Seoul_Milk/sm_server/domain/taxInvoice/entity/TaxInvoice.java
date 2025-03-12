@@ -4,7 +4,7 @@ import Seoul_Milk.sm_server.domain.taxInvoice.enums.ArapType;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
-import Seoul_Milk.sm_server.login.entity.MemberEntity;
+import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import jakarta.persistence.*;
 import java.util.Objects;
 import lombok.*;

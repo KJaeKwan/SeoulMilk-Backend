@@ -1,6 +1,6 @@
 package Seoul_Milk.sm_server.global.mail.controller;
 
-import Seoul_Milk.sm_server.global.dto.response.SuccessResponse;
+import Seoul_Milk.sm_server.global.response.SuccessResponse;
 import Seoul_Milk.sm_server.global.mail.dto.VerifyEmailRequestDTO;
 import Seoul_Milk.sm_server.global.mail.dto.VerifyEmailResponseDTO;
 import Seoul_Milk.sm_server.global.mail.service.MailService;
