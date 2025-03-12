@@ -23,8 +23,8 @@ public class TaxInvoiceValidationHistoryResponseDTO {
                 TaxInvoice taxInvoice, TaxInvoiceFile taxInvoiceFile) {
             return new GetHistoryData(
                 taxInvoice.getTaxInvoiceId(),
-                taxInvoice.getSuBusinessName(),
                 taxInvoice.getIpBusinessName(),
+                taxInvoice.getSuBusinessName(),
                 taxInvoice.getCreateAt(),
                 taxInvoiceFile.getFileUrl(),
                 taxInvoice.getProcessStatus()
