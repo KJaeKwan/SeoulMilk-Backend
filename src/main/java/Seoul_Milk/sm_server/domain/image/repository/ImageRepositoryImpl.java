@@ -59,11 +59,9 @@ public class ImageRepositoryImpl implements ImageRepository {
     public List<Image> findByMemberAndIds(MemberEntity member, List<Long> imageIds) {
         QImage image = QImage.image;
         BooleanBuilder whereClause = new BooleanBuilder();
-
         whereClause.and(image.member.eq(member))
                 .and(image.id.in(imageIds))
                 .and(image.temporary.isTrue());
-
         return queryFactory
                 .selectFrom(image)
                 .where(whereClause)

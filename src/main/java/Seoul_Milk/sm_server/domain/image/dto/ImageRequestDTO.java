@@ -5,15 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Schema(description = "임시저장 이미지 관련 요청 DTO")
 public class ImageRequestDTO {
-
-    @Schema(description = "선택한 임시저장 이미지 해제 요청 DTO")
-    public record RemoveTemporary(
-            @Schema(description = "삭제할 이미지 ID 리스트") List<Long> imageIds
-    ) {}
 
     @Getter
     @NoArgsConstructor

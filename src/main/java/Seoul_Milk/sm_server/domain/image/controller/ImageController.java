@@ -1,6 +1,5 @@
 package Seoul_Milk.sm_server.domain.image.controller;
 
-import Seoul_Milk.sm_server.domain.image.dto.ImageRequestDTO;
 import Seoul_Milk.sm_server.domain.image.dto.ImageResponseDTO;
 import Seoul_Milk.sm_server.domain.image.service.ImageService;
 import Seoul_Milk.sm_server.global.common.annotation.CurrentMember;
@@ -8,7 +7,6 @@ import Seoul_Milk.sm_server.global.common.response.SuccessResponse;
 import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -67,9 +65,9 @@ public class ImageController {
     @PatchMapping("/unmark")
     public SuccessResponse<String> removeFromTemporary(
             @CurrentMember MemberEntity member,
-            @RequestBody ImageRequestDTO.RemoveTemporary request
+            @RequestParam(value = "imageIds") List<Long> imageIds
     ) {
-        imageService.removeFromTemporary(member, request.imageIds());
+        imageService.removeFromTemporary(member, imageIds);
         return SuccessResponse.ok("모든 임시 저장 이미지가 해제되었습니다.");
     }
 }
