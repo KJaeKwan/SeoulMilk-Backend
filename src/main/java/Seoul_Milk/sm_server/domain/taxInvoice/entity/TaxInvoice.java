@@ -115,24 +115,9 @@ public class TaxInvoice {
     private MemberEntity member;
 
     public static TaxInvoice create(
-            String issueId,
-            String ipId,
-            String suId,
-            int chargeTotal,
-            int taxTotal,
-            int grandTotal,
-            String erDat,
-            String ipBusinessName,
-            String suBusinessName,
-            String ipName,
-            String suName,
-            String ipAddress,
-            String suAddress,
-            String ipEmail,
-            String suEmail,
-            MemberEntity member,
-            List<String> errorDetails,
-            ProcessStatus processStatus
+            String issueId, String ipId, String suId, int chargeTotal, int taxTotal, int grandTotal, String erDat,
+            String ipBusinessName, String suBusinessName, String ipName, String suName, String ipAddress, String suAddress,
+            String ipEmail, String suEmail, MemberEntity member, List<String> errorDetails, ProcessStatus processStatus
     ) {
         return TaxInvoice.builder()
                 .issueId(issueId)
@@ -159,24 +144,9 @@ public class TaxInvoice {
     }
 
     public void update(
-            String issueId,
-            String ipId,
-            String suId,
-            int chargeTotal,
-            int taxTotal,
-            int grandTotal,
-            String erDat,
-            String ipBusinessName,
-            String suBusinessName,
-            String ipName,
-            String suName,
-            String ipAddress,
-            String suAddress,
-            String ipEmail,
-            String suEmail,
-            MemberEntity member,
-            List<String> errorDetails,
-            ProcessStatus processStatus
+            String issueId, String ipId, String suId, int chargeTotal, int taxTotal, int grandTotal, String erDat,
+            String ipBusinessName, String suBusinessName, String ipName, String suName, String ipAddress, String suAddress,
+            String ipEmail, String suEmail, MemberEntity member, List<String> errorDetails, ProcessStatus processStatus
     ){
         this.issueId = issueId;
         this.ipId = ipId;
