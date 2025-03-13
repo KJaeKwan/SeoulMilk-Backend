@@ -27,6 +27,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -168,6 +169,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                         image.getOriginalFilename(), image.getSize(), LocalDateTime.now());
                 taxInvoiceFileRepository.save(taxFile);
                 savedTaxInvoice.attachFile(taxFile);
+                savedTaxInvoice.attachMember(member);
                 taxInvoiceRepository.save(savedTaxInvoice);
             }
             else{
@@ -177,6 +179,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                         erDat, ipBusinessName, suBusinessName, ipName, suName, ipAddress, suAddress,
                         ipEmail, suEmail, member, errorDetails, status
                 );
+
                 taxFile = taxInvoice.getFile();
                 taxFile.update(taxInvoice, fileUrl, image.getContentType(), image.getOriginalFilename(), image.getSize(), LocalDateTime.now());
                 taxInvoice.attachFile(taxFile);
@@ -371,6 +374,17 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
         }
         return result;
     }
+
+    /**
+     * 1년 이상된 데이터 삭제
+     */
+    @Override
+    @Transactional
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void deleteOldTaxInvoices() {
+        taxInvoiceRepository.deleteOld();
+    }
+
 
 
     /** 문자열을 TemplateOcrField로 변환하는 메서드 */
