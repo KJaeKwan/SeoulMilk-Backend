@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -146,11 +147,6 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     @Override
     public List<TaxInvoice> saveAll(List<TaxInvoice> taxInvoices) {
         return taxInvoiceJpaRepository.saveAll(taxInvoices);
-    }
-
-    @Override
-    public List<TaxInvoice> findAll() {
-        return taxInvoiceJpaRepository.findAll();
     }
 
     @Override
@@ -307,5 +303,15 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
                 .from(taxInvoice)
                 .where(taxInvoice.issueId.eq(issueId))
                 .fetchFirst() != null;
+    }
+
+    @Override
+    public void deleteOld() {
+        LocalDateTime oneYearAgo = LocalDateTime.now().minusYears(1);
+        List<TaxInvoice> oldInvoices = taxInvoiceJpaRepository.findByCreateAtBefore(oneYearAgo);
+
+        if (!oldInvoices.isEmpty()) {
+            taxInvoiceJpaRepository.deleteAll(oldInvoices);
+        }
     }
 }
