@@ -18,4 +18,10 @@ public class AuthController {
     public SuccessResponse<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO) {
         return SuccessResponse.ok(LoginResponseDTO.of("이름", "권한"));
     }
+
+    @Operation(summary = "로그아웃", description = "로그아웃")
+    @PostMapping("/logout")
+    public SuccessResponse<String> logout(){
+        return SuccessResponse.ok("성공");
+    }
 }
