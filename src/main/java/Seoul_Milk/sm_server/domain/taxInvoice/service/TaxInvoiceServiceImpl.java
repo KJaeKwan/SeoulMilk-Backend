@@ -201,16 +201,19 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
         }
     }
 
+    @Async("ocrTaskExecutor")
     @Override
     @Transactional
     public CompletableFuture<TaxInvoiceResponseDTO.Create> processTemplateOcrSync(String imageUrl, MemberEntity member, Long imageId) {
         return CompletableFuture.supplyAsync(() -> {
-            long startTime = System.nanoTime();
-            List<String> errorDetails = new ArrayList<>();
-            List<String> requiredFieldErrors = new ArrayList<>();
-            Map<String, Object> extractedData;
-
             try {
+                semaphore.acquire(); // 최대 5개 동시 요청 제한
+
+                long startTime = System.nanoTime();
+                List<String> errorDetails = new ArrayList<>();
+                List<String> requiredFieldErrors = new ArrayList<>();
+                Map<String, Object> extractedData;
+
                 // S3에서 파일 다운로드하여 MultipartFile 변환
                 MultipartFile file = awsS3Service.downloadFileFromS3(imageUrl);
 
@@ -283,8 +286,7 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                     taxInvoiceFileRepository.save(taxFile);
                     savedTaxInvoice.attachFile(taxFile);
                     taxInvoiceRepository.save(savedTaxInvoice);
-                }
-                else{
+                } else {
                     taxInvoice = taxInvoiceRepository.findByIssueId(issueId)
                             .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
                     taxInvoice.update(
@@ -306,14 +308,22 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
 
                 long endTime = System.nanoTime();
                 long elapsedTimeMillis = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+                System.out.println("OCR 요청 처리 시간: " + elapsedTimeMillis + " ms");
+
                 return TaxInvoiceResponseDTO.Create.from(taxInvoice, imageUrl, extractedData, errorDetails, elapsedTimeMillis);
 
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return TaxInvoiceResponseDTO.Create.error(imageUrl, "OCR 요청 대기 중 인터럽트 발생");
             } catch (Exception e) {
                 System.out.println("[ERROR] OCR 처리 중 예외 발생: " + e.getMessage());
                 return TaxInvoiceResponseDTO.Create.error(imageUrl, e.getMessage());
+            } finally {
+                semaphore.release(); // 실행이 끝나면 세마포어 해제
             }
         });
     }
+
 
     /**
      * 세금계산서 검색 - provider, consumer 입력 값이 없으면 전체 조회
