@@ -5,6 +5,7 @@ import Seoul_Milk.sm_server.global.common.exception.custom.CustomAuthenticationE
 import Seoul_Milk.sm_server.global.security.jwt.JWTFilter;
 import Seoul_Milk.sm_server.global.security.jwt.JWTUtil;
 import Seoul_Milk.sm_server.global.security.jwt.LoginFilter;
+import Seoul_Milk.sm_server.global.security.jwt.CustomLogoutFilter;
 import Seoul_Milk.sm_server.global.security.provider.CustomDaoAuthenticationProvider;
 import Seoul_Milk.sm_server.global.infrastructure.redis.RedisUtils;
 import Seoul_Milk.sm_server.global.security.refresh.RefreshToken;
@@ -23,6 +24,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -118,6 +120,8 @@ public class SecurityConfig {
 
         //필터 추가 LoginFilter()는 인자를 받음 (AuthenticationManager() 메소드에 authenticationConfiguration 객체를 넣어야 함) 따라서 등록 필요
         http.addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, new RefreshToken(redisUtils)), UsernamePasswordAuthenticationFilter.class);
+
+        http.addFilterBefore(new CustomLogoutFilter(jwtUtil, redisUtils), LogoutFilter.class);
 
         // 예외 처리 설정
         http.exceptionHandling(e -> e
