@@ -1,11 +1,13 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.service;
 
+import static Seoul_Milk.sm_server.domain.member.enums.Role.ROLE_NORMAL;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.APPROVED;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.REJECTED;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.UNAPPROVED;
 import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.DO_NOT_ACCESS_OTHER_TAX_INVOICE;
 import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
 
+import Seoul_Milk.sm_server.domain.member.enums.Role;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
@@ -57,7 +59,9 @@ public class TaxInvoiceHistoryServiceImpl implements TaxInvoiceHistoryService {
 
         // 검증 수행 (Validator에서 처리)
         taxInvoiceValidator.validateExistence(taxInvoices, taxInvoiceIdList);
-        taxInvoiceValidator.validateOwnership(memberEntity, taxInvoices);
+        if(memberEntity.getRole() == ROLE_NORMAL){
+            taxInvoiceValidator.validateOwnership(memberEntity, taxInvoices);
+        }
 
         // 한 번의 deleteAll() 호출로 일괄 삭제
         taxInvoiceRepository.deleteAll(taxInvoices);
