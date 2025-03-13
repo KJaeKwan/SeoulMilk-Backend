@@ -10,23 +10,24 @@
 </br>
 
 ## ⭐ Team
-
 ### 🌃 BE Developer
 
 | 김재관 | 김영록 |
 | --- | --- |
 | <p align="center"><img src="https://avatars.githubusercontent.com/KJaeKwan" width="100" height="100" style="border-radius: 5%;"></p><p align="center"><a href="https://github.com/KJaeKwan"><img src="https://img.shields.io/badge/KJaeKwan-181717?style=for-the-social&logo=github&logoColor=white"/></a></p> | <p align="center"><img src="https://avatars.githubusercontent.com/kimyeoungrok" width="100" height="100" style="border-radius: 5%;"></p><p align="center"><a href="https://github.com/kimyeoungrok"><img src="https://img.shields.io/badge/kimyeoungrok-181717?style=for-the-social&logo=github&logoColor=white"/></a></p> |
 
+| 🔗백엔드 | 김재관 | 백엔드 리드, 서버 배포 환경 설정, OCR기능 구현, 내 업무 조회  API 구현, 마이페이지 기능 구현 |
+| --- | --- | --- |
+| 🔗백엔드 | 김영록 | 로그인 기능 구현, 진위여부 검사 API 구현, 검증된 세금계산서 삭제, 조회, 임시저장 API 구현 |
+
 </br>
 
 ## 🏦 Architecture
-
-![Image](https://github.com/user-attachments/assets/85cb5f92-42d9-4dcb-8384-614171938e14)
+![Image](https://github.com/user-attachments/assets/f4a69aad-6d3c-4e28-a8a9-e184114dfdca)
 
 </br>
 
-## 🗂 **ERD**
-
+## 🗂 ERD
 ![Image](https://github.com/user-attachments/assets/fd192534-5554-42ed-bc61-fcdc935830bd)
 
 </br>
