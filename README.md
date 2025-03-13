@@ -22,8 +22,12 @@
 
 </br>
 
-## 🗂 **ERD**
+## 🏦 Architecture
+![Image](https://github.com/user-attachments/assets/f4a69aad-6d3c-4e28-a8a9-e184114dfdca)
 
+</br>
+
+## 🗂 ERD
 ![Image](https://github.com/user-attachments/assets/fd192534-5554-42ed-bc61-fcdc935830bd)
 
 </br>
