@@ -11,6 +11,7 @@ import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 @Service
+@Builder
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ImageServiceImpl implements ImageService {

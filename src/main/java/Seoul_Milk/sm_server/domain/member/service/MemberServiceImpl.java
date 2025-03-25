@@ -11,6 +11,7 @@ import Seoul_Milk.sm_server.domain.member.dto.request.UpdateRoleDTO;
 import Seoul_Milk.sm_server.domain.member.dto.response.MemberResponse;
 import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import Seoul_Milk.sm_server.domain.member.repository.MemberRepository;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.USER_EMPLOYEE_ID_NOT_EXIST;
 
 @Service
+@Builder
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {

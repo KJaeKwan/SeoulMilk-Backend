@@ -59,12 +59,10 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
     private final TaxInvoiceFileRepository taxInvoiceFileRepository;
     private final ImageService imageService;
     private final AwsS3Service awsS3Service;
+    private final ExcelMaker excelMaker;
 
     private static final int MAX_REQUESTS_PER_SECOND = 5;  // 초당 최대 5개 요청
     private final Semaphore semaphore = new Semaphore(MAX_REQUESTS_PER_SECOND, true);
-
-    //excelMaker 주입
-    private final ExcelMaker excelMaker;
 
 
     /**
