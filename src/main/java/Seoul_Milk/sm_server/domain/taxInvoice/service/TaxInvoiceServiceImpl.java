@@ -1,26 +1,24 @@
 package Seoul_Milk.sm_server.domain.taxInvoice.service;
 
 import Seoul_Milk.sm_server.domain.image.service.ImageService;
+import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.TaxInvoiceResponseDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
-import Seoul_Milk.sm_server.domain.taxInvoice.util.ExcelMaker;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
+import Seoul_Milk.sm_server.domain.taxInvoice.util.ExcelMaker;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.repository.TaxInvoiceFileRepository;
+import Seoul_Milk.sm_server.global.common.exception.CustomException;
+import Seoul_Milk.sm_server.global.common.exception.ErrorCode;
 import Seoul_Milk.sm_server.global.infrastructure.clovaOcr.dto.BoundingPoly;
 import Seoul_Milk.sm_server.global.infrastructure.clovaOcr.dto.TemplateOcrField;
 import Seoul_Milk.sm_server.global.infrastructure.clovaOcr.infrastructure.ClovaOcrApi;
 import Seoul_Milk.sm_server.global.infrastructure.clovaOcr.service.OcrDataExtractor;
-import Seoul_Milk.sm_server.global.common.exception.CustomException;
-import Seoul_Milk.sm_server.global.common.exception.ErrorCode;
 import Seoul_Milk.sm_server.global.infrastructure.upload.service.AwsS3Service;
-import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -32,6 +30,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -59,12 +59,10 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
     private final TaxInvoiceFileRepository taxInvoiceFileRepository;
     private final ImageService imageService;
     private final AwsS3Service awsS3Service;
+    private final ExcelMaker excelMaker;
 
     private static final int MAX_REQUESTS_PER_SECOND = 5;  // 초당 최대 5개 요청
     private final Semaphore semaphore = new Semaphore(MAX_REQUESTS_PER_SECOND, true);
-
-    //excelMaker 주입
-    private final ExcelMaker excelMaker;
 
 
     /**
