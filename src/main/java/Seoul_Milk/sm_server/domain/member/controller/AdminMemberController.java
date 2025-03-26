@@ -8,11 +8,13 @@ import Seoul_Milk.sm_server.domain.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Builder
 @RequestMapping("/api/admin/members")
 @RequiredArgsConstructor
 @Tag(name = "관리자 회원 관리 API - 관리자만 접근 가능")

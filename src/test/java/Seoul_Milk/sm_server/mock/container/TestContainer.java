@@ -3,6 +3,7 @@ package Seoul_Milk.sm_server.mock.container;
 import Seoul_Milk.sm_server.domain.image.controller.ImageController;
 import Seoul_Milk.sm_server.domain.image.repository.ImageRepository;
 import Seoul_Milk.sm_server.domain.image.service.ImageServiceImpl;
+import Seoul_Milk.sm_server.domain.member.controller.AdminMemberController;
 import Seoul_Milk.sm_server.domain.member.controller.MemberController;
 import Seoul_Milk.sm_server.domain.member.repository.MemberRepository;
 import Seoul_Milk.sm_server.domain.member.service.MemberServiceImpl;
@@ -27,6 +28,7 @@ public class TestContainer {
     public final MemberRepository memberRepository;
     public final MemberServiceImpl memberService;
     public final MemberController memberController;
+    public final AdminMemberController adminMemberController;
 
     public final TaxInvoiceFileRepository taxInvoiceFileRepository;
     public final TaxInvoiceRepository taxInvoiceRepository;
@@ -46,6 +48,9 @@ public class TestContainer {
                 .passwordEncoder(passwordEncoder)
                 .build();
         this.memberController = MemberController.builder()
+                .memberService(this.memberService)
+                .build();
+        this.adminMemberController = AdminMemberController.builder()
                 .memberService(this.memberService)
                 .build();
 
