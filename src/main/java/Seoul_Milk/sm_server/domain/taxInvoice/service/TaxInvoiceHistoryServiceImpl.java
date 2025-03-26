@@ -21,6 +21,7 @@ import Seoul_Milk.sm_server.global.common.exception.CustomException;
 import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import jakarta.transaction.Transactional;
 import java.util.List;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Builder
 public class TaxInvoiceHistoryServiceImpl implements TaxInvoiceHistoryService {
     private final TaxInvoiceRepository taxInvoiceRepository;
     private final TaxInvoiceValidator taxInvoiceValidator;

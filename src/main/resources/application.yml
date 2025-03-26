@@ -9,7 +9,7 @@ spring:
       hibernate:
         default_schema: ${DB_USERNAME}
     hibernate:
-      ddl-auto: none
+      ddl-auto: create
     show-sql: true
 
   jwt:
