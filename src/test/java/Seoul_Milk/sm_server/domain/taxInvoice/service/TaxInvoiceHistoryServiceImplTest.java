@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class TaxInvoiceHistoryServiceImplTest {
@@ -48,7 +49,8 @@ class TaxInvoiceHistoryServiceImplTest {
     }
 
     @Test
-    void 상태별로_개수_잘_세는지_테스트(){
+    @DisplayName("상태별로 개수 잘 세는지 테스트")
+    void countTest(){
         //Given
         List<TaxInvoice> invoices = List.of(
                 createTaxInvoice(1L, "1", UNAPPROVED, "1", "1", "2024-03-26", null, null),
@@ -77,7 +79,8 @@ class TaxInvoiceHistoryServiceImplTest {
     }
 
     @Test
-    void 검색어_테스트_공급자_또는_공급받는자_검색했을_때(){
+    @DisplayName("검색어 테스트 : 공급자 또는 공급받는자 검색했을 때")
+    void pocSearchTest(){
         //Given
         TaxInvoice correctTaxInvoice1 = createTaxInvoice(1L, "1", UNAPPROVED, "1", "1", "2024-03-26", null, "서울우유 1");
         TaxInvoice correctTaxInvoice2 = createTaxInvoice(3L, "3", APPROVED, "3", "3", "2024-03-26", "서울우유 2", null);
@@ -124,7 +127,8 @@ class TaxInvoiceHistoryServiceImplTest {
     }
 
     @Test
-    void 공급자_공급받는자_그리고_승인상태별_검색_시(){
+    @DisplayName("공급자 공급받는자 그리고 승인상태별 검색 시")
+    void pocAndOptionSearchTest(){
         TaxInvoice correctTaxInvoice1 = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1");
         TaxInvoice incorrectTaxInvoice1 = createTaxInvoice(3L, "3", UNAPPROVED, "3", "3", "2024-03-26", "서울우유 2", null);
         TaxInvoice incorrectTaxInvoice2 = createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", "부산마트", null);
