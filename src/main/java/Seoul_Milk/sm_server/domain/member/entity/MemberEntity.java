@@ -6,6 +6,7 @@ import Seoul_Milk.sm_server.domain.member.enums.Role;
 import jakarta.persistence.*;
 import java.util.List;
 import java.util.UUID;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,26 +44,28 @@ public class MemberEntity {
     @Column(name = "ROLE")
     private Role role;
 
+    @Builder.Default
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TaxInvoice> taxInvoices = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Image> images = new ArrayList<>();
 
     public static MemberEntity createUnverifiedMember(String employeeId, Role role){
-        MemberEntity memberEntity = new MemberEntity();
-        memberEntity.employeeId = employeeId;
-        memberEntity.role = role;
-        return memberEntity;
+        return MemberEntity.builder()
+                .employeeId(employeeId)
+                .role(role)
+                .build();
     }
 
     public static MemberEntity createVerifiedMember(String employeeId, String name, String password, Role role){
-        MemberEntity memberEntity = new MemberEntity();
-        memberEntity.employeeId = employeeId;
-        memberEntity.name = name;
-        memberEntity.password = password;
-        memberEntity.role = role;
-        return memberEntity;
+        return MemberEntity.builder()
+                .employeeId(employeeId)
+                .name(name)
+                .password(password)
+                .role(role)
+                .build();
     }
 
     /**
