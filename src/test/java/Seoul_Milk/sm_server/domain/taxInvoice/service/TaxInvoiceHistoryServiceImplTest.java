@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 class TaxInvoiceHistoryServiceImplTest {
     private FakeTaxInvoiceRepository taxInvoiceRepository;
@@ -30,7 +31,7 @@ class TaxInvoiceHistoryServiceImplTest {
     private MemberEntity testMember;
 
     @BeforeEach
-    void init(){
+    void setUp(){
         taxInvoiceRepository = new FakeTaxInvoiceRepository();
         taxInvoiceFileRepository = new FakeTaxInvoiceFileRepository();
         taxInvoiceValidator = new TaxInvoiceValidator();
@@ -43,7 +44,7 @@ class TaxInvoiceHistoryServiceImplTest {
                 .name("김영록")
                 .email("praoo800@naver.com")
                 .employeeId("202011269")
-                .password("1234")
+                .password(new BCryptPasswordEncoder().encode("1234"))
                 .role(Role.ROLE_ADMIN)
                 .build();
     }
