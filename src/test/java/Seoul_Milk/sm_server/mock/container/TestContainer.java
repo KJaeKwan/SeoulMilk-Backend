@@ -8,9 +8,12 @@ import Seoul_Milk.sm_server.domain.member.controller.MemberController;
 import Seoul_Milk.sm_server.domain.member.repository.MemberRepository;
 import Seoul_Milk.sm_server.domain.member.service.MemberServiceImpl;
 import Seoul_Milk.sm_server.domain.taxInvoice.controller.TaxInvoiceController;
+import Seoul_Milk.sm_server.domain.taxInvoice.controller.TaxInvoiceHistoryController;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
+import Seoul_Milk.sm_server.domain.taxInvoice.service.TaxInvoiceHistoryServiceImpl;
 import Seoul_Milk.sm_server.domain.taxInvoice.service.TaxInvoiceServiceImpl;
 import Seoul_Milk.sm_server.domain.taxInvoice.util.ExcelMaker;
+import Seoul_Milk.sm_server.domain.taxInvoice.validator.TaxInvoiceValidator;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.repository.TaxInvoiceFileRepository;
 import Seoul_Milk.sm_server.global.infrastructure.clovaOcr.infrastructure.ClovaOcrApi;
 import Seoul_Milk.sm_server.global.infrastructure.clovaOcr.service.OcrDataExtractor;
@@ -34,6 +37,9 @@ public class TestContainer {
     public final TaxInvoiceRepository taxInvoiceRepository;
     public final TaxInvoiceServiceImpl taxInvoiceService;
     public final TaxInvoiceController taxInvoiceController;
+    public final TaxInvoiceHistoryServiceImpl taxInvoiceHistoryService;
+    public final TaxInvoiceHistoryController taxInvoiceHistoryController;
+    public final TaxInvoiceValidator taxInvoiceValidator;
 
     public final ImageRepository imageRepository;
     public final ImageServiceImpl imageService;
@@ -88,5 +94,13 @@ public class TestContainer {
                 this.imageService
         );
 
+        this.taxInvoiceValidator = new TaxInvoiceValidator();
+        this.taxInvoiceHistoryService = new TaxInvoiceHistoryServiceImpl(
+                this.taxInvoiceRepository,
+                this.taxInvoiceValidator
+        );
+        this.taxInvoiceHistoryController = new TaxInvoiceHistoryController(
+                this.taxInvoiceHistoryService
+        );
     }
 }
