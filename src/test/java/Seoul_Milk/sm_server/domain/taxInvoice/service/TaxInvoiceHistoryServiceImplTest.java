@@ -3,19 +3,26 @@ package Seoul_Milk.sm_server.domain.taxInvoice.service;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.APPROVED;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.REJECTED;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.UNAPPROVED;
+import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.DO_NOT_ACCESS_OTHER_TAX_INVOICE;
+import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import Seoul_Milk.sm_server.domain.member.enums.Role;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryRequestDTO.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryResponseDTO.GetHistoryData;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ArapType;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.validator.TaxInvoiceValidator;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
+import Seoul_Milk.sm_server.global.common.exception.CustomException;
 import Seoul_Milk.sm_server.mock.repository.FakeTaxInvoiceFileRepository;
 import Seoul_Milk.sm_server.mock.repository.FakeTaxInvoiceRepository;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -110,21 +117,21 @@ class TaxInvoiceHistoryServiceImplTest {
          * assertThat(data.ipBusinessName()).isEqualTo(correctTaxInvoice1.getSuBusinessName());
          * 이렇게 함
          */
-        assertThat(historyDataList).anySatisfy(data -> {
-            assertThat(data.suBusinessName()).isEqualTo(correctTaxInvoice1.getIpBusinessName());
-            assertThat(data.ipBusinessName()).isEqualTo(correctTaxInvoice1.getSuBusinessName());
-            assertThat(data.createdAt()).isEqualTo(correctTaxInvoice1.getCreateAt());
-            assertThat(data.processStatus()).isEqualTo(correctTaxInvoice1.getProcessStatus());
-            assertThat(data.url()).isEqualTo(correctTaxInvoice1.getFile().getFileUrl());
-        });
+        List<GetHistoryData> sortedList = new ArrayList<>(historyDataList);
+        sortedList.sort(Comparator.comparing(GetHistoryData::id));
+        GetHistoryData data1 = sortedList.get(0);
+        assertThat(data1.suBusinessName()).isEqualTo(correctTaxInvoice1.getIpBusinessName());
+        assertThat(data1.ipBusinessName()).isEqualTo(correctTaxInvoice1.getSuBusinessName());
+        assertThat(data1.createdAt()).isEqualTo(correctTaxInvoice1.getCreateAt());
+        assertThat(data1.processStatus()).isEqualTo(correctTaxInvoice1.getProcessStatus());
+        assertThat(data1.url()).isEqualTo(correctTaxInvoice1.getFile().getFileUrl());
 
-        assertThat(historyDataList).anySatisfy(data -> {
-            assertThat(data.suBusinessName()).isEqualTo(correctTaxInvoice2.getIpBusinessName());
-            assertThat(data.ipBusinessName()).isEqualTo(correctTaxInvoice2.getSuBusinessName());
-            assertThat(data.createdAt()).isEqualTo(correctTaxInvoice2.getCreateAt());
-            assertThat(data.processStatus()).isEqualTo(correctTaxInvoice2.getProcessStatus());
-            assertThat(data.url()).isEqualTo(correctTaxInvoice2.getFile().getFileUrl());
-        });
+        GetHistoryData data2 = sortedList.get(1);
+        assertThat(data2.suBusinessName()).isEqualTo(correctTaxInvoice2.getIpBusinessName());
+        assertThat(data2.ipBusinessName()).isEqualTo(correctTaxInvoice2.getSuBusinessName());
+        assertThat(data2.createdAt()).isEqualTo(correctTaxInvoice2.getCreateAt());
+        assertThat(data2.processStatus()).isEqualTo(correctTaxInvoice2.getProcessStatus());
+        assertThat(data2.url()).isEqualTo(correctTaxInvoice2.getFile().getFileUrl());
     }
 
     @Test
@@ -150,13 +157,107 @@ class TaxInvoiceHistoryServiceImplTest {
         // Then
         assertThat(historyDataList).hasSize(1);
 
-        assertThat(historyDataList).anySatisfy(data -> {
-            assertThat(data.suBusinessName()).isEqualTo(correctTaxInvoice1.getIpBusinessName());
-            assertThat(data.ipBusinessName()).isEqualTo(correctTaxInvoice1.getSuBusinessName());
-            assertThat(data.createdAt()).isEqualTo(correctTaxInvoice1.getCreateAt());
-            assertThat(data.processStatus()).isEqualTo(correctTaxInvoice1.getProcessStatus());
-            assertThat(data.url()).isEqualTo(correctTaxInvoice1.getFile().getFileUrl());
-        });
+        GetHistoryData data1 = historyDataList.get(0);
+        assertThat(data1.suBusinessName()).isEqualTo(correctTaxInvoice1.getIpBusinessName());
+        assertThat(data1.ipBusinessName()).isEqualTo(correctTaxInvoice1.getSuBusinessName());
+        assertThat(data1.createdAt()).isEqualTo(correctTaxInvoice1.getCreateAt());
+        assertThat(data1.processStatus()).isEqualTo(correctTaxInvoice1.getProcessStatus());
+        assertThat(data1.url()).isEqualTo(correctTaxInvoice1.getFile().getFileUrl());
+    }
+
+    @Test
+    @DisplayName("검증데이터 삭제 테스트")
+    void deleteTaxInvoiceTest(){
+        //given
+        TaxInvoice taxInvoice1 = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1");
+        TaxInvoice taxInvoice2 = createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", "부산마트", null);
+        List<TaxInvoice> invoices = List.of(
+                taxInvoice1,
+                taxInvoice2
+        );
+        for (int i = 0; i < invoices.size(); i++) {
+            TaxInvoice invoice = invoices.get(i);
+            TaxInvoiceFile file = createTaxInvoiceFile((long) (i + 1), invoice);
+            taxInvoiceRepository.save(invoice);
+            taxInvoiceFileRepository.save(file);
+        }
+        TaxInvoiceRequest taxInvoiceRequest = TaxInvoiceRequest.builder()
+                        .taxInvoiceIdList(List.of(1L))
+                        .build();
+
+        //when
+        taxInvoiceHistoryService.deleteValidationTaxInvoice(testMember, taxInvoiceRequest);
+
+        //then
+        List<TaxInvoice> historyDataList = taxInvoiceRepository.findAll();
+        assertThat(historyDataList).hasSize(1);
+
+        TaxInvoice data1 = historyDataList.get(0);
+        assertThat(data1.getTaxInvoiceId()).isEqualTo(2L);
+        assertThat(data1.getIssueId()).isEqualTo("2");
+        assertThat(data1.getProcessStatus()).isEqualTo(APPROVED);
+        assertThat(data1.getIpId()).isEqualTo("2");
+        assertThat(data1.getSuId()).isEqualTo("2");
+        assertThat(data1.getErDat()).isEqualTo("2024-03-26");
+        assertThat(data1.getIpBusinessName()).isEqualTo("부산마트");
+        assertThat(data1.getSuBusinessName()).isEqualTo(null);
+    }
+
+    @Test
+    @DisplayName("DB에 없는 검증데이터 삭제 시도 시 에러발생")
+    void deleteNotExistValidationData(){
+        TaxInvoice taxInvoice1 = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1");
+        TaxInvoice taxInvoice2 = createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", "부산마트", null);
+        List<TaxInvoice> invoices = List.of(
+                taxInvoice1,
+                taxInvoice2
+        );
+        for (int i = 0; i < invoices.size(); i++) {
+            TaxInvoice invoice = invoices.get(i);
+            TaxInvoiceFile file = createTaxInvoiceFile((long) (i + 1), invoice);
+            taxInvoiceRepository.save(invoice);
+            taxInvoiceFileRepository.save(file);
+        }
+        TaxInvoiceRequest taxInvoiceRequest = TaxInvoiceRequest.builder()
+                .taxInvoiceIdList(List.of(3L, 4L))
+                .build();
+
+        assertThatThrownBy(() -> taxInvoiceHistoryService.deleteValidationTaxInvoice(testMember, taxInvoiceRequest))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(TAX_INVOICE_NOT_EXIST.getMessage());
+    }
+
+    @Test
+    @DisplayName("본인것이 아닌 검증데이터 삭제 시 에러발생")
+    void deleteNotMineValidationData(){
+        TaxInvoice taxInvoice1 = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1");
+        TaxInvoice taxInvoice2 = createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", "부산마트", null);
+        List<TaxInvoice> invoices = List.of(
+                taxInvoice1,
+                taxInvoice2
+        );
+        for (int i = 0; i < invoices.size(); i++) {
+            TaxInvoice invoice = invoices.get(i);
+            TaxInvoiceFile file = createTaxInvoiceFile((long) (i + 1), invoice);
+            taxInvoiceRepository.save(invoice);
+            taxInvoiceFileRepository.save(file);
+        }
+        MemberEntity otherMember = MemberEntity.builder()
+                .id(2L)
+                .name("김영룩")
+                .email("praoo900@naver.com")
+                .employeeId("202011270")
+                .password(new BCryptPasswordEncoder().encode("1234"))
+                .role(Role.ROLE_NORMAL)
+                .build();
+
+        TaxInvoiceRequest taxInvoiceRequest = TaxInvoiceRequest.builder()
+                .taxInvoiceIdList(List.of(1L))
+                .build();
+
+        assertThatThrownBy(() -> taxInvoiceHistoryService.deleteValidationTaxInvoice(otherMember, taxInvoiceRequest))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(DO_NOT_ACCESS_OTHER_TAX_INVOICE.getMessage());
     }
 
     private TaxInvoice createTaxInvoice(Long id, String issueId, ProcessStatus status, String ipId, String suId, String erDat, String ipBusinessName, String suBusinessName) {
