@@ -2,6 +2,7 @@ package Seoul_Milk.sm_server.domain.taxInvoice.dto.history;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
+import lombok.Builder;
 
 @Schema(description = "RE 관련 DTO")
 public class TaxInvoiceHistoryRequestDTO {
@@ -18,5 +19,9 @@ public class TaxInvoiceHistoryRequestDTO {
     public record TaxInvoiceRequest(
             @Schema(description = "검증된 세금계산서 pk값 리스트") List<Long> taxInvoiceIdList
     ){
+        @Builder
+        public TaxInvoiceRequest(List<Long> taxInvoiceIdList){
+            this.taxInvoiceIdList = taxInvoiceIdList;
+        }
     }
 }

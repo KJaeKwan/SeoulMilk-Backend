@@ -99,12 +99,14 @@ public class FakeTaxInvoiceRepository implements TaxInvoiceRepository {
 
     @Override
     public List<TaxInvoice> findAllById(List<Long> taxInvoiceIdList) {
-        return null;
+        return data.stream()
+                .filter(invoice -> taxInvoiceIdList.contains(invoice.getTaxInvoiceId()))
+                .collect(Collectors.toList());
     }
 
     @Override
     public void deleteAll(List<TaxInvoice> taxInvoices) {
-
+        data.removeAll(taxInvoices);
     }
 
     @Override
@@ -170,5 +172,9 @@ public class FakeTaxInvoiceRepository implements TaxInvoiceRepository {
     @Override
     public void updateMandatoryColumns(Long targetId, String issueId, String erDat, String ipId, String suId, int chargeTotal) {
 
+    }
+
+    public List<TaxInvoice> findAll(){
+        return data;
     }
 }
