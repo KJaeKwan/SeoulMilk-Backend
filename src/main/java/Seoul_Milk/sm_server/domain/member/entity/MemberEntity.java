@@ -7,15 +7,20 @@ import jakarta.persistence.*;
 import java.util.List;
 import java.util.UUID;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "MEMBER")
 @Getter
 @Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class MemberEntity {
 
     @Id
