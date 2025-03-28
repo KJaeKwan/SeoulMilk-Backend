@@ -25,6 +25,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 public class TestContainer {
 
+    public final AwsS3Service awsS3Service;
+
     public final MemberRepository memberRepository;
     public final MemberServiceImpl memberService;
     public final MemberController memberController;
@@ -40,6 +42,8 @@ public class TestContainer {
     public final ImageController imageController;
 
     public TestContainer() {
+        this.awsS3Service = Mockito.mock(AwsS3Service.class);
+
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
         this.memberRepository = new FakeMemberRepository();
@@ -55,11 +59,11 @@ public class TestContainer {
                 .build();
 
 
-        AwsS3Service awsS3Service = Mockito.mock(AwsS3Service.class);
         ObjectMapper objectMapper = new ObjectMapper();
 
         this.imageRepository = new FakeImageRepository();
         this.imageService = ImageServiceImpl.builder()
+                .imageRepository(imageRepository)
                 .awsS3Service(awsS3Service)
                 .objectMapper(objectMapper)
                 .build();
