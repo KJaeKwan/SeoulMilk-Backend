@@ -38,55 +38,65 @@ class TaxInvoiceServiceImplTest {
     private TestContainer testContainer;
     private MemberEntity testMember;
 
+    private static final String TEST_ISSUE_ID = "12345678-12345678-12345678";
+    private static final MultipartFile MOCK_FILE = new MockMultipartFile("file", "test-image.png", "image/png", "content".getBytes());
+
+
     @BeforeEach
     void setUp() {
         testContainer = new TestContainer();
+        testMember = createTestMember();
 
-        testMember = MemberEntity.builder()
+        testContainer.memberRepository.save(testMember);
+        SecurityTestUtil.setAuthentication(testMember);
+
+        // null이 들어가면 인자 불일치로 Mokito 호출 불가
+        ReflectionTestUtils.setField(testContainer.taxInvoiceService, "clovaSecretKey", "test-secret-key");
+
+        mockAwsS3Service();
+        mockClovaOcrApi();
+
+    }
+
+    private MemberEntity createTestMember() {
+        return MemberEntity.builder()
                 .employeeId("11111111")
                 .name("김재관")
                 .password(new BCryptPasswordEncoder().encode("1234"))
                 .role(Role.ROLE_ADMIN)
                 .build();
-
-        testContainer.memberRepository.save(testMember);
-        SecurityTestUtil.setAuthentication(testMember);
-
-        when(testContainer.awsS3Service.uploadFile(anyString(), any(), anyBoolean()))
-                .thenReturn("https://s3.aws.com/test-file.png");
-
-        when(testContainer.awsS3Service.downloadFileFromS3(anyString()))
-                .thenReturn(new MockMultipartFile("file", "test.png", "image/png", "content".getBytes()));
-
-        // null이 들어가면 인자 불일치로 Mokito 호출 불가
-        ReflectionTestUtils.setField(testContainer.taxInvoiceService, "clovaSecretKey", "test-secret-key");
-
-        when(testContainer.clovaOcrApi.callApi(
-                anyString(),
-                any(),
-                anyString(),
-                anyString()
-        )).thenReturn("{\"images\":[{\"fields\":[{\"name\":\"issueId\",\"inferText\":\"12345678-12345678-12345678\"}]}]}");
-
     }
 
+    private void mockAwsS3Service() {
+        when(testContainer.awsS3Service.uploadFiles(anyString(), anyList(), anyBoolean()))
+                .thenReturn(List.of("https://s3.aws.com/test-file.png"));
+
+        when(testContainer.awsS3Service.uploadFile(anyString(), any(), anyBoolean()))
+                .thenReturn("https://s3.aws.com/test-image.png");
+
+        when(testContainer.awsS3Service.downloadFileFromS3(anyString()))
+                .thenReturn(MOCK_FILE);
+    }
+
+    private void mockClovaOcrApi() {
+        when(testContainer.clovaOcrApi.callApi(anyString(), any(), anyString(), anyString()))
+                .thenReturn("{\"images\":[{\"fields\":[{\"name\":\"issueId\",\"inferText\":\"" + TEST_ISSUE_ID + "\"}]}]}");
+    }
 
     @Test
     @DisplayName("OCR 처리 성공 - MultipartFile")
     void processTemplateOcrAsync_Success() throws Exception {
-        // Given
-        MultipartFile file = new MockMultipartFile("file", "test.png", "image/png", "content".getBytes());
-
         // When
-        CompletableFuture<TaxInvoiceResponseDTO.Create> response = testContainer.taxInvoiceService.processTemplateOcrAsync(file, testMember);
+        CompletableFuture<TaxInvoiceResponseDTO.Create> response =
+                testContainer.taxInvoiceService.processTemplateOcrAsync(MOCK_FILE, testMember);
 
         // Then
         assertThat(response).isNotNull();
         TaxInvoiceResponseDTO.Create result = response.get();
-        assertThat(result.fileName()).isEqualTo("test.png");
+        assertThat(result.fileName()).isEqualTo("test-image.png");
         assertThat(result.extractedData()).isNotNull();
         assertThat(result.extractedData().get("issueId"))
-                .isEqualTo("12345678-12345678-12345678");
+                .isEqualTo(TEST_ISSUE_ID);
         assertThat(result.processStatus()).isEqualTo("UNAPPROVED"); // issueId만 넣었기 때문
     }
 
@@ -94,12 +104,7 @@ class TaxInvoiceServiceImplTest {
     @DisplayName("OCR 처리 성공 - 임시저장된 이미지 URL")
     void processTemplateOcrSyncFromUrl_Success() throws Exception {
         // Given
-        MultipartFile mockFile = new MockMultipartFile("file", "test-image.png", "image/png", "content".getBytes());
-
-        when(testContainer.awsS3Service.uploadFiles(anyString(), anyList(), anyBoolean()))
-                .thenReturn(List.of("https://s3.aws.com/test-image.png"));
-
-        testContainer.imageService.markAsTemporary("[]", List.of(mockFile), testMember);
+        testContainer.imageService.markAsTemporary("[]", List.of(MOCK_FILE), testMember);
 
         var savedImages = testContainer.imageRepository.searchTempImages(testMember, PageRequest.of(0, 10));
         String imageUrl = savedImages.getContent().get(0).getImageUrl();
@@ -122,27 +127,7 @@ class TaxInvoiceServiceImplTest {
     @DisplayName("세금계산서 정보 삭제 성공")
     void deleteTaxInvoiceSuccessfully() {
         // Given
-        TaxInvoice savedInvoice = TaxInvoice.builder()
-                .taxInvoiceId(1L)
-                .issueId("12345678-12345678-12345678")
-                .arap(ArapType.SALES)
-                .processStatus(PENDING)
-                .ipId("123-12-12345")
-                .suId("321-21-54321")
-                .chargeTotal(3000)
-                .erDat("2025-03-28")
-                .ipBusinessName("공급자 사업체")
-                .suBusinessName("공급받는자 사업체")
-                .member(testMember)
-                .createAt(LocalDateTime.now())
-                .build();
-
-        TaxInvoiceFile taxFile = TaxInvoiceFile.builder()
-                .fileUrl("https://s3.aws.com/test-file.png")
-                .taxInvoice(savedInvoice)
-                .build();
-
-        savedInvoice.attachFile(taxFile);
+        TaxInvoice savedInvoice = createTestTaxInvoice();
         testContainer.taxInvoiceRepository.save(savedInvoice);
 
         // When
@@ -158,27 +143,7 @@ class TaxInvoiceServiceImplTest {
     void searchTaxInvoicesSuccessfully() {
         // Given
         LocalDate now = LocalDate.now();
-        TaxInvoice savedInvoice = TaxInvoice.builder()
-                .taxInvoiceId(1L)
-                .issueId("12345678-12345678-12345678")
-                .arap(ArapType.SALES)
-                .processStatus(PENDING)
-                .ipId("123-12-12345")
-                .suId("321-21-54321")
-                .chargeTotal(3000)
-                .erDat("2025-03-28")
-                .ipBusinessName("공급자 사업체")
-                .suBusinessName("공급받는자 사업체")
-                .member(testMember)
-                .createAt(LocalDateTime.now())
-                .build();
-
-        TaxInvoiceFile taxFile = TaxInvoiceFile.builder()
-                .fileUrl("https://s3.aws.com/test-file.png")
-                .taxInvoice(savedInvoice)
-                .build();
-
-        savedInvoice.attachFile(taxFile);
+        TaxInvoice savedInvoice = createTestTaxInvoice();
         testContainer.taxInvoiceRepository.save(savedInvoice);
 
         // When
@@ -220,5 +185,30 @@ class TaxInvoiceServiceImplTest {
         assertThatThrownBy(() -> testContainer.taxInvoiceService.extractToExcel(List.of()))
                 .isInstanceOf(CustomException.class)
                 .hasMessageContaining(ErrorCode.MAKE_EXCEL_FILE_ERROR.getMessage());
+    }
+
+    private TaxInvoice createTestTaxInvoice() {
+        TaxInvoice invoice = TaxInvoice.builder()
+                .taxInvoiceId(1L)
+                .issueId(TEST_ISSUE_ID)
+                .arap(ArapType.SALES)
+                .processStatus(PENDING)
+                .ipId("123-12-12345")
+                .suId("321-21-54321")
+                .chargeTotal(3000)
+                .erDat("2025-03-28")
+                .ipBusinessName("공급자 사업체")
+                .suBusinessName("공급받는자 사업체")
+                .member(testMember)
+                .createAt(LocalDateTime.now())
+                .build();
+
+        TaxInvoiceFile taxFile = TaxInvoiceFile.builder()
+                .fileUrl("https://s3.aws.com/test-file.png")
+                .taxInvoice(invoice)
+                .build();
+
+        invoice.attachFile(taxFile);
+        return invoice;
     }
 }
