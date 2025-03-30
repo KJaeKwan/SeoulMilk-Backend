@@ -172,7 +172,6 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 taxInvoiceRepository.save(savedTaxInvoice);
             }
             else{
-                System.out.println("else문 실행");
                 taxInvoice = taxInvoiceRepository.findByIssueId(issueId)
                         .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
                 taxInvoice.update(
@@ -186,7 +185,6 @@ public class TaxInvoiceServiceImpl implements TaxInvoiceService {
                 taxInvoice.attachFile(taxFile);
                 taxInvoice.attachMember(member);
                 taxInvoiceRepository.save(taxInvoice);
-                System.out.println("member PK = " + taxInvoice.getMember().getId());
             }
 
             long endTime = System.nanoTime();
