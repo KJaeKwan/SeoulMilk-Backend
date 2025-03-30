@@ -59,7 +59,7 @@ public class FakeTaxInvoiceRepository implements TaxInvoiceRepository {
                     .suEmail(taxInvoice.getSuEmail())
                     .member(taxInvoice.getMember())
                     .file(taxInvoice.getFile())
-                    .createAt(LocalDateTime.now())
+                    .createAt(taxInvoice.getCreateAt())
                     .build();
             data.add(newTaxInvoice);
             return newTaxInvoice;
@@ -77,18 +77,27 @@ public class FakeTaxInvoiceRepository implements TaxInvoiceRepository {
 
     @Override
     public Page<TaxInvoice> searchWithFilters(String provider, String consumer, String employeeId, MemberEntity member, LocalDate startDate, LocalDate endDate, ProcessStatus processStatus, Pageable pageable) {
+        LocalDate start = (startDate != null) ? startDate : LocalDate.of(2000, 1, 1);
+        LocalDate end = (endDate != null) ? endDate : LocalDate.now();
+
         List<TaxInvoice> filtered = data.stream()
                 .filter(t -> t.getMember().equals(member))
                 .filter(t -> processStatus == null || t.getProcessStatus().equals(processStatus))
                 .filter(t -> (provider == null || t.getIpBusinessName().contains(provider)) && (consumer == null || t.getSuBusinessName().contains(consumer)))
-                .filter(t -> t.getCreateAt().toLocalDate().isAfter(startDate.minusDays(1)) && t.getCreateAt().toLocalDate().isBefore(endDate.plusDays(1)))
+                .filter(t -> {
+                    LocalDateTime createAt = t.getCreateAt();
+                    if (createAt == null) return false;
+                    LocalDate createdDate = createAt.toLocalDate();
+                    return !createdDate.isBefore(start) && !createdDate.isAfter(end);
+                })
+
                 .sorted(Comparator.comparing(TaxInvoice::getCreateAt).reversed())
                 .toList();
 
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), filtered.size());
+        int startIdx = (int) pageable.getOffset();
+        int endIdx = Math.min(startIdx + pageable.getPageSize(), filtered.size());
+        List<TaxInvoice> pagedList = filtered.subList(startIdx, endIdx);
 
-        List<TaxInvoice> pagedList = filtered.subList(start, end);
         return new PageImpl<>(pagedList, pageable, filtered.size());
     }
 
@@ -111,7 +120,9 @@ public class FakeTaxInvoiceRepository implements TaxInvoiceRepository {
 
     @Override
     public List<TaxInvoice> saveAll(List<TaxInvoice> taxInvoices) {
-        return null;
+        return taxInvoices.stream()
+                .map(this::save)
+                .collect(Collectors.toList());
     }
 
     @Override
