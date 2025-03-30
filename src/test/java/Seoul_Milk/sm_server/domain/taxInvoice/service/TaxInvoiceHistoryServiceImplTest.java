@@ -13,6 +13,7 @@ import Seoul_Milk.sm_server.domain.member.enums.Role;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryRequestDTO.ChangeTaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryRequestDTO.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryResponseDTO.GetHistoryData;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryResponseDTO.GetModalResponse;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ArapType;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
@@ -328,6 +329,38 @@ class TaxInvoiceHistoryServiceImplTest {
         assertThatThrownBy(() -> taxInvoiceHistoryService.changeColunm(otherMember, changeTaxInvoiceRequest))
                 .isInstanceOf(CustomException.class)
                 .hasMessageContaining(DO_NOT_ACCESS_OTHER_TAX_INVOICE.getMessage());
+    }
+
+    @Test
+    @DisplayName("<RE_02> 조회 모달 테스트")
+    void showModalTest(){
+        TaxInvoice taxInvoice = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1");
+        TaxInvoiceFile file = createTaxInvoiceFile(1L, taxInvoice);
+        taxInvoiceRepository.save(taxInvoice);
+        taxInvoiceFileRepository.save(file);
+        GetModalResponse getModalResponse = taxInvoiceHistoryService.showModal(1L);
+
+        assertThat(getModalResponse.chargeTotal()).isEqualTo(String.valueOf(taxInvoice.getChargeTotal()));
+        assertThat(getModalResponse.taxTotal()).isEqualTo(String.valueOf(taxInvoice.getTaxTotal()));
+        assertThat(getModalResponse.grandTotal()).isEqualTo(String.valueOf(taxInvoice.getGrandTotal()));
+        assertThat(getModalResponse.erDat()).isEqualTo(taxInvoice.getErDat());
+        assertThat(getModalResponse.ipId()).isEqualTo(taxInvoice.getIpId());
+        assertThat(getModalResponse.suId()).isEqualTo(taxInvoice.getSuId());
+        assertThat(getModalResponse.issueId()).isEqualTo(taxInvoice.getIssueId());
+        assertThat(getModalResponse.processStatus()).isEqualTo(taxInvoice.getProcessStatus());
+        assertThat(getModalResponse.url()).isEqualTo(taxInvoice.getFile().getFileUrl());
+    }
+
+    @Test
+    @DisplayName("<RE_02> 존재하지 않는 세금계산서 조회 시 에러 발생")
+    void showNotExistModalTest(){
+        TaxInvoice taxInvoice = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1");
+        TaxInvoiceFile file = createTaxInvoiceFile(1L, taxInvoice);
+        taxInvoiceRepository.save(taxInvoice);
+        taxInvoiceFileRepository.save(file);
+        assertThatThrownBy(() -> taxInvoiceHistoryService.showModal(2L))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(TAX_INVOICE_NOT_EXIST.getMessage());
     }
 
     private TaxInvoice createTaxInvoice(Long id, String issueId, ProcessStatus status, String ipId, String suId, String erDat, String ipBusinessName, String suBusinessName) {

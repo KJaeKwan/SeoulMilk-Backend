@@ -13,6 +13,7 @@ import Seoul_Milk.sm_server.domain.member.enums.Role;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryRequestDTO.ChangeTaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryRequestDTO.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryResponseDTO.GetHistoryData;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryResponseDTO.GetModalResponse;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryResponseDTO.TaxInvoiceSearchResult;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ArapType;
@@ -255,7 +256,7 @@ public class TaxInvoiceHistoryControllerTest {
 
     @Test
     @DisplayName("<RE_03> 존재하지 않는 세금계산서 업데이트 시도 시 에러 발생")
-    void updateNotExistValidationData(){
+    void updateNotExistValidationDataControllerTest(){
         TaxInvoice taxInvoice = TaxInvoice.builder()
                 .taxInvoiceId(1L)
                 .issueId("11111")
@@ -295,7 +296,7 @@ public class TaxInvoiceHistoryControllerTest {
 
     @Test
     @DisplayName("<RE_03> 본인 것이 아닌 세금계산서 업데이트 시도 시")
-    void updateNotMineValidationData() {
+    void updateNotMineValidationDataControllerTest() {
         TaxInvoice taxInvoice = TaxInvoice.builder()
                 .taxInvoiceId(1L)
                 .issueId("11111")
@@ -341,5 +342,67 @@ public class TaxInvoiceHistoryControllerTest {
                 .isInstanceOf(CustomException.class)
                 .hasMessageContaining(TAX_INVOICE_NOT_EXIST.getMessage());
     }
+
+    @Test
+    @DisplayName("<RE_02> 조회 모달 컨트롤러 테스트")
+    void showModalControllerTest(){
+        TaxInvoice taxInvoice = TaxInvoice.builder()
+                .taxInvoiceId(1L)
+                .issueId("11111")
+                .arap(ArapType.SALES)
+                .processStatus(UNAPPROVED)
+                .ipId("1111")
+                .suId("1111")
+                .chargeTotal(3000)
+                .erDat("2025-03-27")
+                .ipBusinessName("서울우유")
+                .suBusinessName("부산우유")
+                .member(testMember)
+                .createAt(LocalDateTime.now())
+                .build();
+        TaxInvoiceFile file = TaxInvoiceFile.builder()
+                .id(1L)
+                .taxInvoice(taxInvoice)
+                .fileUrl("urlurl")
+                .build();
+        taxInvoice.attachFile(file);
+        testContainer.taxInvoiceFileRepository.save(file);
+        testContainer.taxInvoiceRepository.save(taxInvoice);
+
+        SuccessResponse<GetModalResponse> response = testContainer.taxInvoiceHistoryController.showModal(1L);
+        assertThat(response.getCode()).isEqualTo(SUCCESS.getCode());
+    }
+
+    @Test
+    @DisplayName("<RE_02> 존재하지 않는 세금계산서 조회 시 에러 발생")
+    void showNotExistModalControllerTest(){
+        TaxInvoice taxInvoice = TaxInvoice.builder()
+                .taxInvoiceId(1L)
+                .issueId("11111")
+                .arap(ArapType.SALES)
+                .processStatus(UNAPPROVED)
+                .ipId("1111")
+                .suId("1111")
+                .chargeTotal(3000)
+                .erDat("2025-03-27")
+                .ipBusinessName("서울우유")
+                .suBusinessName("부산우유")
+                .member(testMember)
+                .createAt(LocalDateTime.now())
+                .build();
+        TaxInvoiceFile file = TaxInvoiceFile.builder()
+                .id(1L)
+                .taxInvoice(taxInvoice)
+                .fileUrl("urlurl")
+                .build();
+        taxInvoice.attachFile(file);
+        testContainer.taxInvoiceFileRepository.save(file);
+        testContainer.taxInvoiceRepository.save(taxInvoice);
+
+        assertThatThrownBy(() -> testContainer.taxInvoiceHistoryService.showModal(2L))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(TAX_INVOICE_NOT_EXIST.getMessage());
+    }
+
 
 }
