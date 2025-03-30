@@ -29,6 +29,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 public class TestContainer {
 
     public final AwsS3Service awsS3Service;
+    public final ClovaOcrApi clovaOcrApi;
+    public final ExcelMaker excelMaker;
 
     public final MemberRepository memberRepository;
     public final MemberServiceImpl memberService;
@@ -49,6 +51,8 @@ public class TestContainer {
 
     public TestContainer() {
         this.awsS3Service = Mockito.mock(AwsS3Service.class);
+        this.clovaOcrApi = Mockito.mock(ClovaOcrApi.class);
+        this.excelMaker = Mockito.mock(ExcelMaker.class);
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -64,7 +68,6 @@ public class TestContainer {
                 .memberService(this.memberService)
                 .build();
 
-
         ObjectMapper objectMapper = new ObjectMapper();
 
         this.imageRepository = new FakeImageRepository();
@@ -79,8 +82,6 @@ public class TestContainer {
 
 
         OcrDataExtractor ocrDataExtractor = new OcrDataExtractor();
-        ClovaOcrApi clovaOcrApi = Mockito.mock(ClovaOcrApi.class);
-        ExcelMaker excelMaker = Mockito.mock(ExcelMaker.class);
 
         this.taxInvoiceFileRepository = new FakeTaxInvoiceFileRepository();
         this.taxInvoiceRepository = new FakeTaxInvoiceRepository();
