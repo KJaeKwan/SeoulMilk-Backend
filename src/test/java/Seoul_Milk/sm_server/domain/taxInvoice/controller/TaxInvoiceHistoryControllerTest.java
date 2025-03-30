@@ -10,6 +10,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import Seoul_Milk.sm_server.domain.member.enums.Role;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryRequestDTO.ChangeTaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryRequestDTO.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryResponseDTO.GetHistoryData;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryResponseDTO.TaxInvoiceSearchResult;
@@ -209,6 +210,136 @@ public class TaxInvoiceHistoryControllerTest {
         assertThatThrownBy(() -> testContainer.taxInvoiceHistoryService.deleteValidationTaxInvoice(otherMember, taxInvoiceRequest))
                 .isInstanceOf(CustomException.class)
                 .hasMessageContaining(DO_NOT_ACCESS_OTHER_TAX_INVOICE.getMessage());
+    }
+
+    @Test
+    @DisplayName("<RE_03> 업데이트 컨트롤러 테스트")
+    void updateValidationDataControllerTest(){
+        TaxInvoice taxInvoice = TaxInvoice.builder()
+                .taxInvoiceId(1L)
+                .issueId("11111")
+                .arap(ArapType.SALES)
+                .processStatus(UNAPPROVED)
+                .ipId("1111")
+                .suId("1111")
+                .chargeTotal(3000)
+                .erDat("2025-03-27")
+                .ipBusinessName("서울우유")
+                .suBusinessName("부산우유")
+                .member(testMember)
+                .createAt(LocalDateTime.now())
+                .build();
+        TaxInvoiceFile file = TaxInvoiceFile.builder()
+                .id(1L)
+                .taxInvoice(taxInvoice)
+                .fileUrl("urlurl")
+                .build();
+        taxInvoice.attachFile(file);
+        testContainer.taxInvoiceFileRepository.save(file);
+        testContainer.taxInvoiceRepository.save(taxInvoice);
+
+        ChangeTaxInvoiceRequest changeTaxInvoiceRequest = ChangeTaxInvoiceRequest.builder()
+                .taxInvoiceId(taxInvoice.getTaxInvoiceId())
+                .issueId("1111-1111")
+                .erDat("2025-03-26")
+                .suId("2")
+                .ipId("2")
+                .chargeTotal(30)
+                .build();
+
+        SuccessResponse<Void> response =
+                testContainer.taxInvoiceHistoryController
+                                .changeColunm(testMember, changeTaxInvoiceRequest);
+        assertThat(response.getCode()).isEqualTo(SUCCESS.getCode());
+    }
+
+    @Test
+    @DisplayName("<RE_03> 존재하지 않는 세금계산서 업데이트 시도 시 에러 발생")
+    void updateNotExistValidationData(){
+        TaxInvoice taxInvoice = TaxInvoice.builder()
+                .taxInvoiceId(1L)
+                .issueId("11111")
+                .arap(ArapType.SALES)
+                .processStatus(UNAPPROVED)
+                .ipId("1111")
+                .suId("1111")
+                .chargeTotal(3000)
+                .erDat("2025-03-27")
+                .ipBusinessName("서울우유")
+                .suBusinessName("부산우유")
+                .member(testMember)
+                .createAt(LocalDateTime.now())
+                .build();
+        TaxInvoiceFile file = TaxInvoiceFile.builder()
+                .id(1L)
+                .taxInvoice(taxInvoice)
+                .fileUrl("urlurl")
+                .build();
+        taxInvoice.attachFile(file);
+        testContainer.taxInvoiceFileRepository.save(file);
+        testContainer.taxInvoiceRepository.save(taxInvoice);
+
+        ChangeTaxInvoiceRequest changeTaxInvoiceRequest = ChangeTaxInvoiceRequest.builder()
+                .taxInvoiceId(2L)
+                .issueId("1111-1111")
+                .erDat("2025-03-26")
+                .suId("2")
+                .ipId("2")
+                .chargeTotal(30)
+                .build();
+
+        assertThatThrownBy(() -> testContainer.taxInvoiceHistoryService.changeColunm(testMember, changeTaxInvoiceRequest))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(TAX_INVOICE_NOT_EXIST.getMessage());
+    }
+
+    @Test
+    @DisplayName("<RE_03> 본인 것이 아닌 세금계산서 업데이트 시도 시")
+    void updateNotMineValidationData() {
+        TaxInvoice taxInvoice = TaxInvoice.builder()
+                .taxInvoiceId(1L)
+                .issueId("11111")
+                .arap(ArapType.SALES)
+                .processStatus(UNAPPROVED)
+                .ipId("1111")
+                .suId("1111")
+                .chargeTotal(3000)
+                .erDat("2025-03-27")
+                .ipBusinessName("서울우유")
+                .suBusinessName("부산우유")
+                .member(testMember)
+                .createAt(LocalDateTime.now())
+                .build();
+        TaxInvoiceFile file = TaxInvoiceFile.builder()
+                .id(1L)
+                .taxInvoice(taxInvoice)
+                .fileUrl("urlurl")
+                .build();
+        taxInvoice.attachFile(file);
+        testContainer.taxInvoiceFileRepository.save(file);
+        testContainer.taxInvoiceRepository.save(taxInvoice);
+
+        ChangeTaxInvoiceRequest changeTaxInvoiceRequest = ChangeTaxInvoiceRequest.builder()
+                .taxInvoiceId(2L)
+                .issueId("1111-1111")
+                .erDat("2025-03-26")
+                .suId("2")
+                .ipId("2")
+                .chargeTotal(30)
+                .build();
+
+        MemberEntity otherMember = MemberEntity.builder()
+                .id(2L)
+                .name("김영룩")
+                .email("praoo900@naver.com")
+                .employeeId("202011270")
+                .password(new BCryptPasswordEncoder().encode("1234"))
+                .role(Role.ROLE_NORMAL)
+                .build();
+
+        assertThatThrownBy(() -> testContainer.taxInvoiceHistoryService.changeColunm(otherMember, changeTaxInvoiceRequest))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(TAX_INVOICE_NOT_EXIST.getMessage());
     }
 
 }

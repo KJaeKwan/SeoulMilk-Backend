@@ -168,6 +168,14 @@ public class TaxInvoice {
         this.processStatus = processStatus;
     }
 
+    public void update(String issueId, String erDat, String ipId, String suId, int chargeTotal){
+        this.issueId = issueId;
+        this.erDat = erDat;
+        this.ipId = ipId;
+        this.suId = suId;
+        this.chargeTotal = chargeTotal;
+    }
+
     /** 연관관계 편의 메서드 */
     public void attachFile(TaxInvoiceFile file) {
         file.attachTaxInvoice(this);

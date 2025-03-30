@@ -29,6 +29,7 @@ import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.PENDING
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TempStatus.*;
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.MaxSearchLimit.MAX_SEARCH_LIMIT;
 import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.TAX_INVOICE_ALREADY_EXIST;
+import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
 
 @Repository
 @RequiredArgsConstructor
@@ -196,7 +197,7 @@ public class TaxInvoiceRepositoryImpl implements TaxInvoiceRepository {
     @Override
     public boolean isAccessYourTaxInvoice(MemberEntity memberEntity, Long id) {
         TaxInvoice taxInvoice = taxInvoiceJpaRepository.findById(id)
-                .orElseThrow(() -> new CustomException(TAX_INVOICE_ALREADY_EXIST));
+                .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
         return taxInvoice.isYourTaxInvoice(memberEntity);
     }
 
