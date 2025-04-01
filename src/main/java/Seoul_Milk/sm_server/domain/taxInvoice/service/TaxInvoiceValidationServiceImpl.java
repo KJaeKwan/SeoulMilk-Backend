@@ -5,9 +5,12 @@ import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.request.NonVerifiedTaxValidationRequestDTO;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.request.TaxInvoiceInfo;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.response.NonVerifiedTaxValidationResponseDTO;
-import Seoul_Milk.sm_server.domain.taxInvoice.thread.RequestThread;
+import Seoul_Milk.sm_server.domain.taxInvoice.thread.RequestThreadFactory;
+import Seoul_Milk.sm_server.domain.taxInvoice.thread.RequestThreadFactoryImpl;
 import Seoul_Milk.sm_server.domain.taxInvoice.thread.RequestThreadManager;
 import Seoul_Milk.sm_server.global.common.exception.CustomException;
+import Seoul_Milk.sm_server.global.infrastructure.codef.CodefFactory;
+import Seoul_Milk.sm_server.global.infrastructure.codef.CodefFactoryImpl;
 import Seoul_Milk.sm_server.global.infrastructure.redis.RedisUtils;
 import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,11 +18,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.codef.api.EasyCodef;
 import io.codef.api.EasyCodefServiceType;
+import lombok.Builder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,39 +35,30 @@ import static Seoul_Milk.sm_server.domain.taxInvoice.enums.TwoWayInfo.*;
 import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.*;
 
 @Service
+@Builder
 public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationService {
-    private final String PUBLIC_KEY;
-    private final String CLIENT_ID;
-    private final String CLIENT_SECRET;
     private final String PRODUCT_URL;
     private final RedisUtils redisUtils;
     private final TaxInvoiceRepository taxInvoiceRepository;
+    private final CodefFactory codefFactory;
+    private final RequestThreadFactory requestThreadFactory;
     public TaxInvoiceValidationServiceImpl(
-            @Value("${codef.public.key}") String PUBLIC_KEY,
-            @Value("${codef.client.id}") String CLIENT_ID,
-            @Value("${codef.client.secret}") String CLIENT_SECRET,
             @Value("${codef.valid.url}") String productUrl, RedisUtils redisUtils,
-            TaxInvoiceRepository taxInvoiceRepository
+            TaxInvoiceRepository taxInvoiceRepository, CodefFactory codefFactory,
+            RequestThreadFactory requestThreadFactory
     ) {
-        this.PUBLIC_KEY = PUBLIC_KEY;
-        this.CLIENT_ID = CLIENT_ID;
-        this.CLIENT_SECRET = CLIENT_SECRET;
         this.PRODUCT_URL = productUrl;
         this.redisUtils = redisUtils;
         this.taxInvoiceRepository = taxInvoiceRepository;
-    }
-    private EasyCodef settingCodef(){
-        EasyCodef easyCodef = new EasyCodef();
-        easyCodef.setClientInfoForDemo(CLIENT_ID, CLIENT_SECRET);
-        easyCodef.setPublicKey(PUBLIC_KEY);
-        return easyCodef;
+        this.codefFactory = codefFactory;
+        this.requestThreadFactory = requestThreadFactory;
     }
     @Override
     public NonVerifiedTaxValidationResponseDTO nonVerifiedTaxValidation(
             NonVerifiedTaxValidationRequestDTO nonVerifiedTaxValidationRequestDTO,
             MemberEntity memberEntity)
             throws InterruptedException {
-        EasyCodef easyCodef = settingCodef();
+        EasyCodef easyCodef = codefFactory.create();
         List<TaxInvoiceInfo> taxInvoiceInfoList = nonVerifiedTaxValidationRequestDTO.getTaxInvoiceInfoList();
         String id = memberEntity.makeUniqueId();
         int iter = taxInvoiceInfoList.size();
@@ -95,7 +89,7 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
                     SUPPLY_VALUE.getKey(), taxInvoiceInfo.getSupplyValue().replaceAll(",", "")
             ));
 
-            Thread t = new RequestThread(id, easyCodef, requestData, i, PRODUCT_URL, redisUtils, taxInvoiceRepository, taxInvoiceInfo.getApprovalNo());
+            Thread t = requestThreadFactory.create(id, easyCodef, requestData, i, PRODUCT_URL, redisUtils, taxInvoiceRepository, taxInvoiceInfo.getApprovalNo());
 
             t.start();
 
@@ -109,7 +103,7 @@ public class TaxInvoiceValidationServiceImpl implements TaxInvoiceValidationServ
     @Override
     public String verifiedTaxValidation(String key)
             throws UnsupportedEncodingException, JsonProcessingException, InterruptedException {
-        EasyCodef easyCodef = settingCodef();
+        EasyCodef easyCodef = codefFactory.create();
 
         Map<String, Object> addAuthResponse = redisUtils.getCodefApiResponse(key);
         Map<String, Object> commonResponse = redisUtils.getCodefApiResponse(key+"common");
