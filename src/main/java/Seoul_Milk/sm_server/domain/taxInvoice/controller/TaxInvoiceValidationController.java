@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.UnsupportedEncodingException;
 import java.util.concurrent.ExecutionException;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/valid")
+@Builder
 @Tag(name = "진위여부 검사 API")
 public class TaxInvoiceValidationController {
     private final TaxInvoiceValidationService taxInvoiceValidationService;

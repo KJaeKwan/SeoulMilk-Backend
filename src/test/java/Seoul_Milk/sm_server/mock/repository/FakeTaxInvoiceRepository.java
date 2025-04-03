@@ -7,7 +7,6 @@ import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.global.common.exception.CustomException;
-import Seoul_Milk.sm_server.global.common.exception.ErrorCode;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -191,7 +190,9 @@ public class FakeTaxInvoiceRepository implements TaxInvoiceRepository {
 
     @Override
     public boolean isAccessYourTaxInvoice(MemberEntity memberEntity, String issueId) {
-        return false;
+        TaxInvoice taxInvoice = findByIssueId(issueId)
+                .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
+        return taxInvoice.isYourTaxInvoice(memberEntity);
     }
 
     @Override
