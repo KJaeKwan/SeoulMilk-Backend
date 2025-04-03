@@ -1,5 +1,7 @@
 package Seoul_Milk.sm_server.mock.repository;
 
+import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
+
 import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
@@ -25,7 +27,7 @@ public class FakeTaxInvoiceRepository implements TaxInvoiceRepository {
         return data.stream()
                 .filter(taxInvoice -> taxInvoice.getTaxInvoiceId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new CustomException(ErrorCode.TAX_INVOICE_NOT_EXIST));
+                .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
     }
 
     @Override
@@ -194,12 +196,15 @@ public class FakeTaxInvoiceRepository implements TaxInvoiceRepository {
 
     @Override
     public boolean isAccessYourTaxInvoice(MemberEntity memberEntity, Long id) {
-        return false;
+        TaxInvoice taxInvoice = findById(id)
+                .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
+        return taxInvoice.isYourTaxInvoice(memberEntity);
     }
 
     @Override
     public void updateMandatoryColumns(Long targetId, String issueId, String erDat, String ipId, String suId, int chargeTotal) {
-
+        TaxInvoice taxInvoice = findById(targetId).orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
+        taxInvoice.update(issueId, erDat, ipId, suId, chargeTotal);
     }
 
     public List<TaxInvoice> findAll() {

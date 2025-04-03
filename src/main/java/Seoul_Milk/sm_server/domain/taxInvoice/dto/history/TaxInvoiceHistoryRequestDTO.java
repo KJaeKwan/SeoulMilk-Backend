@@ -15,6 +15,22 @@ public class TaxInvoiceHistoryRequestDTO {
             @Schema(description = "수정된 공급가액") int chargeTotal
 
     ){
+        @Builder
+        public ChangeTaxInvoiceRequest(
+                Long taxInvoiceId,
+                String issueId,
+                String erDat,
+                String suId,
+                String ipId,
+                int chargeTotal
+        ){
+            this.taxInvoiceId = taxInvoiceId;
+            this.issueId = issueId;
+            this.erDat = erDat;
+            this.suId = suId;
+            this.ipId = ipId;
+            this.chargeTotal = chargeTotal;
+        }
     }
     public record TaxInvoiceRequest(
             @Schema(description = "검증된 세금계산서 pk값 리스트") List<Long> taxInvoiceIdList
