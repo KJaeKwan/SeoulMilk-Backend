@@ -204,7 +204,8 @@ public class FakeTaxInvoiceRepository implements TaxInvoiceRepository {
 
     @Override
     public void updateMandatoryColumns(Long targetId, String issueId, String erDat, String ipId, String suId, int chargeTotal) {
-
+        TaxInvoice taxInvoice = findById(targetId).orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
+        taxInvoice.update(issueId, erDat, ipId, suId, chargeTotal);
     }
 
     public List<TaxInvoice> findAll() {

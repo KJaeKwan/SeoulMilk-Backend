@@ -12,8 +12,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import Seoul_Milk.sm_server.domain.member.enums.Role;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryRequestDTO.ChangeTaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryRequestDTO.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryResponseDTO.GetHistoryData;
+import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryResponseDTO.GetModalResponse;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.validator.TaxInvoiceValidator;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
@@ -35,6 +37,7 @@ class TaxInvoiceHistoryServiceImplTest {
     private TaxInvoiceValidator taxInvoiceValidator;
     private TaxInvoiceHistoryServiceImpl taxInvoiceHistoryService;
     private MemberEntity testMember;
+    private MemberEntity otherMember;
 
     @BeforeEach
     void setUp(){
@@ -52,6 +55,14 @@ class TaxInvoiceHistoryServiceImplTest {
                 .employeeId("202011269")
                 .password(new BCryptPasswordEncoder().encode("1234"))
                 .role(Role.ROLE_ADMIN)
+                .build();
+        otherMember = MemberEntity.builder()
+                .id(2L)
+                .name("김영룩")
+                .email("praoo900@naver.com")
+                .employeeId("202011270")
+                .password(new BCryptPasswordEncoder().encode("1234"))
+                .role(Role.ROLE_NORMAL)
                 .build();
     }
 
@@ -241,14 +252,6 @@ class TaxInvoiceHistoryServiceImplTest {
             taxInvoiceRepository.save(invoice);
             taxInvoiceFileRepository.save(file);
         }
-        MemberEntity otherMember = MemberEntity.builder()
-                .id(2L)
-                .name("김영룩")
-                .email("praoo900@naver.com")
-                .employeeId("202011270")
-                .password(new BCryptPasswordEncoder().encode("1234"))
-                .role(Role.ROLE_NORMAL)
-                .build();
 
         TaxInvoiceRequest taxInvoiceRequest = TaxInvoiceRequest.builder()
                 .taxInvoiceIdList(List.of(1L))
@@ -259,6 +262,105 @@ class TaxInvoiceHistoryServiceImplTest {
                 .hasMessageContaining(DO_NOT_ACCESS_OTHER_TAX_INVOICE.getMessage());
     }
 
+    @Test
+    @DisplayName("<RE_03> 검증 내역 수정 테스트(성공 케이스)")
+    void updateValidationData(){
+        TaxInvoice taxInvoice = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1", testMember);
+        TaxInvoiceFile file = createTaxInvoiceFile(1L, taxInvoice);
+        taxInvoiceRepository.save(taxInvoice);
+        taxInvoiceFileRepository.save(file);
+        ChangeTaxInvoiceRequest changeTaxInvoiceRequest = ChangeTaxInvoiceRequest.builder()
+                .taxInvoiceId(taxInvoice.getTaxInvoiceId())
+                .issueId("1111-1111")
+                .erDat("2025-03-26")
+                .suId("2")
+                .ipId("2")
+                .chargeTotal(30)
+                .build();
+        taxInvoiceHistoryService.changeColunm(testMember, changeTaxInvoiceRequest);
+
+        assertThat(taxInvoice.getTaxInvoiceId()).isEqualTo(1L);
+        assertThat(taxInvoice.getIssueId()).isEqualTo("1111-1111");
+        assertThat(taxInvoice.getErDat()).isEqualTo("2025-03-26");
+        assertThat(taxInvoice.getSuId()).isEqualTo("2");
+        assertThat(taxInvoice.getIpId()).isEqualTo("2");
+        assertThat(taxInvoice.getChargeTotal()).isEqualTo(30);
+    }
+
+    @Test
+    @DisplayName("<RE_03> 검증 내역 수정 테스트(존재하지 않는 세금계산서 수정하려 할 때 에러 발생)")
+    void updateNotExistValidationData(){
+        TaxInvoice taxInvoice = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1", testMember);
+        TaxInvoiceFile file = createTaxInvoiceFile(1L, taxInvoice);
+        taxInvoiceRepository.save(taxInvoice);
+        taxInvoiceFileRepository.save(file);
+        ChangeTaxInvoiceRequest changeTaxInvoiceRequest = ChangeTaxInvoiceRequest.builder()
+                .taxInvoiceId(2L)
+                .issueId("1111-1111")
+                .erDat("2025-03-26")
+                .suId("2")
+                .ipId("2")
+                .chargeTotal(30)
+                .build();
+
+        assertThatThrownBy(() -> taxInvoiceHistoryService.changeColunm(testMember, changeTaxInvoiceRequest))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(TAX_INVOICE_NOT_EXIST.getMessage());
+    }
+
+    @Test
+    @DisplayName("<RE_03> 본인 것이 아닌 세금계산서 수정하려 할 때 에러발생")
+    void updateNotMineValidationData(){
+        TaxInvoice taxInvoice = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1", testMember);
+        TaxInvoiceFile file = createTaxInvoiceFile(1L, taxInvoice);
+        taxInvoiceRepository.save(taxInvoice);
+        taxInvoiceFileRepository.save(file);
+        ChangeTaxInvoiceRequest changeTaxInvoiceRequest = ChangeTaxInvoiceRequest.builder()
+                .taxInvoiceId(taxInvoice.getTaxInvoiceId())
+                .issueId("1111-1111")
+                .erDat("2025-03-26")
+                .suId("2")
+                .ipId("2")
+                .chargeTotal(30)
+                .build();
+
+
+        assertThatThrownBy(() -> taxInvoiceHistoryService.changeColunm(otherMember, changeTaxInvoiceRequest))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(DO_NOT_ACCESS_OTHER_TAX_INVOICE.getMessage());
+    }
+
+    @Test
+    @DisplayName("<RE_02> 조회 모달 테스트")
+    void showModalTest(){
+        TaxInvoice taxInvoice = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1", testMember);
+        TaxInvoiceFile file = createTaxInvoiceFile(1L, taxInvoice);
+        taxInvoiceRepository.save(taxInvoice);
+        taxInvoiceFileRepository.save(file);
+        GetModalResponse getModalResponse = taxInvoiceHistoryService.showModal(1L);
+
+        assertThat(getModalResponse.chargeTotal()).isEqualTo(String.valueOf(taxInvoice.getChargeTotal()));
+        assertThat(getModalResponse.taxTotal()).isEqualTo(String.valueOf(taxInvoice.getTaxTotal()));
+        assertThat(getModalResponse.grandTotal()).isEqualTo(String.valueOf(taxInvoice.getGrandTotal()));
+        assertThat(getModalResponse.erDat()).isEqualTo(taxInvoice.getErDat());
+        assertThat(getModalResponse.ipId()).isEqualTo(taxInvoice.getIpId());
+        assertThat(getModalResponse.suId()).isEqualTo(taxInvoice.getSuId());
+        assertThat(getModalResponse.issueId()).isEqualTo(taxInvoice.getIssueId());
+        assertThat(getModalResponse.processStatus()).isEqualTo(taxInvoice.getProcessStatus());
+        assertThat(getModalResponse.url()).isEqualTo(taxInvoice.getFile().getFileUrl());
+    }
+
+    @Test
+    @DisplayName("<RE_02> 존재하지 않는 세금계산서 조회 시 에러 발생")
+    void showNotExistModalTest(){
+        TaxInvoice taxInvoice = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1", testMember);
+        TaxInvoiceFile file = createTaxInvoiceFile(1L, taxInvoice);
+        taxInvoiceRepository.save(taxInvoice);
+        taxInvoiceFileRepository.save(file);
+        assertThatThrownBy(() -> taxInvoiceHistoryService.showModal(2L))
+                .isInstanceOf(CustomException.class)
+                .hasMessageContaining(TAX_INVOICE_NOT_EXIST.getMessage());
+    }
 
 
 }
