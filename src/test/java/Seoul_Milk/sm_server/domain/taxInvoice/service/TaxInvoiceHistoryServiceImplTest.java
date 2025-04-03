@@ -5,6 +5,8 @@ import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.REJECTE
 import static Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus.UNAPPROVED;
 import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.DO_NOT_ACCESS_OTHER_TAX_INVOICE;
 import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
+import static Seoul_Milk.sm_server.util.TaxDataCreatorUtil.createTaxInvoice;
+import static Seoul_Milk.sm_server.util.TaxDataCreatorUtil.createTaxInvoiceFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -13,14 +15,11 @@ import Seoul_Milk.sm_server.domain.member.enums.Role;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryRequestDTO.TaxInvoiceRequest;
 import Seoul_Milk.sm_server.domain.taxInvoice.dto.history.TaxInvoiceHistoryResponseDTO.GetHistoryData;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
-import Seoul_Milk.sm_server.domain.taxInvoice.enums.ArapType;
-import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.validator.TaxInvoiceValidator;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.entity.TaxInvoiceFile;
 import Seoul_Milk.sm_server.global.common.exception.CustomException;
 import Seoul_Milk.sm_server.mock.repository.FakeTaxInvoiceFileRepository;
 import Seoul_Milk.sm_server.mock.repository.FakeTaxInvoiceRepository;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -61,9 +60,9 @@ class TaxInvoiceHistoryServiceImplTest {
     void countTest(){
         //Given
         List<TaxInvoice> invoices = List.of(
-                createTaxInvoice(1L, "1", UNAPPROVED, "1", "1", "2024-03-26", null, null),
-                createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", null, null),
-                createTaxInvoice(3L, "3", REJECTED, "3", "3", "2024-03-26", null, null)
+                createTaxInvoice(1L, "1", UNAPPROVED, "1", "1", "2024-03-26", null, null, testMember),
+                createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", null, null, testMember),
+                createTaxInvoice(3L, "3", REJECTED, "3", "3", "2024-03-26", null, null, testMember)
         );
 
         for (int i = 0; i < invoices.size(); i++) {
@@ -90,9 +89,9 @@ class TaxInvoiceHistoryServiceImplTest {
     @DisplayName("검색어 테스트 : 공급자 또는 공급받는자 검색했을 때")
     void pocSearchTest(){
         //Given
-        TaxInvoice correctTaxInvoice1 = createTaxInvoice(1L, "1", UNAPPROVED, "1", "1", "2024-03-26", null, "서울우유 1");
-        TaxInvoice correctTaxInvoice2 = createTaxInvoice(3L, "3", APPROVED, "3", "3", "2024-03-26", "서울우유 2", null);
-        TaxInvoice incorrectTaxInvoice1 = createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", "부산마트", null);
+        TaxInvoice correctTaxInvoice1 = createTaxInvoice(1L, "1", UNAPPROVED, "1", "1", "2024-03-26", null, "서울우유 1", testMember);
+        TaxInvoice correctTaxInvoice2 = createTaxInvoice(3L, "3", APPROVED, "3", "3", "2024-03-26", "서울우유 2", null, testMember);
+        TaxInvoice incorrectTaxInvoice1 = createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", "부산마트", null, testMember);
         List<TaxInvoice> invoices = List.of(
                 correctTaxInvoice1,
                 correctTaxInvoice2,
@@ -137,9 +136,9 @@ class TaxInvoiceHistoryServiceImplTest {
     @Test
     @DisplayName("공급자 공급받는자 그리고 승인상태별 검색 시")
     void pocAndOptionSearchTest(){
-        TaxInvoice correctTaxInvoice1 = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1");
-        TaxInvoice incorrectTaxInvoice1 = createTaxInvoice(3L, "3", UNAPPROVED, "3", "3", "2024-03-26", "서울우유 2", null);
-        TaxInvoice incorrectTaxInvoice2 = createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", "부산마트", null);
+        TaxInvoice correctTaxInvoice1 = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1", testMember);
+        TaxInvoice incorrectTaxInvoice1 = createTaxInvoice(3L, "3", UNAPPROVED, "3", "3", "2024-03-26", "서울우유 2", null, testMember);
+        TaxInvoice incorrectTaxInvoice2 = createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", "부산마트", null, testMember);
         List<TaxInvoice> invoices = List.of(
                 correctTaxInvoice1,
                 incorrectTaxInvoice1,
@@ -169,8 +168,8 @@ class TaxInvoiceHistoryServiceImplTest {
     @DisplayName("검증데이터 삭제 테스트")
     void deleteTaxInvoiceTest(){
         //given
-        TaxInvoice taxInvoice1 = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1");
-        TaxInvoice taxInvoice2 = createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", "부산마트", null);
+        TaxInvoice taxInvoice1 = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1", testMember);
+        TaxInvoice taxInvoice2 = createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", "부산마트", null, testMember);
         List<TaxInvoice> invoices = List.of(
                 taxInvoice1,
                 taxInvoice2
@@ -206,8 +205,8 @@ class TaxInvoiceHistoryServiceImplTest {
     @Test
     @DisplayName("DB에 없는 검증데이터 삭제 시도 시 에러발생")
     void deleteNotExistValidationData(){
-        TaxInvoice taxInvoice1 = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1");
-        TaxInvoice taxInvoice2 = createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", "부산마트", null);
+        TaxInvoice taxInvoice1 = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1", testMember);
+        TaxInvoice taxInvoice2 = createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", "부산마트", null, testMember);
         List<TaxInvoice> invoices = List.of(
                 taxInvoice1,
                 taxInvoice2
@@ -230,8 +229,8 @@ class TaxInvoiceHistoryServiceImplTest {
     @Test
     @DisplayName("본인것이 아닌 검증데이터 삭제 시 에러발생")
     void deleteNotMineValidationData(){
-        TaxInvoice taxInvoice1 = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1");
-        TaxInvoice taxInvoice2 = createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", "부산마트", null);
+        TaxInvoice taxInvoice1 = createTaxInvoice(1L, "1", APPROVED, "1", "1", "2024-03-26", null, "서울우유 1", testMember);
+        TaxInvoice taxInvoice2 = createTaxInvoice(2L, "2", APPROVED, "2", "2", "2024-03-26", "부산마트", null, testMember);
         List<TaxInvoice> invoices = List.of(
                 taxInvoice1,
                 taxInvoice2
@@ -260,30 +259,6 @@ class TaxInvoiceHistoryServiceImplTest {
                 .hasMessageContaining(DO_NOT_ACCESS_OTHER_TAX_INVOICE.getMessage());
     }
 
-    private TaxInvoice createTaxInvoice(Long id, String issueId, ProcessStatus status, String ipId, String suId, String erDat, String ipBusinessName, String suBusinessName) {
-        return TaxInvoice.builder()
-                .taxInvoiceId(id)
-                .issueId(issueId)
-                .arap(ArapType.SALES)
-                .processStatus(status)
-                .ipId(ipId)
-                .suId(suId)
-                .chargeTotal(1)
-                .erDat(erDat)
-                .ipBusinessName(ipBusinessName)
-                .suBusinessName(suBusinessName)
-                .member(testMember)
-                .createAt(LocalDateTime.now())
-                .build();
-    }
 
-    private TaxInvoiceFile createTaxInvoiceFile(Long id, TaxInvoice invoice) {
-        TaxInvoiceFile file = TaxInvoiceFile.builder()
-                .id(id)
-                .taxInvoice(invoice)
-                .build();
-        invoice.attachFile(file);
-        return file;
-    }
 
 }

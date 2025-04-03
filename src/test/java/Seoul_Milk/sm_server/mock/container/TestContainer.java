@@ -9,14 +9,19 @@ import Seoul_Milk.sm_server.domain.member.repository.MemberRepository;
 import Seoul_Milk.sm_server.domain.member.service.MemberServiceImpl;
 import Seoul_Milk.sm_server.domain.taxInvoice.controller.TaxInvoiceController;
 import Seoul_Milk.sm_server.domain.taxInvoice.controller.TaxInvoiceHistoryController;
+import Seoul_Milk.sm_server.domain.taxInvoice.controller.TaxInvoiceValidationController;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.domain.taxInvoice.service.TaxInvoiceHistoryServiceImpl;
 import Seoul_Milk.sm_server.domain.taxInvoice.service.TaxInvoiceServiceImpl;
+import Seoul_Milk.sm_server.domain.taxInvoice.service.TaxInvoiceValidationServiceImpl;
+import Seoul_Milk.sm_server.domain.taxInvoice.thread.RequestThreadFactory;
 import Seoul_Milk.sm_server.domain.taxInvoice.util.ExcelMaker;
 import Seoul_Milk.sm_server.domain.taxInvoice.validator.TaxInvoiceValidator;
 import Seoul_Milk.sm_server.domain.taxInvoiceFile.repository.TaxInvoiceFileRepository;
 import Seoul_Milk.sm_server.global.infrastructure.clovaOcr.infrastructure.ClovaOcrApi;
 import Seoul_Milk.sm_server.global.infrastructure.clovaOcr.service.OcrDataExtractor;
+import Seoul_Milk.sm_server.global.infrastructure.codef.CodefFactory;
+import Seoul_Milk.sm_server.global.infrastructure.redis.RedisUtils;
 import Seoul_Milk.sm_server.global.infrastructure.upload.service.AwsS3Service;
 import Seoul_Milk.sm_server.mock.repository.FakeImageRepository;
 import Seoul_Milk.sm_server.mock.repository.FakeMemberRepository;
@@ -31,6 +36,9 @@ public class TestContainer {
     public final AwsS3Service awsS3Service;
     public final ClovaOcrApi clovaOcrApi;
     public final ExcelMaker excelMaker;
+    public final RedisUtils redisUtils;
+    public final RequestThreadFactory requestThreadFactory;
+    public final CodefFactory codefFactory;
 
     public final MemberRepository memberRepository;
     public final MemberServiceImpl memberService;
@@ -43,6 +51,8 @@ public class TestContainer {
     public final TaxInvoiceController taxInvoiceController;
     public final TaxInvoiceHistoryServiceImpl taxInvoiceHistoryService;
     public final TaxInvoiceHistoryController taxInvoiceHistoryController;
+    public final TaxInvoiceValidationServiceImpl taxInvoiceValidationService;
+    public final TaxInvoiceValidationController taxInvoiceValidationController;
     public final TaxInvoiceValidator taxInvoiceValidator;
 
     public final ImageRepository imageRepository;
@@ -53,6 +63,9 @@ public class TestContainer {
         this.awsS3Service = Mockito.mock(AwsS3Service.class);
         this.clovaOcrApi = Mockito.mock(ClovaOcrApi.class);
         this.excelMaker = Mockito.mock(ExcelMaker.class);
+        this.redisUtils = Mockito.mock(RedisUtils.class);
+        this.codefFactory = Mockito.mock(CodefFactory.class);
+        this.requestThreadFactory = Mockito.mock(RequestThreadFactory.class);
 
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -107,5 +120,18 @@ public class TestContainer {
         this.taxInvoiceHistoryController = new TaxInvoiceHistoryController(
                 this.taxInvoiceHistoryService
         );
+
+        this.taxInvoiceValidationService = TaxInvoiceValidationServiceImpl
+                .builder()
+                .redisUtils(redisUtils)
+                .codefFactory(codefFactory)
+                .PRODUCT_URL("test")
+                .taxInvoiceRepository(taxInvoiceRepository)
+                .requestThreadFactory(requestThreadFactory)
+                .build();
+        this.taxInvoiceValidationController = TaxInvoiceValidationController
+                .builder()
+                .taxInvoiceValidationService(taxInvoiceValidationService)
+                .build();
     }
 }

@@ -2,12 +2,14 @@ package Seoul_Milk.sm_server.domain.taxInvoice.dto.validation.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
+import lombok.Builder;
 import lombok.Getter;
 
 //Todo controller이름 정해지면 description 그거에 맞추기
 //Todo 삭제할 가능성 있음 배포전에 쓸일 없으면 지우기
 @Schema(description = "간편인증 안한 상태에서의 진위여부 요청 api request body")
 @Getter
+@Builder
 public class NonVerifiedTaxValidationRequestDTO {
     @Schema(description = "간편인증 로그인구분(1:카카오톡, 2:페이코, 3:삼성패스, 4:KB모바일, 5:통신사(PASS), 6:네이버, 7:신한인증서, 8: toss, 9: 뱅크샐러드)")
     private String loginTypeLevel;

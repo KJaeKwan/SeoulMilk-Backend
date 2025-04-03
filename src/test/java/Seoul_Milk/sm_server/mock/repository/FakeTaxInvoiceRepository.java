@@ -1,11 +1,12 @@
 package Seoul_Milk.sm_server.mock.repository;
 
+import static Seoul_Milk.sm_server.global.common.exception.ErrorCode.TAX_INVOICE_NOT_EXIST;
+
 import Seoul_Milk.sm_server.domain.member.entity.MemberEntity;
 import Seoul_Milk.sm_server.domain.taxInvoice.entity.TaxInvoice;
 import Seoul_Milk.sm_server.domain.taxInvoice.enums.ProcessStatus;
 import Seoul_Milk.sm_server.domain.taxInvoice.repository.TaxInvoiceRepository;
 import Seoul_Milk.sm_server.global.common.exception.CustomException;
-import Seoul_Milk.sm_server.global.common.exception.ErrorCode;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +26,7 @@ public class FakeTaxInvoiceRepository implements TaxInvoiceRepository {
         return data.stream()
                 .filter(taxInvoice -> taxInvoice.getTaxInvoiceId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new CustomException(ErrorCode.TAX_INVOICE_NOT_EXIST));
+                .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
     }
 
     @Override
@@ -189,12 +190,16 @@ public class FakeTaxInvoiceRepository implements TaxInvoiceRepository {
 
     @Override
     public boolean isAccessYourTaxInvoice(MemberEntity memberEntity, String issueId) {
-        return false;
+        TaxInvoice taxInvoice = findByIssueId(issueId)
+                .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
+        return taxInvoice.isYourTaxInvoice(memberEntity);
     }
 
     @Override
     public boolean isAccessYourTaxInvoice(MemberEntity memberEntity, Long id) {
-        return false;
+        TaxInvoice taxInvoice = findById(id)
+                .orElseThrow(() -> new CustomException(TAX_INVOICE_NOT_EXIST));
+        return taxInvoice.isYourTaxInvoice(memberEntity);
     }
 
     @Override
